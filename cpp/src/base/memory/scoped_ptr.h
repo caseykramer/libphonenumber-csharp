@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Google Inc.
+// Copyright (C) 2011 The Libphonenumber Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 
 // Author: Philippe Liard
 
-#ifndef I18N_PHONENUMBERS_BASE_SCOPED_PTR_H_
-#define I18N_PHONENUMBERS_BASE_SCOPED_PTR_H_
+#ifndef I18N_PHONENUMBERS_BASE_MEMORY_SCOPED_PTR_H_
+#define I18N_PHONENUMBERS_BASE_MEMORY_SCOPED_PTR_H_
 
 #include <boost/scoped_ptr.hpp>
 
 using boost::scoped_ptr;
 
-#endif  // I18N_PHONENUMBERS_BASE_SCOPED_PTR_H_
+#endif  // I18N_PHONENUMBERS_BASE_MEMORY_SCOPED_PTR_H_

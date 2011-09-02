@@ -1,4 +1,4 @@
-// Copyright (C) 2011 Google Inc.
+// Copyright (C) 2011 The Libphonenumber Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 
 #include "base/basictypes.h"
 #include "base/logging.h"
-#include "base/scoped_ptr.h"
+#include "base/memory/scoped_ptr.h"
 #include "phonenumbers/default_logger.h"
 
 namespace i18n {
