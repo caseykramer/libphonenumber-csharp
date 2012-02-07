@@ -21,7 +21,7 @@
 
   <properties>
     <phonenumberutil.resources.dir>
-      ${project.dir}/../../../../java/src/
+      ${project.dir}/../../../../java/libphonenumber/src/
     </phonenumberutil.resources.dir>
   </properties>
 
@@ -49,8 +49,6 @@
           <target>1.5</target>
         </configuration>
       </plugin>
-      <!-- Add ../../../java/src/ to make Phonemetadata.java available to the source
-           directories. -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -64,8 +62,13 @@
             </goals>
             <configuration>
               <sources>
-                <source>../../../java/src/</source>
-                <!-- Also add ../common/src/ which contains BuildMetadataFromXml.java -->
+                <!-- Add ../../../java/libphonenumber/src/ to make Phonemetadata.java available to
+                     the source directories. -->
+                <source>../../../java/libphonenumber/src/</source>
+                <!-- Add ../../../java/geocoder/src/ to make AreaCodeMap.java available to the
+                     source directories. -->
+                <source>../../../java/geocoder/src/</source>
+                <!-- Add ../common/src/ which contains BuildMetadataFromXml.java -->
                 <source>../common/src/</source>
               </sources>
             </configuration>
@@ -84,7 +87,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>com.google.i18n.phonenumbers.tools.EntryPoint</mainClass>
+              <mainClass>com.google.i18n.phonenumbers.EntryPoint</mainClass>
             </manifest>
           </archive>
         </configuration>

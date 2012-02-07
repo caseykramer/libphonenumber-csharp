@@ -52,20 +52,6 @@ the tests run.
 Known Issues
 ------------
 
-- TestEqualWithItalianLeadingZeroSetToDefault is currently disabled as
-  generated classes Equals() method does not exist on their related
-  Builder.
-
-- Check all Equals call sites
-
-- PhoneNumberOfflineGeocoder always return country English names as I
-  have found no way to get localized name in .Net.
-
-- PhoneNumberOfflineGeocoder may raise InvalidArgException() for some
-  inputs as .Net does not support all current country codes in
-  RegionInfo constructor. For instance RegionType("BS") for Bahamas
-  fails for me.
-
 - Phone numbers metadata is read from XML files and not protocol
   buffers one. I could not make it work using protobuf-csharp
   library. On the other hand, it makes one less dependency.

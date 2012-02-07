@@ -80,6 +80,7 @@
     <Compile Include="CountryCodeToRegionCodeMap.cs" />
     <Compile Include="DefaultMapStorage.cs" />
     <Compile Include="FlyweightMapStorage.cs" />
+    <Compile Include="LocaleData.cs" />
     <Compile Include="MappingFileProvider.cs" />
     <Compile Include="NumberParseException.cs" />
     <Compile Include="Phonemetadata.cs" />
@@ -91,6 +92,8 @@
     <Compile Include="PhoneRegex.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegexCache.cs" />
+    <Compile Include="RegionCode.cs" />
+    <Compile Include="ShortNumberUtil.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="XmlParser.cs" />
   </ItemGroup>
@@ -224,6 +227,55 @@
   <ItemGroup>
     <None Include="key.snk" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\212_en" />
+    <EmbeddedResource Include="res\212_fr" />
+    <EmbeddedResource Include="res\238_pt" />
+    <EmbeddedResource Include="res\247_en" />
+    <EmbeddedResource Include="res\252_en" />
+    <EmbeddedResource Include="res\258_pt" />
+    <EmbeddedResource Include="res\260_en" />
+    <EmbeddedResource Include="res\299_en" />
+    <EmbeddedResource Include="res\358_en" />
+    <EmbeddedResource Include="res\358_fi" />
+    <EmbeddedResource Include="res\358_se" />
+    <EmbeddedResource Include="res\53_en" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\381_sr" />
+    <EmbeddedResource Include="res\81_en" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\222_en" />
+    <EmbeddedResource Include="res\225_fr" />
+    <EmbeddedResource Include="res\229_fr" />
+    <EmbeddedResource Include="res\238_en" />
+    <EmbeddedResource Include="res\239_en" />
+    <EmbeddedResource Include="res\242_en" />
+    <EmbeddedResource Include="res\243_en" />
+    <EmbeddedResource Include="res\244_en" />
+    <EmbeddedResource Include="res\245_en" />
+    <EmbeddedResource Include="res\258_en" />
+    <EmbeddedResource Include="res\269_en" />
+    <EmbeddedResource Include="res\30_en" />
+    <EmbeddedResource Include="res\31_en" />
+    <EmbeddedResource Include="res\33_en" />
+    <EmbeddedResource Include="res\34_en" />
+    <EmbeddedResource Include="res\351_en" />
+    <EmbeddedResource Include="res\36_en" />
+    <EmbeddedResource Include="res\381_en" />
+    <EmbeddedResource Include="res\43_en" />
+    <EmbeddedResource Include="res\46_en" />
+    <EmbeddedResource Include="res\48_en" />
+    <EmbeddedResource Include="res\49_en" />
+    <EmbeddedResource Include="res\54_en" />
+    <EmbeddedResource Include="res\55_en" />
+    <EmbeddedResource Include="res\56_en" />
+    <EmbeddedResource Include="res\86_en" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\test_1_de" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -232,4 +284,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <PropertyGroup>
+    <PreBuildEvent>python $(SolutionDir)\lib\version.py</PreBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -1,20 +1,26 @@
 <?xml version="1.0" ?>
 
 <project name="libphonenumber" default="compile">
-  <property name="src.dir" value="src"/>
-  <property name="test.dir" value="test"/>
+  <property name="libphonenumber.src.dir" value="libphonenumber/src"/>
+  <property name="libphonenumber.test.dir" value="libphonenumber/test"/>
+  <property name="geocoder.src.dir" value="geocoder/src"/>
+  <property name="geocoder.test.dir" value="geocoder/test"/>
   <property name="build.dir" value="build"/>
   <property name="classes.dir" value="${build.dir}/classes"/>
   <property name="jar.dir" value="${build.dir}/jar"/>
   <property name="lib.dir" value="lib"/>
   <property name="report.dir" value="${build.dir}/junitreport"/>
+  <property name="resources.dir" value="../resources/"/>
+  <property name="javascript.dir" value="../javascript/"/>
+  <property name="build.tools.jar"
+      value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
 
   <path id="classpath">
     <fileset dir="${lib.dir}" includes="**/*.jar"/>
   </path>
   <path id="test.classpath">
     <pathelement location="${classes.dir}"/>
-    <pathelement location="lib/junit/junit-4.8.1.jar"/>
+    <pathelement location="${lib.dir}/junit/junit-4.8.1.jar"/>
     <pathelement location="${jar.dir}/${ant.project.name}-test.jar"/>
     <fileset dir="${lib.dir}">
       <include name="**/*.jar"/>
@@ -24,10 +30,10 @@
   <target name="build-metadata">
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="BuildMetadataProtoFromXml"/>
-      <arg value="../resources/PhoneNumberMetaData.xml"/>
-      <arg value="src"/>
+      <arg value="${resources.dir}/PhoneNumberMetaData.xml"/>
+      <arg value="libphonenumber/src"/>
       <arg value="false"/> <!-- Not for testing. -->
       <arg value="false"/> <!-- No lite metadata. -->
     </exec>
@@ -36,10 +42,10 @@
   <target name="build-test-metadata">
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="BuildMetadataProtoFromXml"/>
-      <arg value="../resources/PhoneNumberMetaDataForTesting.xml"/>
-      <arg value="test"/>
+      <arg value="${resources.dir}/PhoneNumberMetaDataForTesting.xml"/>
+      <arg value="libphonenumber/test"/>
       <arg value="true"/> <!-- For testing. -->
       <arg value="false"/> <!-- No lite metadata. -->
     </exec>
@@ -48,55 +54,56 @@
   <target name="build-geo-data">
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="GenerateAreaCodeData"/>
-      <arg value="../resources/geocoding/"/>
-      <arg value="src/com/google/i18n/phonenumbers/geocoding/data"/>
+      <arg value="${resources.dir}/geocoding/"/>
+      <arg value="geocoder/src/com/google/i18n/phonenumbers/geocoding/data"/>
     </exec>
   </target>
 
   <target name="build-geo-test-data">
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="GenerateAreaCodeData"/>
-      <arg value="../resources/test/geocoding/"/>
-      <arg value="test/com/google/i18n/phonenumbers/geocoding/testing_data"/>
+      <arg value="${resources.dir}/test/geocoding/"/>
+      <arg value="geocoder/test/com/google/i18n/phonenumbers/geocoding/testing_data"/>
     </exec>
   </target>
 
   <target name="build-js-metadata">
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="BuildMetadataJsonFromXml"/>
-      <arg value="../resources/PhoneNumberMetaData.xml"/>
-      <arg value="../javascript/i18n/phonenumbers/metadata.js"/>
+      <arg value="${resources.dir}/PhoneNumberMetaData.xml"/>
+      <arg value="${javascript.dir}/i18n/phonenumbers/metadata.js"/>
     </exec>
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="BuildMetadataJsonFromXml"/>
-      <arg value="../resources/PhoneNumberMetaData.xml"/>
-      <arg value="../javascript/i18n/phonenumbers/metadatalite.js"/>
+      <arg value="${resources.dir}/PhoneNumberMetaData.xml"/>
+      <arg value="${javascript.dir}/i18n/phonenumbers/metadatalite.js"/>
       <arg value="true"/> <!-- Lite metadata. -->
     </exec>
     <exec executable="java">
       <arg value="-jar" />
-      <arg value="../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar"/>
+      <arg value="${build.tools.jar}"/>
       <arg value="BuildMetadataJsonFromXml"/>
-      <arg value="../resources/PhoneNumberMetaDataForTesting.xml"/>
-      <arg value="../javascript/i18n/phonenumbers/metadatafortesting.js"/>
+      <arg value="${resources.dir}/PhoneNumberMetaDataForTesting.xml"/>
+      <arg value="${javascript.dir}/i18n/phonenumbers/metadatafortesting.js"/>
     </exec>
   </target>
 
   <target name="compile" description="Compile Java source."
           depends="build-metadata,build-geo-data">
     <mkdir dir="${classes.dir}"/>
-    <javac srcdir="${src.dir}" destdir="${classes.dir}"
-           classpathref="classpath" includeAntRuntime="false"/>
-    <javac srcdir="${test.dir}" destdir="${classes.dir}"
-           classpathref="classpath" debug="on" includeAntRuntime="false"/>
+    <javac srcdir="${libphonenumber.src.dir};${geocoder.src.dir}"
+           destdir="${classes.dir}" classpathref="classpath" includeAntRuntime="false"/>
+    <javac srcdir="${libphonenumber.test.dir};${geocoder.test.dir}"
+           destdir="${classes.dir}" classpathref="classpath" debug="on"
+           includeAntRuntime="false"/>
   </target>
 
   <target name="jar" depends="compile">
@@ -108,7 +115,7 @@
         <exclude name="**/BuildMetadata*"/>
         <exclude name="**/geocoding/*"/>
       </fileset>
-      <fileset dir="${src.dir}">
+      <fileset dir="${libphonenumber.src.dir}">
         <include name="**/PhoneNumberMetadataProto*"/>
       </fileset>
     </jar>
@@ -118,7 +125,7 @@
         <exclude name="**/*Test*"/>
         <exclude name="**/geocoding/GenerateAreaCodeData*"/>
       </fileset>
-      <fileset dir="${src.dir}">
+      <fileset dir="${geocoder.src.dir}">
         <include name="**/geocoding/data/*"/>
       </fileset>
     </jar>
@@ -132,13 +139,13 @@
         <include name="**/*.class"/>
         <exclude name="**/*Test*"/>
       </fileset>
-      <fileset dir="${src.dir}">
+      <fileset dir="${libphonenumber.src.dir}">
         <include name="**/PhoneNumberMetadataProto*"/>
       </fileset>
-      <fileset dir="${test.dir}">
+      <fileset dir="${libphonenumber.test.dir}">
         <include name="**/PhoneNumberMetadataProtoForTesting*"/>
       </fileset>
-      <fileset dir="${test.dir}">
+      <fileset dir="${geocoder.test.dir}">
         <include name="**/geocoding/testing_data/*"/>
       </fileset>
     </jar>
@@ -149,8 +156,11 @@
     <junit printsummary="yes">
       <classpath refid="test.classpath"/>
       <formatter type="xml"/>
-      <batchtest fork="yes" todir="${report.dir}">
-        <fileset dir="${test.dir}" includes="**/*Test.java"/>
+      <batchtest fork="no" todir="${report.dir}">
+        <fileset dir="${libphonenumber.test.dir}" includes="**/*Test.java"/>
+      </batchtest>
+      <batchtest fork="no" todir="${report.dir}">
+        <fileset dir="${geocoder.test.dir}" includes="**/*Test.java"/>
       </batchtest>
     </junit>
   </target>

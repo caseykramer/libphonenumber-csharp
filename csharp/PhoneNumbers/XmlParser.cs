@@ -29,6 +29,7 @@ namespace PhoneNumbers
         // String constants used to fetch the XML nodes and attributes.
         private static readonly String CARRIER_CODE_FORMATTING_RULE = "carrierCodeFormattingRule";
         private static readonly String COUNTRY_CODE = "countryCode";
+        private static readonly String EMERGENCY = "emergency";
         private static readonly String EXAMPLE_NUMBER = "exampleNumber";
         private static readonly String FIXED_LINE = "fixedLine";
         private static readonly String FORMAT = "format";
@@ -42,6 +43,8 @@ namespace PhoneNumbers
         private static readonly String NATIONAL_NUMBER_PATTERN = "nationalNumberPattern";
         private static readonly String NATIONAL_PREFIX = "nationalPrefix";
         private static readonly String NATIONAL_PREFIX_FORMATTING_RULE = "nationalPrefixFormattingRule";
+        private static readonly String NATIONAL_PREFIX_OPTIONAL_WHEN_FORMATTING =
+            "nationalPrefixOptionalWhenFormatting";
         private static readonly String NATIONAL_PREFIX_FOR_PARSING = "nationalPrefixForParsing";
         private static readonly String NATIONAL_PREFIX_TRANSFORM_RULE = "nationalPrefixTransformRule";
         private static readonly String NO_INTERNATIONAL_DIALLING = "noInternationalDialling";
@@ -56,6 +59,7 @@ namespace PhoneNumbers
         private static readonly String SHARED_COST = "sharedCost";
         private static readonly String TOLL_FREE = "tollFree";
         private static readonly String UAN = "uan";
+        private static readonly String VOICEMAIL = "voicemail";
         private static readonly String VOIP = "voip";
 
         static public bool LiteBuild { get; set; }
@@ -152,7 +156,7 @@ namespace PhoneNumbers
             if (element.HasAttribute(NATIONAL_PREFIX_FOR_PARSING))
             {
                 metadata.SetNationalPrefixForParsing(
-                    ValidateRE(element.GetAttribute(NATIONAL_PREFIX_FOR_PARSING)));
+                    ValidateRE(element.GetAttribute(NATIONAL_PREFIX_FOR_PARSING), true));
                 if (element.HasAttribute(NATIONAL_PREFIX_TRANSFORM_RULE))
                 {
                     metadata.SetNationalPrefixTransformRule(
@@ -255,13 +259,16 @@ namespace PhoneNumbers
         }
 
         /**
-          *  Extracts the available formats from the provided DOM element. If it does not contain any
-          *  nationalPrefixFormattingRule, the one passed-in is retained.
-          */
+        *  Extracts the available formats from the provided DOM element. If it does not contain any
+        *  nationalPrefixFormattingRule, the one passed-in is retained. The nationalPrefix,
+        *  nationalPrefixFormattingRule and nationalPrefixOptionalWhenFormatting values are provided from
+        *  the parent (territory) element.
+        */
         // @VisibleForTesting
         public static void LoadAvailableFormats(PhoneMetadata.Builder metadata, String regionCode,
                                          XmlElement element, String nationalPrefix,
-                                         String nationalPrefixFormattingRule)
+                                         String nationalPrefixFormattingRule,
+                                         bool nationalPrefixOptionalWhenFormatting)
         {
             String carrierCodeFormattingRule = "";
             if (element.HasAttribute(CARRIER_CODE_FORMATTING_RULE))
@@ -283,10 +290,14 @@ namespace PhoneNumbers
                     {
                         format.SetNationalPrefixFormattingRule(
                             GetNationalPrefixFormattingRuleFromElement(numberFormatElement, nationalPrefix));
+                        format.SetNationalPrefixOptionalWhenFormatting(
+                            numberFormatElement.HasAttribute(NATIONAL_PREFIX_OPTIONAL_WHEN_FORMATTING));
+
                     }
                     else
                     {
                         format.SetNationalPrefixFormattingRule(nationalPrefixFormattingRule);
+                        format.SetNationalPrefixOptionalWhenFormatting(nationalPrefixOptionalWhenFormatting);
                     }
                     if (numberFormatElement.HasAttribute("carrierCodeFormattingRule"))
                     {
@@ -374,7 +385,7 @@ namespace PhoneNumbers
         public static PhoneNumberDesc ProcessPhoneNumberDescElement(PhoneNumberDesc generalDesc,
             XmlElement countryElement, String numberType)
         {
-            if(generalDesc == null)
+            if (generalDesc == null)
                 generalDesc = new PhoneNumberDesc.Builder().Build();
             var phoneNumberDescList = countryElement.GetElementsByTagName(numberType);
             var numberDesc = new PhoneNumberDesc.Builder();
@@ -431,6 +442,8 @@ namespace PhoneNumbers
                                                                      PERSONAL_NUMBER));
             metadata.SetPager(ProcessPhoneNumberDescElement(generalDesc, element, PAGER));
             metadata.SetUan(ProcessPhoneNumberDescElement(generalDesc, element, UAN));
+            metadata.SetVoicemail(ProcessPhoneNumberDescElement(generalDesc, element, VOICEMAIL));
+            metadata.SetEmergency(ProcessPhoneNumberDescElement(generalDesc, element, EMERGENCY));
             metadata.SetNoInternationalDialling(ProcessPhoneNumberDescElement(generalDesc, element,
                                                                               NO_INTERNATIONAL_DIALLING));
             metadata.SetSameMobileAndFixedLinePattern(
@@ -447,7 +460,8 @@ namespace PhoneNumbers
                 LoadTerritoryTagMetadata(regionCode, element, nationalPrefix, nationalPrefixFormattingRule);
 
             LoadAvailableFormats(metadata, regionCode, element, nationalPrefix.ToString(),
-                                 nationalPrefixFormattingRule.ToString());
+                                 nationalPrefixFormattingRule.ToString(),
+                                 element.HasAttribute(NATIONAL_PREFIX_OPTIONAL_WHEN_FORMATTING));
             LoadGeneralDesc(metadata, element);
             return metadata.Build();
         }

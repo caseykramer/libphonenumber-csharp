@@ -266,6 +266,57 @@ i18n.phonenumbers.NumberFormat.prototype.clearNationalPrefixFormattingRule = fun
 
 
 /**
+ * Gets the value of the national_prefix_optional_when_formatting field.
+ * @return {?boolean} The value.
+ */
+i18n.phonenumbers.NumberFormat.prototype.getNationalPrefixOptionalWhenFormatting = function() {
+  return /** @type {?boolean} */ (this.get$Value(6));
+};
+
+
+/**
+ * Gets the value of the national_prefix_optional_when_formatting field or the default value if not set.
+ * @return {boolean} The value.
+ */
+i18n.phonenumbers.NumberFormat.prototype.getNationalPrefixOptionalWhenFormattingOrDefault = function() {
+  return /** @type {boolean} */ (this.get$ValueOrDefault(6));
+};
+
+
+/**
+ * Sets the value of the national_prefix_optional_when_formatting field.
+ * @param {boolean} value The value.
+ */
+i18n.phonenumbers.NumberFormat.prototype.setNationalPrefixOptionalWhenFormatting = function(value) {
+  this.set$Value(6, value);
+};
+
+
+/**
+ * @return {boolean} Whether the national_prefix_optional_when_formatting field has a value.
+ */
+i18n.phonenumbers.NumberFormat.prototype.hasNationalPrefixOptionalWhenFormatting = function() {
+  return this.has$Value(6);
+};
+
+
+/**
+ * @return {number} The number of values in the national_prefix_optional_when_formatting field.
+ */
+i18n.phonenumbers.NumberFormat.prototype.nationalPrefixOptionalWhenFormattingCount = function() {
+  return this.count$Values(6);
+};
+
+
+/**
+ * Clears the values in the national_prefix_optional_when_formatting field.
+ */
+i18n.phonenumbers.NumberFormat.prototype.clearNationalPrefixOptionalWhenFormatting = function() {
+  this.clear$Field(6);
+};
+
+
+/**
  * Gets the value of the domestic_carrier_code_formatting_rule field.
  * @return {?string} The value.
  */
@@ -1016,6 +1067,108 @@ i18n.phonenumbers.PhoneMetadata.prototype.uanCount = function() {
  */
 i18n.phonenumbers.PhoneMetadata.prototype.clearUan = function() {
   this.clear$Field(25);
+};
+
+
+/**
+ * Gets the value of the emergency field.
+ * @return {i18n.phonenumbers.PhoneNumberDesc} The value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.getEmergency = function() {
+  return /** @type {i18n.phonenumbers.PhoneNumberDesc} */ (this.get$Value(27));
+};
+
+
+/**
+ * Gets the value of the emergency field or the default value if not set.
+ * @return {!i18n.phonenumbers.PhoneNumberDesc} The value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.getEmergencyOrDefault = function() {
+  return /** @type {!i18n.phonenumbers.PhoneNumberDesc} */ (this.get$ValueOrDefault(27));
+};
+
+
+/**
+ * Sets the value of the emergency field.
+ * @param {!i18n.phonenumbers.PhoneNumberDesc} value The value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.setEmergency = function(value) {
+  this.set$Value(27, value);
+};
+
+
+/**
+ * @return {boolean} Whether the emergency field has a value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.hasEmergency = function() {
+  return this.has$Value(27);
+};
+
+
+/**
+ * @return {number} The number of values in the emergency field.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.emergencyCount = function() {
+  return this.count$Values(27);
+};
+
+
+/**
+ * Clears the values in the emergency field.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.clearEmergency = function() {
+  this.clear$Field(27);
+};
+
+
+/**
+ * Gets the value of the voicemail field.
+ * @return {i18n.phonenumbers.PhoneNumberDesc} The value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.getVoicemail = function() {
+  return /** @type {i18n.phonenumbers.PhoneNumberDesc} */ (this.get$Value(28));
+};
+
+
+/**
+ * Gets the value of the voicemail field or the default value if not set.
+ * @return {!i18n.phonenumbers.PhoneNumberDesc} The value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.getVoicemailOrDefault = function() {
+  return /** @type {!i18n.phonenumbers.PhoneNumberDesc} */ (this.get$ValueOrDefault(28));
+};
+
+
+/**
+ * Sets the value of the voicemail field.
+ * @param {!i18n.phonenumbers.PhoneNumberDesc} value The value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.setVoicemail = function(value) {
+  this.set$Value(28, value);
+};
+
+
+/**
+ * @return {boolean} Whether the voicemail field has a value.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.hasVoicemail = function() {
+  return this.has$Value(28);
+};
+
+
+/**
+ * @return {number} The number of values in the voicemail field.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.voicemailCount = function() {
+  return this.count$Values(28);
+};
+
+
+/**
+ * Clears the values in the voicemail field.
+ */
+i18n.phonenumbers.PhoneMetadata.prototype.clearVoicemail = function() {
+  this.clear$Field(28);
 };
 
 
@@ -1916,6 +2069,11 @@ goog.proto2.Message.set$Metadata(i18n.phonenumbers.NumberFormat, {
     fieldType: goog.proto2.Message.FieldType.STRING,
     type: String
   },
+  6: {
+    name: 'national_prefix_optional_when_formatting',
+    fieldType: goog.proto2.Message.FieldType.BOOL,
+    type: Boolean
+  },
   5: {
     name: 'domestic_carrier_code_formatting_rule',
     fieldType: goog.proto2.Message.FieldType.STRING,
@@ -2008,6 +2166,18 @@ goog.proto2.Message.set$Metadata(i18n.phonenumbers.PhoneMetadata, {
   },
   25: {
     name: 'uan',
+    required: true,
+    fieldType: goog.proto2.Message.FieldType.MESSAGE,
+    type: i18n.phonenumbers.PhoneNumberDesc
+  },
+  27: {
+    name: 'emergency',
+    required: true,
+    fieldType: goog.proto2.Message.FieldType.MESSAGE,
+    type: i18n.phonenumbers.PhoneNumberDesc
+  },
+  28: {
+    name: 'voicemail',
     required: true,
     fieldType: goog.proto2.Message.FieldType.MESSAGE,
     type: i18n.phonenumbers.PhoneNumberDesc

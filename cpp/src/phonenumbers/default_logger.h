@@ -22,6 +22,15 @@
 namespace i18n {
 namespace phonenumbers {
 
+// There is no Logger in the new base implementation - provide a NOP one.
+class Logger {
+ public:
+  Logger() {}
+  virtual ~Logger() {}
+
+  static void set_logger_impl(Logger*) {}
+};
+
 // If Google base/ is used, LOG() and VLOG() from base/logging.h are used
 // therefore the default logger implementation (StdoutLogger) instantiated in
 // phonenumberutil will actually never be used. Thus provide a dummy
@@ -39,11 +48,13 @@ class StdoutLogger : public Logger {
 
 #else
 
+#include <sstream>
 #include <string>
 
 #include "phonenumbers/logger.h"
 
 using std::string;
+using std::stringstream;
 
 // Make the logging functions private (not declared in logger.h) as the client
 // should not have any reason to use them.
@@ -65,10 +76,12 @@ struct ConvertToString {
 
 template <>
 struct ConvertToString<int> {
-  static inline string DoWork(const int& n) {
-    char buffer[16];
-    std::snprintf(buffer, sizeof(buffer), "%d", n);
-    return string(buffer);
+  static inline string DoWork(int n) {
+    stringstream stream;
+    stream << n;
+    string result;
+    stream >> result;
+    return result;
   }
 };
 

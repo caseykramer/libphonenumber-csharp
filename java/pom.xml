@@ -2,10 +2,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.googlecode.libphonenumber</groupId>
-  <artifactId>libphonenumber</artifactId>
-  <version>3.9-SNAPSHOT</version>
-  <packaging>jar</packaging>
-  <name>libphonenumber</name>
+  <artifactId>libphonenumber-parent</artifactId>
+  <version>4.6-SNAPSHOT</version>
+  <packaging>pom</packaging>
   <url>http://code.google.com/p/libphonenumber/</url>
 
   <parent>
@@ -78,34 +77,20 @@
     </contributor>
   </contributors>
 
+  <modules>
+    <module>libphonenumber</module>
+    <module>geocoder</module>
+    <module>demo</module>
+  </modules>
+
   <build>
-    <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>src/com/google/i18n/phonenumbers/data</directory>
-        <targetPath>com/google/i18n/phonenumbers/data</targetPath>
-      </resource>
-    </resources>
-    <testResources>
-      <testResource>
-        <directory>test/com/google/i18n/phonenumbers/data</directory>
-        <targetPath>com/google/i18n/phonenumbers/data</targetPath>
-      </testResource>
-      <testResource>
-        <directory>test/com/google/i18n/phonenumbers/geocoding/testing_data</directory>
-        <targetPath>com/google/i18n/phonenumbers/geocoding/testing_data</targetPath>
-      </testResource>
-    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.1</version>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.10</version>
         <configuration>
-          <excludes>
-            <exclude>**/geocoding/</exclude>
-          </excludes>
+          <forkMode>never</forkMode>
         </configuration>
       </plugin>
       <plugin>
@@ -136,11 +121,10 @@
       </plugin>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
-        <version>2.0-beta-7</version>
+        <version>2.2.1</version>
         <configuration>
-          <tagBase>
-            https://libphonenumber.googlecode.com/svn/tags/
-          </tagBase>
+          <tagBase>https://libphonenumber.googlecode.com/svn/tags/</tagBase>
+          <tagNameFormat>libphonenumber-@{project.version}</tagNameFormat>
         </configuration>
       </plugin>
       <plugin>
@@ -177,93 +161,6 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <!-- Development profile that triggers the metadata generation. -->
-    <profile>
-      <id>dev</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>1.2</version>
-            <executions>
-              <execution>
-                <id>build-metadata</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>java</executable>
-                  <arguments>
-                    <argument>-jar</argument>
-                    <argument>../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar</argument>
-                    <argument>BuildMetadataProtoFromXml</argument>
-                    <argument>../resources/PhoneNumberMetaData.xml</argument>
-                    <argument>src</argument>
-                    <argument>false</argument> <!-- Not for testing. -->
-                    <argument>false</argument> <!-- No lite metadata. -->
-                  </arguments>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-test-metadata</id>
-                <phase>generate-test-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>java</executable>
-                  <arguments>
-                    <argument>-jar</argument>
-                    <argument>../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar</argument>
-                    <argument>BuildMetadataProtoFromXml</argument>
-                    <argument>../resources/PhoneNumberMetaDataForTesting.xml</argument>
-                    <argument>test</argument>
-                    <argument>true</argument> <!-- For testing. -->
-                    <argument>false</argument> <!-- No lite metadata. -->
-                  </arguments>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-geo-data</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>java</executable>
-                  <arguments>
-                    <argument>-jar</argument>
-                    <argument>../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar</argument>
-                    <argument>GenerateAreaCodeData</argument>
-                    <argument>../resources/geocoding</argument>
-                    <argument>src/com/google/i18n/phonenumbers/geocoding/data</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-              <execution>
-                <id>build-geo-test-data</id>
-                <phase>generate-test-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>java</executable>
-                  <arguments>
-                    <argument>-jar</argument>
-                    <argument>../tools/java/java-build/target/java-build-1.0-SNAPSHOT-jar-with-dependencies.jar</argument>
-                    <argument>GenerateAreaCodeData</argument>
-                    <argument>../resources/test/geocoding</argument>
-                    <argument>test/com/google/i18n/phonenumbers/geocoding/testing_data</argument>
-                  </arguments>
-                </configuration>
               </execution>
             </executions>
           </plugin>

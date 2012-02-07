@@ -28,11 +28,11 @@ namespace PhoneNumbers
         // indicated with "isMainCountryForCode" in the metadata should be first.
         public static Dictionary<int, List<String>> GetCountryCodeToRegionCodeMap()
         {
-            // The capacity is set to 273 as there are 205 different country codes,
+            // The capacity is set to 280 as there are 210 different country codes,
             // and this offers a load factor of roughly 0.75.
-            var countryCodeToRegionCodeMap = new Dictionary<int, List<String>>(273);
+            var countryCodeToRegionCodeMap = new Dictionary<int, List<String>>(280);
 
-            List<String> listWithRegionCode = new List<String>(24);
+            List<String> listWithRegionCode = new List<String>(25);
             listWithRegionCode.Add("US");
             listWithRegionCode.Add("AG");
             listWithRegionCode.Add("AI");
@@ -52,6 +52,7 @@ namespace PhoneNumbers
             listWithRegionCode.Add("MP");
             listWithRegionCode.Add("MS");
             listWithRegionCode.Add("PR");
+            listWithRegionCode.Add("SX");
             listWithRegionCode.Add("TC");
             listWithRegionCode.Add("TT");
             listWithRegionCode.Add("VC");
@@ -767,6 +768,14 @@ namespace PhoneNumbers
             countryCodeToRegionCodeMap[692] = listWithRegionCode;
 
             listWithRegionCode = new List<String>(1);
+            listWithRegionCode.Add("001");
+            countryCodeToRegionCodeMap[800] = listWithRegionCode;
+
+            listWithRegionCode = new List<String>(1);
+            listWithRegionCode.Add("001");
+            countryCodeToRegionCodeMap[808] = listWithRegionCode;
+
+            listWithRegionCode = new List<String>(1);
             listWithRegionCode.Add("KP");
             countryCodeToRegionCodeMap[850] = listWithRegionCode;
 
@@ -791,8 +800,16 @@ namespace PhoneNumbers
             countryCodeToRegionCodeMap[880] = listWithRegionCode;
 
             listWithRegionCode = new List<String>(1);
+            listWithRegionCode.Add("001");
+            countryCodeToRegionCodeMap[803] = listWithRegionCode;
+
+            listWithRegionCode = new List<String>(1);
             listWithRegionCode.Add("TW");
             countryCodeToRegionCodeMap[886] = listWithRegionCode;
+
+            listWithRegionCode = new List<String>(1);
+            listWithRegionCode.Add("001");
+            countryCodeToRegionCodeMap[888] = listWithRegionCode;
 
             listWithRegionCode = new List<String>(1);
             listWithRegionCode.Add("MV");
@@ -861,6 +878,10 @@ namespace PhoneNumbers
             listWithRegionCode = new List<String>(1);
             listWithRegionCode.Add("NP");
             countryCodeToRegionCodeMap[977] = listWithRegionCode;
+
+            listWithRegionCode = new List<String>(1);
+            listWithRegionCode.Add("001");
+            countryCodeToRegionCodeMap[979] = listWithRegionCode;
 
             listWithRegionCode = new List<String>(1);
             listWithRegionCode.Add("TJ");

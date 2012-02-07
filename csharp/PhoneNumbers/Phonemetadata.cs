@@ -79,6 +79,16 @@ namespace PhoneNumbers {
       get { return nationalPrefixFormattingRule_; }
     }
     
+    public const int NationalPrefixOptionalWhenFormattingFieldNumber = 6;
+    private bool hasNationalPrefixOptionalWhenFormatting;
+    private bool nationalPrefixOptionalWhenFormatting_ = false;
+    public bool HasNationalPrefixOptionalWhenFormatting {
+      get { return hasNationalPrefixOptionalWhenFormatting; }
+    }
+    public bool NationalPrefixOptionalWhenFormatting {
+      get { return nationalPrefixOptionalWhenFormatting_; }
+    }
+    
     public const int DomesticCarrierCodeFormattingRuleFieldNumber = 5;
     private bool hasDomesticCarrierCodeFormattingRule;
     private string domesticCarrierCodeFormattingRule_ = "";
@@ -108,6 +118,7 @@ namespace PhoneNumbers {
       foreach(string i in leadingDigitsPattern_)
         hash ^= i.GetHashCode();
       if (hasNationalPrefixFormattingRule) hash ^= nationalPrefixFormattingRule_.GetHashCode();
+      if (hasNationalPrefixOptionalWhenFormatting) hash ^= nationalPrefixOptionalWhenFormatting_.GetHashCode();
       if (hasDomesticCarrierCodeFormattingRule) hash ^= domesticCarrierCodeFormattingRule_.GetHashCode();
       return hash;
     }
@@ -121,6 +132,7 @@ namespace PhoneNumbers {
       for(int ix=0; ix < leadingDigitsPattern_.Count; ix++)
         if(!leadingDigitsPattern_[ix].Equals(other.leadingDigitsPattern_[ix])) return false;
       if (hasNationalPrefixFormattingRule != other.hasNationalPrefixFormattingRule || (hasNationalPrefixFormattingRule && !nationalPrefixFormattingRule_.Equals(other.nationalPrefixFormattingRule_))) return false;
+      if (hasNationalPrefixOptionalWhenFormatting != other.hasNationalPrefixOptionalWhenFormatting || (hasNationalPrefixOptionalWhenFormatting && !nationalPrefixOptionalWhenFormatting_.Equals(other.nationalPrefixOptionalWhenFormatting_))) return false;
       if (hasDomesticCarrierCodeFormattingRule != other.hasDomesticCarrierCodeFormattingRule || (hasDomesticCarrierCodeFormattingRule && !domesticCarrierCodeFormattingRule_.Equals(other.domesticCarrierCodeFormattingRule_))) return false;
       return true;
     }
@@ -188,6 +200,9 @@ namespace PhoneNumbers {
         }
         if (other.HasNationalPrefixFormattingRule) {
           NationalPrefixFormattingRule = other.NationalPrefixFormattingRule;
+        }
+        if (other.HasNationalPrefixOptionalWhenFormatting) {
+          NationalPrefixOptionalWhenFormatting = other.NationalPrefixOptionalWhenFormatting;
         }
         if (other.HasDomesticCarrierCodeFormattingRule) {
           DomesticCarrierCodeFormattingRule = other.DomesticCarrierCodeFormattingRule;
@@ -280,6 +295,24 @@ namespace PhoneNumbers {
       public Builder ClearNationalPrefixFormattingRule() {
         result.hasNationalPrefixFormattingRule = false;
         result.nationalPrefixFormattingRule_ = "";
+        return this;
+      }
+      
+      public bool HasNationalPrefixOptionalWhenFormatting {
+        get { return result.HasNationalPrefixOptionalWhenFormatting; }
+      }
+      public bool NationalPrefixOptionalWhenFormatting {
+        get { return result.NationalPrefixOptionalWhenFormatting; }
+        set { SetNationalPrefixOptionalWhenFormatting(value); }
+      }
+      public Builder SetNationalPrefixOptionalWhenFormatting(bool value) {
+        result.hasNationalPrefixOptionalWhenFormatting = true;
+        result.nationalPrefixOptionalWhenFormatting_ = value;
+        return this;
+      }
+      public Builder ClearNationalPrefixOptionalWhenFormatting() {
+        result.hasNationalPrefixOptionalWhenFormatting = false;
+        result.nationalPrefixOptionalWhenFormatting_ = false;
         return this;
       }
       
@@ -626,6 +659,26 @@ namespace PhoneNumbers {
       get { return uan_; }
     }
     
+    public const int EmergencyFieldNumber = 27;
+    private bool hasEmergency;
+    private global::PhoneNumbers.PhoneNumberDesc emergency_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+    public bool HasEmergency {
+      get { return hasEmergency; }
+    }
+    public global::PhoneNumbers.PhoneNumberDesc Emergency {
+      get { return emergency_; }
+    }
+    
+    public const int VoicemailFieldNumber = 28;
+    private bool hasVoicemail;
+    private global::PhoneNumbers.PhoneNumberDesc voicemail_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+    public bool HasVoicemail {
+      get { return hasVoicemail; }
+    }
+    public global::PhoneNumbers.PhoneNumberDesc Voicemail {
+      get { return voicemail_; }
+    }
+    
     public const int NoInternationalDiallingFieldNumber = 24;
     private bool hasNoInternationalDialling;
     private global::PhoneNumbers.PhoneNumberDesc noInternationalDialling_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
@@ -792,6 +845,8 @@ namespace PhoneNumbers {
         if (!hasVoip) return false;
         if (!hasPager) return false;
         if (!hasUan) return false;
+        if (!hasEmergency) return false;
+        if (!hasVoicemail) return false;
         if (!hasNoInternationalDialling) return false;
         if (!hasId) return false;
         if (!hasCountryCode) return false;
@@ -822,6 +877,8 @@ namespace PhoneNumbers {
       if (hasVoip) hash ^= voip_.GetHashCode();
       if (hasPager) hash ^= pager_.GetHashCode();
       if (hasUan) hash ^= uan_.GetHashCode();
+      if (hasEmergency) hash ^= emergency_.GetHashCode();
+      if (hasVoicemail) hash ^= voicemail_.GetHashCode();
       if (hasNoInternationalDialling) hash ^= noInternationalDialling_.GetHashCode();
       if (hasId) hash ^= id_.GetHashCode();
       if (hasCountryCode) hash ^= countryCode_.GetHashCode();
@@ -855,6 +912,8 @@ namespace PhoneNumbers {
       if (hasVoip != other.hasVoip || (hasVoip && !voip_.Equals(other.voip_))) return false;
       if (hasPager != other.hasPager || (hasPager && !pager_.Equals(other.pager_))) return false;
       if (hasUan != other.hasUan || (hasUan && !uan_.Equals(other.uan_))) return false;
+      if (hasEmergency != other.hasEmergency || (hasEmergency && !emergency_.Equals(other.emergency_))) return false;
+      if (hasVoicemail != other.hasVoicemail || (hasVoicemail && !voicemail_.Equals(other.voicemail_))) return false;
       if (hasNoInternationalDialling != other.hasNoInternationalDialling || (hasNoInternationalDialling && !noInternationalDialling_.Equals(other.noInternationalDialling_))) return false;
       if (hasId != other.hasId || (hasId && !id_.Equals(other.id_))) return false;
       if (hasCountryCode != other.hasCountryCode || (hasCountryCode && !countryCode_.Equals(other.countryCode_))) return false;
@@ -959,6 +1018,12 @@ namespace PhoneNumbers {
         }
         if (other.HasUan) {
           MergeUan(other.Uan);
+        }
+        if (other.HasEmergency) {
+          MergeEmergency(other.Emergency);
+        }
+        if (other.HasVoicemail) {
+          MergeVoicemail(other.Voicemail);
         }
         if (other.HasNoInternationalDialling) {
           MergeNoInternationalDialling(other.NoInternationalDialling);
@@ -1368,6 +1433,78 @@ namespace PhoneNumbers {
       public Builder ClearUan() {
         result.hasUan = false;
         result.uan_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+        return this;
+      }
+      
+      public bool HasEmergency {
+       get { return result.HasEmergency; }
+      }
+      public global::PhoneNumbers.PhoneNumberDesc Emergency {
+        get { return result.Emergency; }
+        set { SetEmergency(value); }
+      }
+      public Builder SetEmergency(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        result.hasEmergency = true;
+        result.emergency_ = value;
+        return this;
+      }
+      public Builder SetEmergency(global::PhoneNumbers.PhoneNumberDesc.Builder builderForValue) {
+        if(builderForValue == null) throw new global::System.ArgumentNullException("builderForValue");
+        result.hasEmergency = true;
+        result.emergency_ = builderForValue.Build();
+        return this;
+      }
+      public Builder MergeEmergency(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        if (result.HasEmergency &&
+            result.emergency_ != global::PhoneNumbers.PhoneNumberDesc.DefaultInstance) {
+            result.emergency_ = global::PhoneNumbers.PhoneNumberDesc.CreateBuilder(result.emergency_).MergeFrom(value).BuildPartial();
+        } else {
+          result.emergency_ = value;
+        }
+        result.hasEmergency = true;
+        return this;
+      }
+      public Builder ClearEmergency() {
+        result.hasEmergency = false;
+        result.emergency_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+        return this;
+      }
+      
+      public bool HasVoicemail {
+       get { return result.HasVoicemail; }
+      }
+      public global::PhoneNumbers.PhoneNumberDesc Voicemail {
+        get { return result.Voicemail; }
+        set { SetVoicemail(value); }
+      }
+      public Builder SetVoicemail(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        result.hasVoicemail = true;
+        result.voicemail_ = value;
+        return this;
+      }
+      public Builder SetVoicemail(global::PhoneNumbers.PhoneNumberDesc.Builder builderForValue) {
+        if(builderForValue == null) throw new global::System.ArgumentNullException("builderForValue");
+        result.hasVoicemail = true;
+        result.voicemail_ = builderForValue.Build();
+        return this;
+      }
+      public Builder MergeVoicemail(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        if (result.HasVoicemail &&
+            result.voicemail_ != global::PhoneNumbers.PhoneNumberDesc.DefaultInstance) {
+            result.voicemail_ = global::PhoneNumbers.PhoneNumberDesc.CreateBuilder(result.voicemail_).MergeFrom(value).BuildPartial();
+        } else {
+          result.voicemail_ = value;
+        }
+        result.hasVoicemail = true;
+        return this;
+      }
+      public Builder ClearVoicemail() {
+        result.hasVoicemail = false;
+        result.voicemail_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
         return this;
       }
       
