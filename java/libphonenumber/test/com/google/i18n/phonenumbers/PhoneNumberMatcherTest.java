@@ -19,8 +19,6 @@ package com.google.i18n.phonenumbers;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.Leniency;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 
-import junit.framework.TestCase;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -33,13 +31,7 @@ import java.util.NoSuchElementException;
  * @author Tom Hofmann
  * @see PhoneNumberUtilTest {@link PhoneNumberUtilTest} for the origin of the test data
  */
-public class PhoneNumberMatcherTest extends TestCase {
-  private PhoneNumberUtil phoneUtil;
-
-  @Override
-  protected void setUp() throws Exception {
-    phoneUtil = PhoneNumberUtilTest.initializePhoneUtilForTesting();
-  }
+public class PhoneNumberMatcherTest extends TestMetadataTestCase {
 
   /** See {@link PhoneNumberUtilTest#testParseNationalNumber()}. */
   public void testFindNationalNumber() throws Exception {
@@ -240,6 +232,7 @@ public class PhoneNumberMatcherTest extends TestCase {
     assertFalse(PhoneNumberMatcher.isLatinLetter('.'));
     assertFalse(PhoneNumberMatcher.isLatinLetter(' '));
     assertFalse(PhoneNumberMatcher.isLatinLetter('\u6211'));  // Chinese character
+    assertFalse(PhoneNumberMatcher.isLatinLetter('\u306E'));  // Hiragana letter no
   }
 
   public void testMatchesWithSurroundingLatinChars() throws Exception {
@@ -370,6 +363,9 @@ public class PhoneNumberMatcherTest extends TestCase {
     new NumberTest("1/12/2011", RegionCode.US),
     new NumberTest("10/12/82", RegionCode.DE),
     new NumberTest("650x2531234", RegionCode.US),
+    new NumberTest("2012-01-02 08:00", RegionCode.US),
+    new NumberTest("2012/01/02 08:00", RegionCode.US),
+    new NumberTest("20120102 08:00", RegionCode.US),
   };
 
   /**
@@ -398,12 +394,18 @@ public class PhoneNumberMatcherTest extends TestCase {
     new NumberTest("9002309. 158", RegionCode.US),
     new NumberTest("12 7/8 - 14 12/34 - 5", RegionCode.US),
     new NumberTest("12.1 - 23.71 - 23.45", RegionCode.US),
-
     new NumberTest("800 234 1 111x1111", RegionCode.US),
     new NumberTest("1979-2011 100", RegionCode.US),
     new NumberTest("+494949-4-94", RegionCode.DE),  // National number in wrong format
     new NumberTest("\uFF14\uFF11\uFF15\uFF16\uFF16\uFF16\uFF16-\uFF17\uFF17\uFF17", RegionCode.US),
-
+    new NumberTest("2012-0102 08", RegionCode.US),  // Very strange formatting.
+    new NumberTest("2012-01-02 08", RegionCode.US),
+    // Breakdown assistance number with unexpected formatting.
+    new NumberTest("1800-1-0-10 22", RegionCode.AU),
+    new NumberTest("030-3-2 23 12 34", RegionCode.DE),
+    new NumberTest("03 0 -3 2 23 12 34", RegionCode.DE),
+    new NumberTest("(0)3 0 -3 2 23 12 34", RegionCode.DE),
+    new NumberTest("0 3 0 -3 2 23 12 34", RegionCode.DE),
   };
 
   /**
@@ -416,10 +418,15 @@ public class PhoneNumberMatcherTest extends TestCase {
     // Should be found by strict grouping but not exact grouping, as the last two groups are
     // formatted together as a block.
     new NumberTest("0800-2491234", RegionCode.DE),
+    // Doesn't match any formatting in the test file, but almost matches an alternate format (the
+    // last two groups have been squashed together here).
+    new NumberTest("0900-1 123123", RegionCode.DE),
+    new NumberTest("(0)900-1 123123", RegionCode.DE),
+    new NumberTest("0 900-1 123123", RegionCode.DE),
   };
 
   /**
-   * Strings with number-like things that should found at all levels.
+   * Strings with number-like things that should be found at all levels.
    */
   private static final NumberTest[] EXACT_GROUPING_CASES = {
     new NumberTest("\uFF14\uFF11\uFF15\uFF16\uFF16\uFF16\uFF17\uFF17\uFF17\uFF17", RegionCode.US),
@@ -442,6 +449,11 @@ public class PhoneNumberMatcherTest extends TestCase {
     new NumberTest("0494949 ext. 49", RegionCode.DE),
     new NumberTest("01 (33) 3461 2234", RegionCode.MX),  // Optional NP present
     new NumberTest("(33) 3461 2234", RegionCode.MX),  // Optional NP omitted
+    new NumberTest("1800-10-10 22", RegionCode.AU),  // Breakdown assistance number.
+    // Doesn't match any formatting in the test file, but matches an alternate format exactly.
+    new NumberTest("0900-1 123 123", RegionCode.DE),
+    new NumberTest("(0)900-1 123 123", RegionCode.DE),
+    new NumberTest("0 900-1 123 123", RegionCode.DE),
   };
 
   public void testMatchesWithPossibleLeniency() throws Exception {
@@ -706,6 +718,19 @@ public class PhoneNumberMatcherTest extends TestCase {
     assertEquals(expected, actual);
   }
 
+  public void testNonPlusPrefixedNumbersNotFoundForInvalidRegion() throws Exception {
+    // Does not start with a "+", we won't match it.
+    Iterable<PhoneNumberMatch> iterable = phoneUtil.findNumbers("1 456 764 156", RegionCode.ZZ);
+    Iterator<PhoneNumberMatch> iterator = iterable.iterator();
+
+    assertFalse(iterator.hasNext());
+    try {
+      iterator.next();
+      fail("Violation of the Iterator contract.");
+    } catch (NoSuchElementException e) { /* Success */ }
+    assertFalse(iterator.hasNext());
+  }
+
   public void testEmptyIteration() throws Exception {
     Iterable<PhoneNumberMatch> iterable = phoneUtil.findNumbers("", RegionCode.ZZ);
     Iterator<PhoneNumberMatch> iterator = iterable.iterator();
@@ -853,7 +878,7 @@ public class PhoneNumberMatcherTest extends TestCase {
     contextPairs.add(new NumberContext("It's cheap! Call ", " before 6:30"));
     // With a second number later.
     contextPairs.add(new NumberContext("Call ", " or +1800-123-4567!"));
-    contextPairs.add(new NumberContext("Call me on June 21 at", ""));  // with a Month-Day date
+    contextPairs.add(new NumberContext("Call me on June 2 at", ""));  // with a Month-Day date
     // With publication pages.
     contextPairs.add(new NumberContext(
         "As quoted by Alfonso 12-15 (2009), you may call me at ", ""));

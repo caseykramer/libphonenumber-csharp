@@ -73,8 +73,11 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   friend class PhoneNumberMatcherTest;
   friend class PhoneNumberRegExpsAndMappings;
   friend class PhoneNumberUtilTest;
+  friend class ShortNumberUtil;
+  friend class ShortNumberUtilTest;
  public:
   ~PhoneNumberUtil();
+  static const char kRegionCodeForNonGeoEntity[];
 
   // INTERNATIONAL and NATIONAL formats are consistent with the definition
   // in ITU-T Recommendation E. 123. For example, the number of the Google
@@ -116,6 +119,8 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
     // further routed to specific offices, but allow one number to be used for a
     // company.
     UAN,
+    // Used for "Voice Mail Access Numbers".
+    VOICEMAIL,
     // A phone number is of type UNKNOWN when it does not fit any of the known
     // patterns for a specific region.
     UNKNOWN
@@ -158,7 +163,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // DEFAULT_REGIONS_.
   //
   // The PhoneNumberUtil is implemented as a singleton. Therefore, calling
-  // getInstance multiple times will only result in one instance being created.
+  // GetInstance multiple times will only result in one instance being created.
 #ifdef USE_GOOGLE_BASE
   static PhoneNumberUtil* GetInstance();
 #endif
@@ -191,7 +196,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // a way that the resultant subscriber number should be diallable, at least on
   // some devices. An example of how this could be used:
   //
-  // const PhoneNumberUtil& phone_util(PhoneNumberUtil::GetInstance());
+  // const PhoneNumberUtil& phone_util(*PhoneNumberUtil::GetInstance());
   // PhoneNumber number;
   // phone_util.Parse("16502530000", "US", &number);
   // string national_significant_number;
@@ -210,8 +215,8 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   //   subscriber_number = national_significant_number;
   // }
   //
-  // N.B.: area code is a very ambiguous concept, so the I18N team generally
-  // recommends against using it for most purposes, but recommends using the
+  // N.B.: area code is a very ambiguous concept, so the authors generally
+  // recommend against using it for most purposes, but recommend using the
   // more general national_number instead. Read the following carefully before
   // deciding to use this method:
   //
@@ -221,7 +226,8 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   //  - subscriber numbers may not be diallable from all devices (notably mobile
   //    devices, which typically requires the full national_number to be dialled
   //    in most regions).
-  //  - most non-geographical numbers have no area codes.
+  //  - most non-geographical numbers have no area codes, including numbers
+  //    from non-geographical entities.
   //  - some geographical numbers have no area codes.
   int GetLengthOfGeographicalAreaCode(const PhoneNumber& number) const;
 
@@ -233,7 +239,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // there is a subscriber number part that follows. An example of how this
   // could be used:
   //
-  // const PhoneNumberUtil& phone_util(PhoneNumberUtil::GetInstance());
+  // const PhoneNumberUtil& phone_util(*PhoneNumberUtil::GetInstance());
   // PhoneNumber number;
   // phone_util.Parse("16502530000", "US", &number);
   // string national_significant_number;
@@ -455,16 +461,26 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
       const string& region_dialing_from) const;
 
   // Gets a valid fixed-line number for the specified region. Returns false if
-  // the region was unknown.
+  // the region was unknown, or the region 001 is passed in. For 001
+  // (representing non-geographical numbers), call
+  // GetExampleNumberForNonGeoEntity instead.
   bool GetExampleNumber(const string& region_code,
                         PhoneNumber* number) const;
 
   // Gets a valid number of the specified type for the specified region.
-  // Returns false if the region was unknown or if no example number of that
-  // type could be found.
+  // Returns false if the region was unknown or 001, or if no example number of
+  // that type could be found. For 001 (representing non-geographical numbers),
+  // call GetExampleNumberForNonGeoEntity instead.
   bool GetExampleNumberForType(const string& region_code,
                                PhoneNumberType type,
                                PhoneNumber* number) const;
+
+  // Gets a valid number for the specified country calling code for a
+  // non-geographical entity. Returns false if the metadata does not contain
+  // such information, or the country calling code passed in does not belong to
+  // a non-geographical entity.
+  bool GetExampleNumberForNonGeoEntity(
+      int country_calling_code, PhoneNumber* number) const;
 
   // Parses a string and returns it in proto buffer format. This method will
   // return an error like INVALID_COUNTRY_CODE if the number is not considered
@@ -472,6 +488,8 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // that validation of whether the number is actually a valid number for a
   // particular region is not performed. This can be done separately with
   // IsValidNumber().
+  //
+  // number_to_parse can also be provided in RFC3966 format.
   //
   // default_region represents the country that we are expecting the number to
   // be from. This is only used if the number being parsed is not written in
@@ -551,7 +569,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   typedef pair<int, list<string>*> IntRegionsPair;
 
   // The minimum and maximum length of the national significant number.
-  static const size_t kMinLengthForNsn = 3;
+  static const size_t kMinLengthForNsn = 2;
   // The ITU says the maximum length should be 15, but we have found longer
   // numbers in Germany.
   static const size_t kMaxLengthForNsn = 16;
@@ -595,11 +613,21 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // A mapping from a region code to a PhoneMetadata for that region.
   scoped_ptr<map<string, PhoneMetadata> > region_to_metadata_map_;
 
+  // A mapping from a country calling code for a non-geographical entity to the
+  // PhoneMetadata for that country calling code. Examples of the country
+  // calling codes include 800 (International Toll Free Service) and 808
+  // (International Shared Cost Service).
+  scoped_ptr<map<int, PhoneMetadata> >
+      country_code_to_non_geographical_metadata_map_;
+
   PhoneNumberUtil();
 
   // Returns a regular expression for the possible extensions that may be found
   // in a number, for use when matching.
   const string& GetExtnPatternsForMatching() const;
+
+  // Checks if a number matches the plus chars pattern.
+  bool StartsWithPlusCharsPattern(const string& number) const;
 
   // Checks whether a string contains only valid digits.
   bool ContainsOnlyValidDigits(const string& s) const;
@@ -613,15 +641,22 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // Helper function to check region code is not unknown or null.
   bool IsValidRegionCode(const string& region_code) const;
 
-  // Helper function to check region code is not unknown. The
-  // country_calling_code and number supplied is used only for the resultant log
-  // message.
-  bool HasValidRegionCode(const string& region_code,
-                          int country_code,
-                          const string& number) const;
+  // Helper function to check the country calling code is valid.
+  bool HasValidCountryCallingCode(int country_calling_code) const;
 
   const i18n::phonenumbers::PhoneMetadata* GetMetadataForRegion(
       const string& region_code) const;
+
+  const i18n::phonenumbers::PhoneMetadata* GetMetadataForNonGeographicalRegion(
+      int country_calling_code) const;
+
+  const i18n::phonenumbers::PhoneMetadata* GetMetadataForRegionOrCallingCode(
+      int country_calling_code,
+      const string& region_code) const;
+
+  // As per GetCountryCodeForRegion, but assumes the validity of the region_code
+  // has already been checked.
+  int GetCountryCodeForValidRegion(const string& region_code) const;
 
   void GetRegionCodesForCountryCallingCode(
       int country_calling_code,
@@ -629,47 +664,53 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
 
   const NumberFormat* ChooseFormattingPatternForNumber(
       const RepeatedPtrField<NumberFormat>& available_formats,
-      const string& number_for_leading_digits_match,
       const string& national_number) const;
 
-  void FormatAccordingToFormatsWithCarrier(
-      const string& number_for_leading_digits_match,
-      const RepeatedPtrField<NumberFormat>& available_formats,
-      PhoneNumberUtil::PhoneNumberFormat number_format,
+  void FormatNsnUsingPatternWithCarrier(
       const string& national_number,
+      const NumberFormat& formatting_pattern,
+      PhoneNumberUtil::PhoneNumberFormat number_format,
       const string& carrier_code,
       string* formatted_number) const;
 
-  void FormatAccordingToFormats(
-      const string& number_for_leading_digits_match,
-      const RepeatedPtrField<NumberFormat>& available_formats,
-      PhoneNumberUtil::PhoneNumberFormat number_format,
+  void FormatNsnUsingPattern(
       const string& national_number,
+      const NumberFormat& formatting_pattern,
+      PhoneNumberUtil::PhoneNumberFormat number_format,
       string* formatted_number) const;
+
+  // Check if raw_input, which is assumed to be in the national format, has a
+  // national prefix. The national prefix is assumed to be in digits-only form.
+  bool RawInputContainsNationalPrefix(
+      const string& raw_input,
+      const string& national_prefix,
+      const string& region_code) const;
+
+  // Returns true if a number is from a region whose national significant number
+  // couldn't contain a leading zero, but has the italian_leading_zero field set
+  // to true.
+  bool HasUnexpectedItalianLeadingZero(const PhoneNumber& number) const;
 
   bool HasFormattingPatternForNumber(const PhoneNumber& number) const;
 
-  // Simple wrapper of FormatNationalNumberWithCarrier for the common case of
+  // Simple wrapper of FormatNsnWithCarrier for the common case of
   // no carrier code.
-  void FormatNationalNumber(const string& number,
-                            const string& region_code,
+  void FormatNsn(const string& number,
+                 const PhoneMetadata& metadata,
+                 PhoneNumberFormat number_format,
+                 string* formatted_number) const;
+
+  void FormatNsnWithCarrier(const string& number,
+                            const PhoneMetadata& metadata,
                             PhoneNumberFormat number_format,
+                            const string& carrier_code,
                             string* formatted_number) const;
 
-  void FormatNationalNumberWithCarrier(const string& number,
-                                       const string& region_code,
-                                       PhoneNumberFormat number_format,
-                                       const string& carrier_code,
-                                       string* formatted_number) const;
-  void MaybeGetFormattedExtension(
+  void MaybeAppendFormattedExtension(
       const PhoneNumber& number,
-      const string& region_code,
+      const PhoneMetadata& metadata,
       PhoneNumberFormat number_format,
       string* extension) const;
-
-  void FormatExtension(const string& extension_digits,
-                       const string& region_code,
-                       string* extension) const;
 
   void GetRegionCodeForNumberFromRegionList(
       const PhoneNumber& number,
@@ -714,9 +755,12 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
                         bool check_region,
                         PhoneNumber* phone_number) const;
 
-  // Returns true if the number can only be dialled from within the region. If
-  // unknown, or the number can be dialled from outside the region as well,
-  // returns false. Does not check the number is a valid number.
+  void BuildNationalNumberForParsing(const string& number_to_parse,
+                                     string* national_number) const;
+
+  // Returns true if the number can be dialled from outside the region, or
+  // unknown. If the number can only be dialled from within the region, returns
+  // false. Does not check the number is a valid number.
   bool CanBeInternationallyDialled(const PhoneNumber& number) const;
 
   DISALLOW_COPY_AND_ASSIGN(PhoneNumberUtil);

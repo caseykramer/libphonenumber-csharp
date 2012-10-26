@@ -69,6 +69,10 @@ class RegionCode {
     return "AU";
   }
 
+  static const char* BR() {
+    return "BR";
+  }
+
   static const char* BS() {
     return "BS";
   }
@@ -125,12 +129,20 @@ class RegionCode {
     return "SG";
   }
 
+  static const char* UN001() {
+    return "001";
+  }
+
   static const char* US() {
     return "US";
   }
 
   static const char* YT() {
     return "YT";
+  }
+
+  static const char* ZW() {
+    return "ZW";
   }
 
   // Returns a region code string representing the "unknown" region.

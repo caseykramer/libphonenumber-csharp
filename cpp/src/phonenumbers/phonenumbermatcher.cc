@@ -25,6 +25,8 @@
 #endif  // USE_ICU_REGEXP
 
 #include <ctype.h>
+#include <map>
+#include <iostream>
 #include <limits>
 #include <stddef.h>
 #include <string>
@@ -35,6 +37,8 @@
 #include "base/logging.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/singleton.h"
+#include "phonenumbers/alternate_format.h"
+#include "phonenumbers/callback.h"
 #include "phonenumbers/default_logger.h"
 #include "phonenumbers/encoding_utils.h"
 #include "phonenumbers/normalize_utf8.h"
@@ -50,6 +54,10 @@
 #include "phonenumbers/regexp_adapter_re2.h"
 #endif  // USE_RE2_AND_ICU
 
+using std::cerr;
+using std::endl;
+using std::make_pair;
+using std::map;
 using std::numeric_limits;
 using std::string;
 using std::vector;
@@ -68,28 +76,6 @@ string Limit(int lower, int upper) {
 
 bool IsInvalidPunctuationSymbol(char32 character) {
   return character == '%' || u_charType(character) == U_CURRENCY_SYMBOL;
-}
-
-// Helper method to get the national-number part of a number, formatted without
-// any national prefix, and return it as a set of digit blocks that would be
-// formatted together.
-void GetNationalNumberGroups(const PhoneNumberUtil& util,
-                             const PhoneNumber& number,
-                             vector<string>* digit_blocks) {
-  // This will be in the format +CC-DG;ext=EXT where DG represents groups of
-  // digits.
-  string rfc3966_format;
-  util.Format(number, PhoneNumberUtil::RFC3966, &rfc3966_format);
-  // We remove the extension part from the formatted string before splitting it
-  // into different groups.
-  size_t end_index = rfc3966_format.find(';');
-  if (end_index == string::npos) {
-    end_index = rfc3966_format.length();
-  }
-  // The country-code will have a '-' following it.
-  size_t start_index = rfc3966_format.find('-') + 1;
-  SplitStringUsing(rfc3966_format.substr(start_index, end_index - start_index),
-                   "-", digit_blocks);
 }
 
 bool ContainsOnlyValidXChars(const PhoneNumber& number, const string& candidate,
@@ -125,6 +111,57 @@ bool ContainsOnlyValidXChars(const PhoneNumber& number, const string& candidate,
       }
     }
     found = candidate.find_first_of("xX", found + 1);
+  }
+  return true;
+}
+
+bool AllNumberGroupsRemainGrouped(
+    const PhoneNumberUtil& util,
+    const PhoneNumber& phone_number,
+    const string& normalized_candidate,
+    const vector<string>& formatted_number_groups) {
+  size_t from_index = 0;
+  // Check each group of consecutive digits are not broken into separate
+  // groupings in the normalized_candidate string.
+  for (size_t i = 0; i < formatted_number_groups.size(); ++i) {
+    // Fails if the substring of normalized_candidate starting from from_index
+    // doesn't contain the consecutive digits in formatted_number_groups.at(i).
+    from_index = normalized_candidate.find(formatted_number_groups.at(i),
+                                           from_index);
+    if (from_index == string::npos) {
+      return false;
+    }
+    // Moves from_index forward.
+    from_index += formatted_number_groups.at(i).length();
+    if (i == 0 && from_index < normalized_candidate.length()) {
+      // We are at the position right after the NDC. Note although
+      // normalized_candidate might contain non-ASCII formatting characters,
+      // they won't be treated as ASCII digits when converted to a char.
+      if (isdigit(normalized_candidate.at(from_index))) {
+        // This means there is no formatting symbol after the NDC. In this case,
+        // we only accept the number if there is no formatting symbol at all in
+        // the number, except for extensions.
+        string national_significant_number;
+        util.GetNationalSignificantNumber(
+            phone_number, &national_significant_number);
+        return HasPrefixString(normalized_candidate.substr(
+            from_index - formatted_number_groups.at(i).length()),
+            national_significant_number);
+        }
+      }
+    }
+    // The check here makes sure that we haven't mistakenly already used the
+    // extension to match the last group of the subscriber number. Note the
+    // extension cannot have formatting in-between digits.
+    return normalized_candidate.substr(from_index)
+        .find(phone_number.extension()) != string::npos;
+}
+
+bool LoadAlternateFormats(PhoneMetadataCollection* alternate_formats) {
+  if (!alternate_formats->ParseFromArray(alternate_format_get(),
+                                         alternate_format_size())) {
+    cerr << "Could not parse binary data." << endl;
+    return false;
   }
   return true;
 }
@@ -190,6 +227,10 @@ class PhoneNumberMatcherRegExps : public Singleton<PhoneNumberMatcherRegExps> {
   // Matches strings that look like dates using "/" as a separator. Examples:
   // 3/10/2011, 31/10/96 or 08/31/95.
   scoped_ptr<const RegExp> slash_separated_dates_;
+  // Matches timestamps. Examples: "2012-01-02 08:00". Note that the reg-ex does
+  // not include trailing ":\d\d" -- that is covered by time_stamps_suffix_.
+  scoped_ptr<const RegExp> time_stamps_;
+  scoped_ptr<const RegExp> time_stamps_suffix_;
   // Pattern to check that brackets match. Opening brackets should be closed
   // within a phone number. This also checks that there is something inside the
   // brackets. Having no brackets at all is also fine.
@@ -207,7 +248,7 @@ class PhoneNumberMatcherRegExps : public Singleton<PhoneNumberMatcherRegExps> {
   scoped_ptr<const RegExp> pattern_;
 
 #ifdef USE_GOOGLE_BASE
-  PhoneNumberMatcherRegExps* PhoneNumberMatcherRegExps::GetInstance() {
+  static PhoneNumberMatcherRegExps* GetInstance() {
     return Singleton<PhoneNumberMatcherRegExps>::get();
   }
 #endif  // USE_GOOGLE_BASE
@@ -249,6 +290,9 @@ class PhoneNumberMatcherRegExps : public Singleton<PhoneNumberMatcherRegExps> {
         slash_separated_dates_(regexp_factory_->CreateRegExp(
             "(?:(?:[0-3]?\\d/[01]?\\d)|"
             "(?:[01]?\\d/[0-3]?\\d))/(?:[12]\\d)?\\d{2}")),
+        time_stamps_(regexp_factory_->CreateRegExp(
+            "[12]\\d{3}[-/]?[01]\\d[-/]?[0-3]\\d [0-2]\\d$")),
+        time_stamps_suffix_(regexp_factory_->CreateRegExp(":[0-5]\\d")),
         matching_brackets_(regexp_factory_->CreateRegExp(
             StrCat(leading_maybe_matched_bracket_, non_parens_, "+",
                    bracket_pairs_, non_parens_, "*"))),
@@ -270,12 +314,61 @@ class PhoneNumberMatcherRegExps : public Singleton<PhoneNumberMatcherRegExps> {
   DISALLOW_COPY_AND_ASSIGN(PhoneNumberMatcherRegExps);
 };
 
+#ifdef USE_GOOGLE_BASE
+class AlternateFormats {
+  friend struct DefaultSingletonTraits<AlternateFormats>;
+#else
+class AlternateFormats : public Singleton<AlternateFormats> {
+  friend class Singleton<AlternateFormats>;
+#endif  // USE_GOOGLE_BASE
+ public:
+  PhoneMetadataCollection format_data_;
+
+  map<int, const PhoneMetadata*> calling_code_to_alternate_formats_map_;
+
+#ifdef USE_GOOGLE_BASE
+  static AlternateFormats* GetInstance() {
+    return Singleton<AlternateFormats>::get();
+  }
+#endif  // USE_GOOGLE_BASE
+
+  AlternateFormats()
+      : format_data_(),
+        calling_code_to_alternate_formats_map_() {
+    if (!LoadAlternateFormats(&format_data_)) {
+      LOG(DFATAL) << "Could not parse compiled-in metadata.";
+      return;
+    }
+    for (RepeatedPtrField<PhoneMetadata>::const_iterator it =
+             format_data_.metadata().begin();
+         it != format_data_.metadata().end();
+         ++it) {
+      calling_code_to_alternate_formats_map_.insert(
+          make_pair(it->country_code(), &*it));
+    }
+  }
+
+  const PhoneMetadata* GetAlternateFormatsForCountry(int country_calling_code)
+      const {
+    map<int, const PhoneMetadata*>::const_iterator it =
+        calling_code_to_alternate_formats_map_.find(country_calling_code);
+    if (it != calling_code_to_alternate_formats_map_.end()) {
+      return it->second;
+    }
+    return NULL;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(AlternateFormats);
+};
+
 PhoneNumberMatcher::PhoneNumberMatcher(const PhoneNumberUtil& util,
                                        const string& text,
                                        const string& region_code,
                                        PhoneNumberMatcher::Leniency leniency,
                                        int max_tries)
     : reg_exps_(PhoneNumberMatcherRegExps::GetInstance()),
+      alternate_formats_(AlternateFormats::GetInstance()),
       phone_util_(util),
       text_(text),
       preferred_region_(region_code),
@@ -289,6 +382,7 @@ PhoneNumberMatcher::PhoneNumberMatcher(const PhoneNumberUtil& util,
 PhoneNumberMatcher::PhoneNumberMatcher(const string& text,
                                        const string& region_code)
     : reg_exps_(PhoneNumberMatcherRegExps::GetInstance()),
+      alternate_formats_(NULL),  // Not used.
       phone_util_(*PhoneNumberUtil::GetInstance()),
       text_(text),
       preferred_region_(region_code),
@@ -404,49 +498,12 @@ bool PhoneNumberMatcher::VerifyAccordingToLeniency(
           !IsNationalPrefixPresentIfRequired(number)) {
         return false;
       }
-      // TODO(lararennie,shaopengjia): Evaluate how this works for other locales
-      // (testing has been limited to NANPA regions) and optimise if necessary.
-      string normalized_candidate =
-          NormalizeUTF8::NormalizeDecimalDigits(candidate);
-      vector<string> formatted_number_groups;
-      GetNationalNumberGroups(phone_util_, number, &formatted_number_groups);
-      size_t from_index = 0;
-      // Check each group of consecutive digits are not broken into separate
-      // groups in the normalized_candidate string.
-      for (size_t i = 0; i < formatted_number_groups.size(); ++i) {
-        // Fails if the substring of normalized_candidate starting from
-        // from_index doesn't contain the consecutive digits in digit_group.
-        from_index = normalized_candidate.find(formatted_number_groups.at(i),
-                                               from_index);
-        if (from_index == string::npos) {
-          return false;
-        }
-        // Moves from_index forward.
-        from_index += formatted_number_groups.at(i).length();
-        if (i == 0 && from_index < normalized_candidate.length()) {
-          // We are at the position right after the NDC. Note although
-          // normalized_candidate might contain non-ASCII formatting characters,
-          // they won't be treated as ASCII digits when converted to a char.
-          if (isdigit(normalized_candidate.at(from_index))) {
-            // This means there is no formatting symbol after the NDC. In this
-            // case, we only accept the number if there is no formatting
-            // symbol at all in the number, except for extensions.
-            string national_significant_number;
-            phone_util_.GetNationalSignificantNumber(
-                number, &national_significant_number);
-            return HasPrefixString(
-                normalized_candidate.substr(
-                    from_index - formatted_number_groups.at(i).length()),
-                national_significant_number);
-          }
-        }
-      }
-      // The check here makes sure that we haven't mistakenly already used the
-      // extension to match the last group of the subscriber number. Note the
-      // extension cannot have formatting in-between digits.
-      return
-          normalized_candidate.substr(from_index).find(number.extension()) !=
-          string::npos;
+      ResultCallback4<bool, const PhoneNumberUtil&, const PhoneNumber&,
+                      const string&, const vector<string>&>* callback =
+          NewPermanentCallback(&AllNumberGroupsRemainGrouped);
+      bool is_valid = CheckNumberGroupingIsValid(number, candidate, callback);
+      delete(callback);
+      return is_valid;
     }
     case PhoneNumberMatcher::EXACT_GROUPING: {
       if (!phone_util_.IsValidNumber(number) ||
@@ -456,56 +513,13 @@ bool PhoneNumberMatcher::VerifyAccordingToLeniency(
           !IsNationalPrefixPresentIfRequired(number)) {
         return false;
       }
-      // TODO(lararennie,shaopengjia): Evaluate how this works for other locales
-      // (testing has been limited to NANPA regions) and optimise if necessary.
-      vector<string> candidate_groups;
-      string normalized_candidate =
-          NormalizeUTF8::NormalizeDecimalDigits(candidate);
-      const scoped_ptr<RegExpInput> candidate_number(
-          reg_exps_->regexp_factory_->CreateInput(normalized_candidate));
-      string digit_block;
-      while (reg_exps_->capturing_ascii_digits_pattern_->FindAndConsume(
-                 candidate_number.get(),
-                 &digit_block)) {
-        candidate_groups.push_back(digit_block);
-      }
-
-      // Set this to the last group, skipping it if the number has an extension.
-      int candidate_number_group_index =
-          number.has_extension() ? candidate_groups.size() - 2
-                                 : candidate_groups.size() - 1;
-      // First we check if the national significant number is formatted as a
-      // block. We use contains and not equals, since the national significant
-      // number may be present with a prefix such as a national number prefix,
-      // or the country code itself.
-      string national_significant_number;
-      phone_util_.GetNationalSignificantNumber(number,
-                                               &national_significant_number);
-      if (candidate_groups.size() == 1 ||
-          candidate_groups.at(candidate_number_group_index).find(
-              national_significant_number) != string::npos) {
-        return true;
-      }
-      vector<string> formatted_number_groups;
-      GetNationalNumberGroups(phone_util_, number, &formatted_number_groups);
-      // Starting from the end, go through in reverse, excluding the first
-      // group, and check the candidate and number groups are the same.
-      for (int formatted_number_group_index =
-               (formatted_number_groups.size() - 1);
-           formatted_number_group_index > 0 &&
-           candidate_number_group_index >= 0;
-           --formatted_number_group_index, --candidate_number_group_index) {
-        if (candidate_groups.at(candidate_number_group_index) !=
-            formatted_number_groups.at(formatted_number_group_index)) {
-          return false;
-        }
-      }
-      // Now check the first group. There may be a national prefix at the start,
-      // so we only check that the candidate group ends with the formatted
-      // number group.
-      return (candidate_number_group_index >= 0 &&
-              HasSuffixString(candidate_groups.at(candidate_number_group_index),
-                              formatted_number_groups.at(0)));
+      ResultCallback4<bool, const PhoneNumberUtil&, const PhoneNumber&,
+                      const string&, const vector<string>&>* callback =
+          NewPermanentCallback(
+              this, &PhoneNumberMatcher::AllNumberGroupsAreExactlyPresent);
+      bool is_valid = CheckNumberGroupingIsValid(number, candidate, callback);
+      delete(callback);
+      return is_valid;
     }
     default:
       LOG(ERROR) << "No implementation defined for verification for leniency "
@@ -578,6 +592,15 @@ bool PhoneNumberMatcher::ExtractMatch(const string& candidate, int offset,
       reg_exps_->slash_separated_dates_->PartialMatch(candidate)) {
     return false;
   }
+  // Skip potential time-stamps.
+  if (reg_exps_->time_stamps_->PartialMatch(candidate)) {
+    scoped_ptr<RegExpInput> following_text(
+        reg_exps_->regexp_factory_->CreateInput(
+            text_.substr(offset + candidate.size())));
+    if (reg_exps_->time_stamps_suffix_->Consume(following_text.get())) {
+      return false;
+    }
+  }
 
   // Try to come up with a valid match given the entire candidate.
   if (ParseAndVerify(candidate, offset, match)) {
@@ -639,6 +662,79 @@ bool PhoneNumberMatcher::Find(int index, PhoneNumberMatch* match) {
   return false;
 }
 
+bool PhoneNumberMatcher::CheckNumberGroupingIsValid(
+    const PhoneNumber& phone_number,
+    const string& candidate,
+    ResultCallback4<bool, const PhoneNumberUtil&, const PhoneNumber&,
+                    const string&, const vector<string>&>* checker) const {
+  DCHECK(checker);
+  // TODO: Evaluate how this works for other locales (testing has been limited
+  // to NANPA regions) and optimise if necessary.
+  string normalized_candidate =
+      NormalizeUTF8::NormalizeDecimalDigits(candidate);
+  vector<string> formatted_number_groups;
+  GetNationalNumberGroups(phone_number, NULL,  // Use default formatting pattern
+                          &formatted_number_groups);
+  if (checker->Run(phone_util_, phone_number, normalized_candidate,
+                   formatted_number_groups)) {
+    return true;
+  }
+  // If this didn't pass, see if there are any alternate formats, and try them
+  // instead.
+  const PhoneMetadata* alternate_formats =
+    alternate_formats_->GetAlternateFormatsForCountry(
+        phone_number.country_code());
+  if (alternate_formats) {
+    for (RepeatedPtrField<NumberFormat>::const_iterator it =
+             alternate_formats->number_format().begin();
+         it != alternate_formats->number_format().end(); ++it) {
+      formatted_number_groups.clear();
+      GetNationalNumberGroups(phone_number, &*it, &formatted_number_groups);
+      if (checker->Run(phone_util_, phone_number, normalized_candidate,
+                       formatted_number_groups)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// Helper method to get the national-number part of a number, formatted without
+// any national prefix, and return it as a set of digit blocks that would be
+// formatted together.
+void PhoneNumberMatcher::GetNationalNumberGroups(
+    const PhoneNumber& number,
+    const NumberFormat* formatting_pattern,
+    vector<string>* digit_blocks) const {
+  string rfc3966_format;
+  if (!formatting_pattern) {
+    // This will be in the format +CC-DG;ext=EXT where DG represents groups of
+    // digits.
+    phone_util_.Format(number, PhoneNumberUtil::RFC3966, &rfc3966_format);
+    // We remove the extension part from the formatted string before splitting
+    // it into different groups.
+    size_t end_index = rfc3966_format.find(';');
+    if (end_index == string::npos) {
+      end_index = rfc3966_format.length();
+    }
+    // The country-code will have a '-' following it.
+    size_t start_index = rfc3966_format.find('-') + 1;
+    SplitStringUsing(rfc3966_format.substr(start_index,
+                                           end_index - start_index),
+                     "-", digit_blocks);
+  } else {
+    // We format the NSN only, and split that according to the separator.
+    string national_significant_number;
+    phone_util_.GetNationalSignificantNumber(number,
+                                             &national_significant_number);
+    phone_util_.FormatNsnUsingPattern(national_significant_number,
+                                      *formatting_pattern,
+                                      PhoneNumberUtil::RFC3966,
+                                      &rfc3966_format);
+    SplitStringUsing(rfc3966_format, "-", digit_blocks);
+  }
+}
+
 bool PhoneNumberMatcher::IsNationalPrefixPresentIfRequired(
     const PhoneNumber& number) const {
   // First, check how we deduced the country code. If it was written in
@@ -659,7 +755,6 @@ bool PhoneNumberMatcher::IsNationalPrefixPresentIfRequired(
   phone_util_.GetNationalSignificantNumber(number, &national_number);
   const NumberFormat* format_rule =
       phone_util_.ChooseFormattingPatternForNumber(metadata->number_format(),
-                                                   national_number,
                                                    national_number);
   // To do this, we check that a national prefix formatting rule was present and
   // that it wasn't just the first-group symbol ($1) with punctuation.
@@ -692,6 +787,57 @@ bool PhoneNumberMatcher::IsNationalPrefixPresentIfRequired(
         NULL);  // Don't need to keep the stripped carrier code.
   }
   return true;
+}
+
+bool PhoneNumberMatcher::AllNumberGroupsAreExactlyPresent(
+    const PhoneNumberUtil& util,
+    const PhoneNumber& phone_number,
+    const string& normalized_candidate,
+    const vector<string>& formatted_number_groups) const {
+    const scoped_ptr<RegExpInput> candidate_number(
+        reg_exps_->regexp_factory_->CreateInput(normalized_candidate));
+  vector<string> candidate_groups;
+  string digit_block;
+  while (reg_exps_->capturing_ascii_digits_pattern_->FindAndConsume(
+             candidate_number.get(),
+             &digit_block)) {
+    candidate_groups.push_back(digit_block);
+  }
+
+  // Set this to the last group, skipping it if the number has an extension.
+  int candidate_number_group_index =
+      phone_number.has_extension() ? candidate_groups.size() - 2
+                                   : candidate_groups.size() - 1;
+  // First we check if the national significant number is formatted as a block.
+  // We use find and not equals, since the national significant number may be
+  // present with a prefix such as a national number prefix, or the country code
+  // itself.
+  string national_significant_number;
+  util.GetNationalSignificantNumber(phone_number,
+                                    &national_significant_number);
+  if (candidate_groups.size() == 1 ||
+      candidate_groups.at(candidate_number_group_index).find(
+          national_significant_number) != string::npos) {
+    return true;
+  }
+  // Starting from the end, go through in reverse, excluding the first group,
+  // and check the candidate and number groups are the same.
+  for (int formatted_number_group_index =
+           (formatted_number_groups.size() - 1);
+       formatted_number_group_index > 0 &&
+       candidate_number_group_index >= 0;
+       --formatted_number_group_index, --candidate_number_group_index) {
+    if (candidate_groups.at(candidate_number_group_index) !=
+        formatted_number_groups.at(formatted_number_group_index)) {
+      return false;
+    }
+  }
+  // Now check the first group. There may be a national prefix at the start, so
+  // we only check that the candidate group ends with the formatted number
+  // group.
+  return (candidate_number_group_index >= 0 &&
+          HasSuffixString(candidate_groups.at(candidate_number_group_index),
+                          formatted_number_groups.at(0)));
 }
 
 }  // namespace phonenumbers

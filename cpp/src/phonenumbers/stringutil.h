@@ -30,10 +30,11 @@ using std::string;
 using std::vector;
 
 // Supports string("hello") + 10.
-string operator+(const string& s, int n);
+string operator+(const string& s, int n);  // NOLINT(runtime/string)
 
 // Converts integer to string.
 string SimpleItoa(uint64 n);
+string SimpleItoa(int64 n);
 string SimpleItoa(int n);
 
 // Returns whether the provided string starts with the supplied prefix.
@@ -65,6 +66,9 @@ void safe_strto32(const string& s, int32 *n);
 // Converts string to uint64.
 void safe_strtou64(const string& s, uint64 *n);
 
+// Converts string to int64.
+void safe_strto64(const string& s, int64* n);
+
 // Remove all occurrences of a given set of characters from a string.
 void strrmm(string* s, const string& chars);
 
@@ -76,11 +80,11 @@ int GlobalReplaceSubstring(const string& substring, const string& replacement,
 // Holds a reference to a std::string or C string. It can also be constructed
 // from an integer which is converted to a string.
 class StringHolder {
-public:
+ public:
   // Don't make the constructors explicit to make the StrCat usage convenient.
-  StringHolder(const string& s);
-  StringHolder(const char* s);
-  StringHolder(uint64 n);
+  StringHolder(const string& s);  // NOLINT(runtime/explicit)
+  StringHolder(const char* s);    // NOLINT(runtime/explicit)
+  StringHolder(uint64 n);         // NOLINT(runtime/explicit)
   ~StringHolder();
 
   const string* GetString() const {
@@ -95,7 +99,7 @@ public:
     return len_;
   }
 
-private:
+ private:
   const string converted_string_;  // Stores the string converted from integer.
   const string* const string_;
   const char* const cstring_;
@@ -148,6 +152,16 @@ string StrCat(const StringHolder& s1, const StringHolder& s2,
 void StrAppend(string* dest, const StringHolder& s1);
 
 void StrAppend(string* dest, const StringHolder& s1, const StringHolder& s2);
+
+void StrAppend(string* dest, const StringHolder& s1, const StringHolder& s2,
+               const StringHolder& s3);
+
+void StrAppend(string* dest, const StringHolder& s1, const StringHolder& s2,
+               const StringHolder& s3, const StringHolder& s4);
+
+void StrAppend(string* dest, const StringHolder& s1, const StringHolder& s2,
+               const StringHolder& s3, const StringHolder& s4,
+               const StringHolder& s5);
 
 }  // namespace phonenumbers
 }  // namespace i18n

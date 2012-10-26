@@ -526,15 +526,20 @@ TEST_F(PhoneNumberMatcherTest, MatchWithSurroundingZipcodes) {
 TEST_F(PhoneNumberMatcherTest, IsLatinLetter) {
   EXPECT_TRUE(IsLatinLetter('c'));
   EXPECT_TRUE(IsLatinLetter('C'));
-  EXPECT_TRUE(IsLatinLetter(UnicodeString("\xC3\x89" /* "É" */)[0]));
+  EXPECT_TRUE(IsLatinLetter(UnicodeString::fromUTF8("\xC3\x89" /* "É" */)[0]));
   // Combining acute accent.
-  EXPECT_TRUE(IsLatinLetter(UnicodeString("\xCC\x81")[0]));
+  EXPECT_TRUE(IsLatinLetter(UnicodeString::fromUTF8("\xCC\x81")[0]));
   EXPECT_FALSE(IsLatinLetter(':'));
   EXPECT_FALSE(IsLatinLetter('5'));
   EXPECT_FALSE(IsLatinLetter('-'));
   EXPECT_FALSE(IsLatinLetter('.'));
   EXPECT_FALSE(IsLatinLetter(' '));
-  EXPECT_FALSE(IsLatinLetter(UnicodeString("\xE6\x88\x91" /* "我" */)[0]));
+  EXPECT_FALSE(
+      IsLatinLetter(UnicodeString::fromUTF8("\xE6\x88\x91" /* "我" */)[0]));
+  /* Hiragana letter no (の) - this should neither seem to start or end with a
+     Latin letter. */
+  EXPECT_FALSE(IsLatinLetter(UnicodeString::fromUTF8("\xE3\x81\xAE")[0]));
+  EXPECT_FALSE(IsLatinLetter(UnicodeString::fromUTF8("\xE3\x81\xAE")[2]));
 }
 
 TEST_F(PhoneNumberMatcherTest, MatchesWithSurroundingLatinChars) {
@@ -683,7 +688,7 @@ TEST_F(PhoneNumberMatcherTest,
 }
 
 // Strings with number-like things that shouldn't be found under any level.
-static const NumberTest IMPOSSIBLE_CASES[] = {
+static const NumberTest kImpossibleCases[] = {
   NumberTest("12345", RegionCode::US()),
   NumberTest("23456789", RegionCode::US()),
   NumberTest("234567890112", RegionCode::US()),
@@ -693,54 +698,69 @@ static const NumberTest IMPOSSIBLE_CASES[] = {
   NumberTest("31/8/2011", RegionCode::US()),
   NumberTest("1/12/2011", RegionCode::US()),
   NumberTest("10/12/82", RegionCode::DE()),
+  NumberTest("650x2531234", RegionCode::US()),
+  NumberTest("2012-01-02 08:00", RegionCode::US()),
+  NumberTest("2012/01/02 08:00", RegionCode::US()),
+  NumberTest("20120102 08:00", RegionCode::US()),
 };
 
 // Strings with number-like things that should only be found under "possible".
-static const NumberTest POSSIBLE_ONLY_CASES[] = {
-  NumberTest("abc8002345678", RegionCode::US()),
+static const NumberTest kPossibleOnlyCases[] = {
   // US numbers cannot start with 7 in the test metadata to be valid.
   NumberTest("7121115678", RegionCode::US()),
   // 'X' should not be found in numbers at leniencies stricter than POSSIBLE,
   // unless it represents a carrier code or extension.
   NumberTest("1650 x 253 - 1234", RegionCode::US()),
   NumberTest("650 x 253 - 1234", RegionCode::US()),
-  NumberTest("650x2531234", RegionCode::US()),
+  NumberTest("6502531x234", RegionCode::US()),
   NumberTest("(20) 3346 1234", RegionCode::GB()),  // Non-optional NP omitted
 };
 
 // Strings with number-like things that should only be found up to and including
 // the "valid" leniency level.
-static const NumberTest VALID_CASES[] = {
-  NumberTest("65 02 53 00 00.", RegionCode::US()),
+static const NumberTest kValidCases[] = {
+  NumberTest("65 02 53 00 00", RegionCode::US()),
   NumberTest("6502 538365", RegionCode::US()),
   // 2 slashes are illegal at higher levels.
   NumberTest("650//253-1234", RegionCode::US()),
   NumberTest("650/253/1234", RegionCode::US()),
   NumberTest("9002309. 158", RegionCode::US()),
-  NumberTest("21 7/8 - 14 12/34 - 5", RegionCode::US()),
+  NumberTest("12 7/8 - 14 12/34 - 5", RegionCode::US()),
   NumberTest("12.1 - 23.71 - 23.45", RegionCode::US()),
-  NumberTest("1979-2011 100%", RegionCode::US()),
   NumberTest("800 234 1 111x1111", RegionCode::US()),
+  NumberTest("1979-2011 100", RegionCode::US()),
   // National number in wrong format.
   NumberTest("+494949-4-94", RegionCode::DE()),
   NumberTest(
       /* "４１５６６６-７７７７" */
       "\xEF\xBC\x94\xEF\xBC\x91\xEF\xBC\x95\xEF\xBC\x96\xEF\xBC\x96\xEF\xBC\x96"
       "\x2D\xEF\xBC\x97\xEF\xBC\x97\xEF\xBC\x97\xEF\xBC\x97", RegionCode::US()),
-};
+  NumberTest("2012-0102 08", RegionCode::US()),  // Very strange formatting.
+  NumberTest("2012-01-02 08", RegionCode::US()),
+  // Breakdown assistance number with unexpected formatting.
+  NumberTest("1800-1-0-10 22", RegionCode::AU()),
+  NumberTest("030-3-2 23 12 34", RegionCode::DE()),
+  NumberTest("03 0 -3 2 23 12 34", RegionCode::DE()),
+  NumberTest("(0)3 0 -3 2 23 12 34", RegionCode::DE()),
+  NumberTest("0 3 0 -3 2 23 12 34", RegionCode::DE()),};
 
 // Strings with number-like things that should only be found up to and including
 // the "strict_grouping" leniency level.
-static const NumberTest STRICT_GROUPING_CASES[] = {
+static const NumberTest kStrictGroupingCases[] = {
   NumberTest("(415) 6667777", RegionCode::US()),
   NumberTest("415-6667777", RegionCode::US()),
   // Should be found by strict grouping but not exact grouping, as the last two
   // groups are formatted together as a block.
   NumberTest("0800-2491234", RegionCode::DE()),
+  // Doesn't match any formatting in the test file, but almost matches an
+  // alternate format (the last two groups have been squashed together here).
+  NumberTest("0900-1 123123", RegionCode::DE()),
+  NumberTest("(0)900-1 123123", RegionCode::DE()),
+  NumberTest("0 900-1 123123", RegionCode::DE()),
 };
 
-// Strings with number-like things that should found at all levels.
-static const NumberTest EXACT_GROUPING_CASES[] = {
+// Strings with number-like things that should be found at all levels.
+static const NumberTest kExactGroupingCases[] = {
   NumberTest(
       /* "４１５６６６７７７７" */
       "\xEF\xBC\x94\xEF\xBC\x91\xEF\xBC\x95\xEF\xBC\x96\xEF\xBC\x96\xEF\xBC\x96"
@@ -768,48 +788,95 @@ static const NumberTest EXACT_GROUPING_CASES[] = {
   NumberTest("0494949 ext. 49", RegionCode::DE()),
   NumberTest("01 (33) 3461 2234", RegionCode::MX()),  // Optional NP present
   NumberTest("(33) 3461 2234", RegionCode::MX()),  // Optional NP omitted
+  // Breakdown assistance number with normal formatting.
+  NumberTest("1800-10-10 22", RegionCode::AU()),
+  // Doesn't match any formatting in the test file, but matches an alternate
+  // format exactly.
+  NumberTest("0900-1 123 123", RegionCode::DE()),
+  NumberTest("(0)900-1 123 123", RegionCode::DE()),
+  NumberTest("0 900-1 123 123", RegionCode::DE()),
 };
+
+TEST_F(PhoneNumberMatcherTest, MatchesWithPossibleLeniency) {
+  vector<NumberTest> test_cases;
+  test_cases.insert(test_cases.begin(), kPossibleOnlyCases,
+                    kPossibleOnlyCases + arraysize(kPossibleOnlyCases));
+  test_cases.insert(test_cases.begin(), kValidCases,
+                    kValidCases + arraysize(kValidCases));
+  test_cases.insert(test_cases.begin(), kStrictGroupingCases,
+                    kStrictGroupingCases + arraysize(kStrictGroupingCases));
+  test_cases.insert(test_cases.begin(), kExactGroupingCases,
+                    kExactGroupingCases + arraysize(kExactGroupingCases));
+  DoTestNumberMatchesForLeniency(test_cases, PhoneNumberMatcher::POSSIBLE);
+}
+
+TEST_F(PhoneNumberMatcherTest, NonMatchesWithPossibleLeniency) {
+  vector<NumberTest> test_cases;
+  test_cases.insert(test_cases.begin(), kImpossibleCases,
+                    kImpossibleCases + arraysize(kImpossibleCases));
+  DoTestNumberNonMatchesForLeniency(test_cases, PhoneNumberMatcher::POSSIBLE);
+}
+
+TEST_F(PhoneNumberMatcherTest, MatchesWithValidLeniency) {
+  vector<NumberTest> test_cases;
+  test_cases.insert(test_cases.begin(), kValidCases,
+                    kValidCases + arraysize(kValidCases));
+  test_cases.insert(test_cases.begin(), kStrictGroupingCases,
+                    kStrictGroupingCases + arraysize(kStrictGroupingCases));
+  test_cases.insert(test_cases.begin(), kExactGroupingCases,
+                    kExactGroupingCases + arraysize(kExactGroupingCases));
+  DoTestNumberMatchesForLeniency(test_cases, PhoneNumberMatcher::VALID);
+}
+
+TEST_F(PhoneNumberMatcherTest, NonMatchesWithValidLeniency) {
+  vector<NumberTest> test_cases;
+  test_cases.insert(test_cases.begin(), kImpossibleCases,
+                    kImpossibleCases + arraysize(kImpossibleCases));
+  test_cases.insert(test_cases.begin(), kPossibleOnlyCases,
+                    kPossibleOnlyCases + arraysize(kPossibleOnlyCases));
+  DoTestNumberNonMatchesForLeniency(test_cases, PhoneNumberMatcher::VALID);
+}
 
 TEST_F(PhoneNumberMatcherTest, MatchesWithStrictGroupingLeniency) {
   vector<NumberTest> test_cases;
-  test_cases.insert(test_cases.begin(), STRICT_GROUPING_CASES,
-                    STRICT_GROUPING_CASES + arraysize(STRICT_GROUPING_CASES));
-  test_cases.insert(test_cases.begin(), EXACT_GROUPING_CASES,
-                    EXACT_GROUPING_CASES + arraysize(EXACT_GROUPING_CASES));
+  test_cases.insert(test_cases.begin(), kStrictGroupingCases,
+                    kStrictGroupingCases + arraysize(kStrictGroupingCases));
+  test_cases.insert(test_cases.begin(), kExactGroupingCases,
+                    kExactGroupingCases + arraysize(kExactGroupingCases));
   DoTestNumberMatchesForLeniency(test_cases,
                                  PhoneNumberMatcher::STRICT_GROUPING);
 }
 
 TEST_F(PhoneNumberMatcherTest, NonMatchesWithStrictGroupingLeniency) {
   vector<NumberTest> test_cases;
-  test_cases.insert(test_cases.begin(), IMPOSSIBLE_CASES,
-                    IMPOSSIBLE_CASES + arraysize(IMPOSSIBLE_CASES));
-  test_cases.insert(test_cases.begin(), POSSIBLE_ONLY_CASES,
-                    POSSIBLE_ONLY_CASES + arraysize(POSSIBLE_ONLY_CASES));
-  test_cases.insert(test_cases.begin(), VALID_CASES,
-                    VALID_CASES + arraysize(VALID_CASES));
+  test_cases.insert(test_cases.begin(), kImpossibleCases,
+                    kImpossibleCases + arraysize(kImpossibleCases));
+  test_cases.insert(test_cases.begin(), kPossibleOnlyCases,
+                    kPossibleOnlyCases + arraysize(kPossibleOnlyCases));
+  test_cases.insert(test_cases.begin(), kValidCases,
+                    kValidCases + arraysize(kValidCases));
   DoTestNumberNonMatchesForLeniency(test_cases,
                                     PhoneNumberMatcher::STRICT_GROUPING);
 }
 
 TEST_F(PhoneNumberMatcherTest, MatchesWithExactGroupingLeniency) {
   vector<NumberTest> test_cases;
-  test_cases.insert(test_cases.begin(), EXACT_GROUPING_CASES,
-                    EXACT_GROUPING_CASES + arraysize(EXACT_GROUPING_CASES));
+  test_cases.insert(test_cases.begin(), kExactGroupingCases,
+                    kExactGroupingCases + arraysize(kExactGroupingCases));
   DoTestNumberMatchesForLeniency(test_cases,
                                  PhoneNumberMatcher::EXACT_GROUPING);
 }
 
 TEST_F(PhoneNumberMatcherTest, NonMatchesWithExactGroupingLeniency) {
   vector<NumberTest> test_cases;
-  test_cases.insert(test_cases.begin(), IMPOSSIBLE_CASES,
-                    IMPOSSIBLE_CASES + arraysize(IMPOSSIBLE_CASES));
-  test_cases.insert(test_cases.begin(), POSSIBLE_ONLY_CASES,
-                    POSSIBLE_ONLY_CASES + arraysize(POSSIBLE_ONLY_CASES));
-  test_cases.insert(test_cases.begin(), VALID_CASES,
-                    VALID_CASES + arraysize(VALID_CASES));
-  test_cases.insert(test_cases.begin(), STRICT_GROUPING_CASES,
-                    STRICT_GROUPING_CASES + arraysize(STRICT_GROUPING_CASES));
+  test_cases.insert(test_cases.begin(), kImpossibleCases,
+                    kImpossibleCases + arraysize(kImpossibleCases));
+  test_cases.insert(test_cases.begin(), kPossibleOnlyCases,
+                    kPossibleOnlyCases + arraysize(kPossibleOnlyCases));
+  test_cases.insert(test_cases.begin(), kValidCases,
+                    kValidCases + arraysize(kValidCases));
+  test_cases.insert(test_cases.begin(), kStrictGroupingCases,
+                    kStrictGroupingCases + arraysize(kStrictGroupingCases));
   DoTestNumberNonMatchesForLeniency(test_cases,
                                     PhoneNumberMatcher::EXACT_GROUPING);
 }
@@ -962,7 +1029,17 @@ TEST_F(PhoneNumberMatcherTest, MaxMatchesMixed) {
   EXPECT_EQ(expected, actual);
 }
 
-TEST_F(PhoneNumberMatcherTest, TestEmptyIteration) {
+TEST_F(PhoneNumberMatcherTest, NonPlusPrefixedNumbersNotFoundForInvalidRegion) {
+  PhoneNumberMatch match;
+  scoped_ptr<PhoneNumberMatcher> matcher(
+      GetMatcherWithLeniency("1 456 764 156", RegionCode::GetUnknown(),
+                             PhoneNumberMatcher::VALID));
+  EXPECT_FALSE(matcher->HasNext());
+  EXPECT_FALSE(matcher->Next(&match));
+  EXPECT_FALSE(matcher->HasNext());
+}
+
+TEST_F(PhoneNumberMatcherTest, EmptyIteration) {
   PhoneNumberMatch match;
   scoped_ptr<PhoneNumberMatcher> matcher(
       GetMatcherWithLeniency("", RegionCode::GetUnknown(),
@@ -973,7 +1050,7 @@ TEST_F(PhoneNumberMatcherTest, TestEmptyIteration) {
   EXPECT_FALSE(matcher->HasNext());
 }
 
-TEST_F(PhoneNumberMatcherTest, TestSingleIteration) {
+TEST_F(PhoneNumberMatcherTest, SingleIteration) {
   PhoneNumberMatch match;
   scoped_ptr<PhoneNumberMatcher> matcher(
       GetMatcherWithLeniency("+14156667777", RegionCode::GetUnknown(),
@@ -988,7 +1065,7 @@ TEST_F(PhoneNumberMatcherTest, TestSingleIteration) {
   EXPECT_FALSE(matcher->Next(&match));
 }
 
-TEST_F(PhoneNumberMatcherTest, TestSingleIteration_WithNextOnly) {
+TEST_F(PhoneNumberMatcherTest, SingleIteration_WithNextOnly) {
   PhoneNumberMatch match;
   scoped_ptr<PhoneNumberMatcher> matcher(
       GetMatcherWithLeniency("+14156667777", RegionCode::GetUnknown(),
@@ -997,7 +1074,7 @@ TEST_F(PhoneNumberMatcherTest, TestSingleIteration_WithNextOnly) {
   EXPECT_FALSE(matcher->Next(&match));
 }
 
-TEST_F(PhoneNumberMatcherTest, TestDoubleIteration) {
+TEST_F(PhoneNumberMatcherTest, DoubleIteration) {
   PhoneNumberMatch match;
   scoped_ptr<PhoneNumberMatcher> matcher(
       GetMatcherWithLeniency("+14156667777 foobar +14156667777 ",
@@ -1017,7 +1094,7 @@ TEST_F(PhoneNumberMatcherTest, TestDoubleIteration) {
   EXPECT_FALSE(matcher->HasNext());
 }
 
-TEST_F(PhoneNumberMatcherTest, TestDoubleIteration_WithNextOnly) {
+TEST_F(PhoneNumberMatcherTest, DoubleIteration_WithNextOnly) {
   PhoneNumberMatch match;
   scoped_ptr<PhoneNumberMatcher> matcher(
       GetMatcherWithLeniency("+14156667777 foobar +14156667777 ",

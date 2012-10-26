@@ -22,16 +22,8 @@ using NUnit.Framework;
 namespace PhoneNumbers.Test
 {
     [TestFixture]
-    class TestPhoneNumberMatcher
+    class TestPhoneNumberMatcher: TestMetadataTestCase
     {
-        private PhoneNumberUtil phoneUtil;
-
-        [SetUp]
-        protected void SetUp()
-        {
-            phoneUtil = TestPhoneNumberUtil.InitializePhoneUtilForTesting();
-        }
-
         /** See {@link PhoneNumberUtilTest#testParseNationalNumber()}. */
         [Test]
         public void TestFindNationalNumber()
@@ -251,6 +243,7 @@ namespace PhoneNumbers.Test
             Assert.False(PhoneNumberMatcher.IsLatinLetter('.'));
             Assert.False(PhoneNumberMatcher.IsLatinLetter(' '));
             Assert.False(PhoneNumberMatcher.IsLatinLetter('\u6211'));  // Chinese character
+            Assert.False(PhoneNumberMatcher.IsLatinLetter('\u306E'));  // Hiragana letter no
         }
 
         [Test]
@@ -404,6 +397,9 @@ namespace PhoneNumbers.Test
     new NumberTest("1/12/2011", "US"),
     new NumberTest("10/12/82", "DE"),
     new NumberTest("650x2531234", RegionCode.US),
+    new NumberTest("2012-01-02 08:00", RegionCode.US),
+    new NumberTest("2012/01/02 08:00", RegionCode.US),
+    new NumberTest("20120102 08:00", RegionCode.US),
   };
 
         /**
@@ -436,6 +432,14 @@ namespace PhoneNumbers.Test
     new NumberTest("1979-2011 100", RegionCode.US),
     new NumberTest("+494949-4-94", "DE"),  // National number in wrong format
     new NumberTest("\uFF14\uFF11\uFF15\uFF16\uFF16\uFF16\uFF16-\uFF17\uFF17\uFF17", RegionCode.US),
+    new NumberTest("2012-0102 08", RegionCode.US),  // Very strange formatting.
+    new NumberTest("2012-01-02 08", RegionCode.US),
+     // Breakdown assistance number with unexpected formatting.
+    new NumberTest("1800-1-0-10 22", RegionCode.AU),
+    new NumberTest("030-3-2 23 12 34", RegionCode.DE),
+    new NumberTest("03 0 -3 2 23 12 34", RegionCode.DE),
+    new NumberTest("(0)3 0 -3 2 23 12 34", RegionCode.DE),
+    new NumberTest("0 3 0 -3 2 23 12 34", RegionCode.DE),
   };
 
         /**
@@ -448,10 +452,15 @@ namespace PhoneNumbers.Test
     // Should be found by strict grouping but not exact grouping, as the last two groups are
     // formatted together as a block.
     new NumberTest("0800-2491234", "DE"),
+    // Doesn't match any formatting in the test file, but almost matches an alternate format (the
+    // last two groups have been squashed together here).
+    new NumberTest("0900-1 123123", RegionCode.DE),
+    new NumberTest("(0)900-1 123123", RegionCode.DE),
+    new NumberTest("0 900-1 123123", RegionCode.DE),
   };
 
         /**
-         * Strings with number-like things that should found at all levels.
+         * Strings with number-like things that should be found at all levels.
          */
         private static readonly NumberTest[] EXACT_GROUPING_CASES = {
             new NumberTest("\uFF14\uFF11\uFF15\uFF16\uFF16\uFF16\uFF17\uFF17\uFF17\uFF17", "US"),
@@ -474,6 +483,11 @@ namespace PhoneNumbers.Test
             new NumberTest("0494949 ext. 49", "DE"),
             new NumberTest("01 (33) 3461 2234", RegionCode.MX),  // Optional NP present
             new NumberTest("(33) 3461 2234", RegionCode.MX),  // Optional NP omitted
+            new NumberTest("1800-10-10 22", RegionCode.AU),  // Breakdown assistance number.
+            // Doesn't match any formatting in the test file, but matches an alternate format exactly.
+            new NumberTest("0900-1 123 123", RegionCode.DE),
+            new NumberTest("(0)900-1 123 123", RegionCode.DE),
+            new NumberTest("0 900-1 123 123", RegionCode.DE),
         };
 
         [Test]
@@ -781,6 +795,18 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void TestNonPlusPrefixedNumbersNotFoundForInvalidRegion()
+        {
+            // Does not start with a "+", we won't match it.
+            var iterable = phoneUtil.FindNumbers("1 456 764 156", RegionCode.ZZ);
+            var iterator = iterable.GetEnumerator();
+            
+            Assert.IsFalse(iterator.MoveNext());
+            Assert.IsFalse(iterator.MoveNext());
+        }
+
+
+        [Test]
         public void TestEmptyIteration()
         {
             var iterable = phoneUtil.FindNumbers("", "ZZ");
@@ -856,7 +882,7 @@ namespace PhoneNumbers.Test
             contextPairs.Add(new NumberContext("It's cheap! Call ", " before 6:30"));
             // With a second number later.
             contextPairs.Add(new NumberContext("Call ", " or +1800-123-4567!"));
-            contextPairs.Add(new NumberContext("Call me on June 21 at", ""));  // with a Month-Day date
+            contextPairs.Add(new NumberContext("Call me on June 2 at", ""));  // with a Month-Day date
             // With publication pages.
             contextPairs.Add(new NumberContext(
             "As quoted by Alfonso 12-15 (2009), you may call me at ", ""));
