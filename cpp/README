@@ -40,12 +40,12 @@ Requirements:
   - RE2
     http://code.google.com/p/re2/
 
-    You can install it very easily on Ubuntu Maverick and later:
+    You can install it very easily on Ubuntu Natty:
     $ sudo apt-get install libre2-dev
 
     Otherwise if you use a Debian-based distribution you can fetch the Ubuntu
     package which should work:
-    http://packages.ubuntu.com/maverick/libre2-dev
+    http://packages.ubuntu.com/natty/libre2-dev
 
     If you want to install it manually:
     You need Mercurial to checkout its source code:
@@ -85,7 +85,10 @@ Requirements:
     $ ./configure && make && sudo make install
 
   - Boost
-    Version 1.40 or more recent is required.
+    Version 1.40 or more recent is required if you need libphonenumber to be
+    thread-safe. If you access libphonenumber from a single thread, you can
+    avoid the Boost dependency by disabling the USE_BOOST CMake option (see
+    Troubleshooting section below for information about ccmake).
 
     You can install it very easily on a Debian-based GNU/Linux distribution:
     $ sudo apt-get install libboost1.40-dev libboost-thread1.40-dev
@@ -175,6 +178,7 @@ You will need to manually fetch and install the following dependencies:
     http://www.boostpro.com/download/
     * Select all the variants and Boost DateTime and Boost Thread during the
       installation process.
+    See Linux instructions for information about thread-safety.
 
   - GTest (tested with v1.6.0):
     http://code.google.com/p/googletest/downloads/list
@@ -228,8 +232,16 @@ Supported build parameters
   Build parameters can be specified invoking CMake with '-DKEY=VALUE' or using a
   CMake user interface (ccmake or cmake-gui).
 
-  USE_ICU_REGEXP    = ON | OFF [ON]  -- Use ICU regexp engine.
-  USE_LITE_METADATA = ON | OFF [OFF] -- Generates smaller metadata that doesn't
-                                        include example numbers.
-  USE_RE2           = ON | OFF [OFF] -- Use RE2.
-  USE_STD_MAP       = ON | OFF [OFF] -- Force the use of std::map.
+  USE_ALTERNATE_FORMATS = ON | OFF [ON]  -- Use alternate formats for the phone
+                                            number matcher.
+  USE_BOOST             = ON | OFF [ON]  -- Use Boost. This is only needed in
+                                            multi-threaded environments that
+                                            are not Linux and Mac.
+                                            Libphonenumber relies on Boost for
+                                            non-POSIX (e.g. Windows)
+                                            multi-threading.
+  USE_ICU_REGEXP        = ON | OFF [ON]  -- Use ICU regexp engine.
+  USE_LITE_METADATA     = ON | OFF [OFF] -- Generates smaller metadata that
+                                            doesn't include example numbers.
+  USE_RE2               = ON | OFF [OFF] -- Use RE2.
+  USE_STD_MAP           = ON | OFF [OFF] -- Force the use of std::map.

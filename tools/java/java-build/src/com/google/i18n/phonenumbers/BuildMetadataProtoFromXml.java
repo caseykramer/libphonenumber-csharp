@@ -38,6 +38,9 @@ import java.util.regex.Pattern;
 /**
  * Tool to convert phone number metadata from the XML format to protocol buffer format.
  *
+ * Based on the name of the {@code inputFile}, some optimization and removal of unnecessary metadata
+ * is carried out to reduce the size of the output file.
+ *
  * @author Shaopeng Jia
  */
 public class BuildMetadataProtoFromXml extends Command {
@@ -71,7 +74,7 @@ public class BuildMetadataProtoFromXml extends Command {
       "\n" +
       "Example command line invocation:\n" +
       CLASS_NAME + " \\\n" +
-      "  --" + INPUT_FILE + "=resources/PhoneNumberMetaData.xml \\\n" +
+      "  --" + INPUT_FILE + "=resources/PhoneNumberMetadata.xml \\\n" +
       "  --" + OUTPUT_DIR + "=java/libphonenumber/src/com/google/i18n/phonenumbers \\\n" +
       "  --" + DATA_PREFIX + "=data/PhoneNumberMetadataProto \\\n" +
       "  --" + MAPPING_CLASS + "=CountryCodeToRegionCodeMap \\\n" +
@@ -177,19 +180,20 @@ public class BuildMetadataProtoFromXml extends Command {
       "  // country/region represented by that country code. In the case of multiple\n" +
       "  // countries sharing a calling code, such as the NANPA countries, the one\n" +
       "  // indicated with \"isMainCountryForCode\" in the metadata should be first.\n";
-  private static final String SET_COMMENT =
+  private static final String COUNTRY_CODE_SET_COMMENT =
       "  // A set of all country codes for which data is available.\n";
+  private static final String REGION_CODE_SET_COMMENT =
+      "  // A set of all region codes for which data is available.\n";
   private static final double CAPACITY_FACTOR = 0.75;
   private static final String CAPACITY_COMMENT =
-      "    // The capacity is set to %d as there are %d different country codes,\n" +
+      "    // The capacity is set to %d as there are %d different entries,\n" +
       "    // and this offers a load factor of roughly " + CAPACITY_FACTOR + ".\n";
 
   private static void writeCountryCallingCodeMappingToJavaFile(
       Map<Integer, List<String>> countryCodeToRegionCodeMap,
       String outputDir, String mappingClass, String copyright) throws IOException {
-    int capacity = (int) (countryCodeToRegionCodeMap.size() / CAPACITY_FACTOR);
-
-    // Find out whether the countryCodeToRegionCodeMap has any region codes listed in it.
+    // Find out whether the countryCodeToRegionCodeMap has any region codes or country
+    // calling codes listed in it.
     boolean hasRegionCodes = false;
     for (List<String> listWithRegionCode : countryCodeToRegionCodeMap.values()) {
       if (!listWithRegionCode.isEmpty()) {
@@ -197,13 +201,19 @@ public class BuildMetadataProtoFromXml extends Command {
         break;
       }
     }
+    boolean hasCountryCodes = countryCodeToRegionCodeMap.size() > 1;
 
     ClassWriter writer = new ClassWriter(outputDir, mappingClass, copyright);
 
-    if (hasRegionCodes) {
+    int capacity = (int) (countryCodeToRegionCodeMap.size() / CAPACITY_FACTOR);
+    if (hasRegionCodes && hasCountryCodes) {
       writeMap(writer, capacity, countryCodeToRegionCodeMap);
+    } else if (hasCountryCodes) {
+      writeCountryCodeSet(writer, capacity, countryCodeToRegionCodeMap.keySet());
     } else {
-      writeSet(writer, capacity, countryCodeToRegionCodeMap.keySet());
+      List<String> regionCodeList = countryCodeToRegionCodeMap.get(0);
+      capacity = (int) (regionCodeList.size() / CAPACITY_FACTOR);
+      writeRegionCodeSet(writer, capacity, regionCodeList);
     }
 
     writer.writeToFile();
@@ -243,9 +253,30 @@ public class BuildMetadataProtoFromXml extends Command {
     writer.addToBody("  }\n");
   }
 
-  private static void writeSet(ClassWriter writer, int capacity,
-                               Set<Integer> countryCodeSet) {
-    writer.addToBody(SET_COMMENT);
+  private static void writeRegionCodeSet(ClassWriter writer, int capacity,
+                                         List<String> regionCodeList) {
+    writer.addToBody(REGION_CODE_SET_COMMENT);
+
+    writer.addToImports("java.util.HashSet");
+    writer.addToImports("java.util.Set");
+
+    writer.addToBody("  static Set<String> getRegionCodeSet() {\n");
+    writer.formatToBody(CAPACITY_COMMENT, capacity, regionCodeList.size());
+    writer.addToBody("    Set<String> regionCodeSet = new HashSet<String>(" + capacity + ");\n");
+    writer.addToBody("\n");
+
+    for (String regionCode : regionCodeList) {
+      writer.addToBody("    regionCodeSet.add(\"" + regionCode + "\");\n");
+    }
+
+    writer.addToBody("\n");
+    writer.addToBody("    return regionCodeSet;\n");
+    writer.addToBody("  }\n");
+  }
+
+  private static void writeCountryCodeSet(ClassWriter writer, int capacity,
+                                          Set<Integer> countryCodeSet) {
+    writer.addToBody(COUNTRY_CODE_SET_COMMENT);
 
     writer.addToImports("java.util.HashSet");
     writer.addToImports("java.util.Set");

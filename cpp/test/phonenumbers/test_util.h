@@ -53,6 +53,10 @@ class RegionCode {
     return "AD";
   }
 
+  static const char* AE() {
+    return "AE";
+  }
+
   static const char* AO() {
     return "AO";
   }
@@ -77,8 +81,20 @@ class RegionCode {
     return "BS";
   }
 
+  static const char* BY() {
+    return "BY";
+  }
+
   static const char* CA() {
     return "CA";
+  }
+
+  static const char* CH() {
+    return "CH";
+  }
+
+  static const char* CL() {
+    return "CL";
   }
 
   static const char* CN() {
@@ -93,8 +109,16 @@ class RegionCode {
     return "DE";
   }
 
+  static const char* FR() {
+    return "FR";
+  }
+
   static const char* GB() {
     return "GB";
+  }
+
+  static const char* HU() {
+    return "HU";
   }
 
   static const char* IT() {
@@ -123,6 +147,10 @@ class RegionCode {
 
   static const char* RE() {
     return "RE";
+  }
+
+  static const char* SE() {
+    return "SE";
   }
 
   static const char* SG() {

@@ -20,7 +20,7 @@
 #include <string>
 #include <utility>
 
-#include "base/synchronization/lock.h"
+#include "phonenumbers/base/synchronization/lock.h"
 #include "phonenumbers/regexp_adapter.h"
 
 using std::string;
@@ -28,12 +28,10 @@ using std::string;
 namespace i18n {
 namespace phonenumbers {
 
-using base::AutoLock;
-
 RegExpCache::RegExpCache(const AbstractRegExpFactory& regexp_factory,
                          size_t min_items)
     : regexp_factory_(regexp_factory),
-#ifdef USE_TR1_UNORDERED_MAP
+#ifdef I18N_PHONENUMBERS_USE_TR1_UNORDERED_MAP
       cache_impl_(new CacheImpl(min_items))
 #else
       cache_impl_(new CacheImpl())

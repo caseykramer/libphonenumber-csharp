@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include "phonenumbers/default_logger.h"
 #include "phonenumbers/phonenumberutil.h"
 #include "phonenumbers/shortnumberutil.h"
 #include "phonenumbers/test_util.h"
@@ -26,6 +27,7 @@ namespace phonenumbers {
 class ShortNumberUtilTest : public testing::Test {
  protected:
   ShortNumberUtilTest() : short_util_() {
+    PhoneNumberUtil::GetInstance()->SetLogger(new StdoutLogger());
   }
 
   const ShortNumberUtil short_util_;
@@ -36,14 +38,14 @@ class ShortNumberUtilTest : public testing::Test {
 
 TEST_F(ShortNumberUtilTest, ConnectsToEmergencyNumber_US) {
   EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("911", RegionCode::US()));
-  EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("119", RegionCode::US()));
+  EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("112", RegionCode::US()));
   EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber("999", RegionCode::US()));
 }
 
 TEST_F(ShortNumberUtilTest, ConnectsToEmergencyNumberLongNumber_US) {
   EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("9116666666",
       RegionCode::US()));
-  EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("1196666666",
+  EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("1126666666",
       RegionCode::US()));
   EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber("9996666666",
       RegionCode::US()));
@@ -51,7 +53,7 @@ TEST_F(ShortNumberUtilTest, ConnectsToEmergencyNumberLongNumber_US) {
 
 TEST_F(ShortNumberUtilTest, ConnectsToEmergencyNumberWithFormatting_US) {
   EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("9-1-1", RegionCode::US()));
-  EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("1-1-9", RegionCode::US()));
+  EXPECT_TRUE(short_util_.ConnectsToEmergencyNumber("1-1-2", RegionCode::US()));
   EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber("9-9-9",
       RegionCode::US()));
 }
@@ -63,7 +65,7 @@ TEST_F(ShortNumberUtilTest, ConnectsToEmergencyNumberWithPlusSign_US) {
       RegionCode::US()));
   EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber(" +911",
       RegionCode::US()));
-  EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber("+119", RegionCode::US()));
+  EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber("+112", RegionCode::US()));
   EXPECT_FALSE(short_util_.ConnectsToEmergencyNumber("+999", RegionCode::US()));
 }
 
@@ -101,21 +103,21 @@ TEST_F(ShortNumberUtilTest, ConnectsToEmergencyNumber_ZW) {
 
 TEST_F(ShortNumberUtilTest, IsEmergencyNumber_US) {
   EXPECT_TRUE(short_util_.IsEmergencyNumber("911", RegionCode::US()));
-  EXPECT_TRUE(short_util_.IsEmergencyNumber("119", RegionCode::US()));
+  EXPECT_TRUE(short_util_.IsEmergencyNumber("112", RegionCode::US()));
   EXPECT_FALSE(short_util_.IsEmergencyNumber("999", RegionCode::US()));
 }
 
 TEST_F(ShortNumberUtilTest, IsEmergencyNumberLongNumber_US) {
   EXPECT_FALSE(short_util_.IsEmergencyNumber("9116666666", RegionCode::US()));
-  EXPECT_FALSE(short_util_.IsEmergencyNumber("1196666666", RegionCode::US()));
+  EXPECT_FALSE(short_util_.IsEmergencyNumber("1126666666", RegionCode::US()));
   EXPECT_FALSE(short_util_.IsEmergencyNumber("9996666666", RegionCode::US()));
 }
 
 TEST_F(ShortNumberUtilTest, IsEmergencyNumberWithFormatting_US) {
   EXPECT_TRUE(short_util_.IsEmergencyNumber("9-1-1", RegionCode::US()));
   EXPECT_TRUE(short_util_.IsEmergencyNumber("*911", RegionCode::US()));
-  EXPECT_TRUE(short_util_.IsEmergencyNumber("1-1-9", RegionCode::US()));
-  EXPECT_TRUE(short_util_.IsEmergencyNumber("*119", RegionCode::US()));
+  EXPECT_TRUE(short_util_.IsEmergencyNumber("1-1-2", RegionCode::US()));
+  EXPECT_TRUE(short_util_.IsEmergencyNumber("*112", RegionCode::US()));
   EXPECT_FALSE(short_util_.IsEmergencyNumber("9-9-9", RegionCode::US()));
   EXPECT_FALSE(short_util_.IsEmergencyNumber("*999", RegionCode::US()));
 }
@@ -126,7 +128,7 @@ TEST_F(ShortNumberUtilTest, IsEmergencyNumberWithPlusSign_US) {
   EXPECT_FALSE(short_util_.IsEmergencyNumber("\xEF\xBC\x8B" "911",
       RegionCode::US()));
   EXPECT_FALSE(short_util_.IsEmergencyNumber(" +911", RegionCode::US()));
-  EXPECT_FALSE(short_util_.IsEmergencyNumber("+119", RegionCode::US()));
+  EXPECT_FALSE(short_util_.IsEmergencyNumber("+112", RegionCode::US()));
   EXPECT_FALSE(short_util_.IsEmergencyNumber("+999", RegionCode::US()));
 }
 
