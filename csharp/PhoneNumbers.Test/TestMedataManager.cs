@@ -40,6 +40,16 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void TestShortNumberMetadataContainsData()
+        {
+            // We should have some data for France.
+            PhoneMetadata franceShortNumberMetadata = MetadataManager.GetShortNumberMetadataForRegion("FR");
+            Assert.NotNull(franceShortNumberMetadata);
+            Assert.True(franceShortNumberMetadata.HasShortCode);
+        }
+
+
+        [Test]
         public void TestAlternateFormatsFailsGracefully()
         {
             var noAlternateFormats = MetadataManager.GetAlternateFormatsForCountry(999);

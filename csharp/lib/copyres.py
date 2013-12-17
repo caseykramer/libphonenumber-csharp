@@ -21,13 +21,13 @@ def copygeocoding(source, prefix, dest):
             print 'hg cp %s %s %s' % (opts, s, t)
 
 if __name__ == '__main__':
-    rootpath = os.path.join(os.path.dirname(__file__), '../../')
-    dest = os.path.join(rootpath, 'csharp/PhoneNumbers/res')
+    rootpath = os.path.join(os.path.dirname(__file__), '..\\..\\')
+    dest = os.path.join(rootpath, 'csharp\\PhoneNumbers\\res')
     if not os.path.exists(dest):
         os.makedirs(dest)
     sources = [
-        (os.path.join(rootpath, 'resources/geocoding'), 'prod_'),
-        (os.path.join(rootpath, 'resources/test/geocoding'), 'test_'),
+        (os.path.join(rootpath, 'resources\\geocoding'), 'prod_'),
+        (os.path.join(rootpath, 'resources\\test\\geocoding'), 'test_'),
         ]
     for source, prefix in sources:
         copygeocoding(source, prefix, dest)

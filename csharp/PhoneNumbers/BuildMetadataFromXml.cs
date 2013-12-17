@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Reflection;
 
@@ -30,6 +31,7 @@ namespace PhoneNumbers
         // String constants used to fetch the XML nodes and attributes.
         private static readonly String CARRIER_CODE_FORMATTING_RULE = "carrierCodeFormattingRule";
         private static readonly String COUNTRY_CODE = "countryCode";
+        private static readonly String MOBILE_NUMBER_PORTABLE_REGION = "mobileNumberPortableRegion";
         private static readonly String EMERGENCY = "emergency";
         private static readonly String EXAMPLE_NUMBER = "exampleNumber";
         private static readonly String FIXED_LINE = "fixedLine";
@@ -58,6 +60,7 @@ namespace PhoneNumbers
         private static readonly String PREFERRED_INTERNATIONAL_PREFIX = "preferredInternationalPrefix";
         private static readonly String PREMIUM_RATE = "premiumRate";
         private static readonly String SHARED_COST = "sharedCost";
+        private static readonly String SHORT_CODE = "shortCode";
         private static readonly String TOLL_FREE = "tollFree";
         private static readonly String UAN = "uan";
         private static readonly String VOICEMAIL = "voicemail";
@@ -146,7 +149,8 @@ namespace PhoneNumbers
         {
             var metadata = new PhoneMetadata.Builder();
             metadata.SetId(regionCode);
-            metadata.SetCountryCode(int.Parse(element.GetAttribute(COUNTRY_CODE)));
+            if (element.HasAttribute(COUNTRY_CODE))
+                metadata.SetCountryCode(int.Parse(element.GetAttribute(COUNTRY_CODE)));
             if (element.HasAttribute(LEADING_DIGITS))
                 metadata.SetLeadingDigits(ValidateRE(element.GetAttribute(LEADING_DIGITS)));
             metadata.SetInternationalPrefix(ValidateRE(element.GetAttribute(INTERNATIONAL_PREFIX)));
@@ -182,6 +186,10 @@ namespace PhoneNumbers
             if (element.HasAttribute(LEADING_ZERO_POSSIBLE))
             {
                 metadata.SetLeadingZeroPossible(true);
+            }
+            if (element.HasAttribute(MOBILE_NUMBER_PORTABLE_REGION))
+            {
+                metadata.SetMobileNumberPortableRegion(true);
             }
             return metadata;
         }
@@ -432,7 +440,9 @@ namespace PhoneNumbers
         {
             var generalDesc = ProcessPhoneNumberDescElement(null, element, GENERAL_DESC, liteBuild);
             metadata.SetGeneralDesc(generalDesc);
-
+            var shortCode = ProcessPhoneNumberDescElement(null, element, SHORT_CODE, liteBuild);
+            if(shortCode != null)
+                metadata.SetShortCode(shortCode);
             metadata.SetFixedLine(ProcessPhoneNumberDescElement(generalDesc, element, FIXED_LINE, liteBuild));
             metadata.SetMobile(ProcessPhoneNumberDescElement(generalDesc, element, MOBILE, liteBuild));
             metadata.SetTollFree(ProcessPhoneNumberDescElement(generalDesc, element, TOLL_FREE, liteBuild));
@@ -451,7 +461,7 @@ namespace PhoneNumbers
                 metadata.Mobile.NationalNumberPattern.Equals(
                 metadata.FixedLine.NationalNumberPattern));
         }
-
+        
         public static PhoneMetadata LoadCountryMetadata(String regionCode, XmlElement element, bool liteBuild)
         {
             String nationalPrefix = GetNationalPrefix(element);
@@ -459,8 +469,8 @@ namespace PhoneNumbers
                 LoadTerritoryTagMetadata(regionCode, element, nationalPrefix);
             String nationalPrefixFormattingRule =
                 GetNationalPrefixFormattingRuleFromElement(element, nationalPrefix);
-            LoadAvailableFormats(metadata, element, nationalPrefix.ToString(),
-                                 nationalPrefixFormattingRule.ToString(),
+            LoadAvailableFormats(metadata, element, nationalPrefix,
+                                 nationalPrefixFormattingRule,
                                  element.HasAttribute(NATIONAL_PREFIX_OPTIONAL_WHEN_FORMATTING));
             LoadGeneralDesc(metadata, element, liteBuild);
             return metadata.Build();
@@ -469,11 +479,40 @@ namespace PhoneNumbers
         public static Dictionary<int, List<String>> GetCountryCodeToRegionCodeMap(String filePrefix)
         {
             var asm = Assembly.GetExecutingAssembly();
-            var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(filePrefix)).FirstOrDefault() ?? "missing";
+            var name = asm.GetManifestResourceNames().FirstOrDefault(n => n.EndsWith(filePrefix)) ?? "missing";
             using (var stream = asm.GetManifestResourceStream(name))
             {
                 var collection = BuildPhoneMetadataCollection(stream, false);
                 return BuildCountryCodeToRegionCodeMap(collection);
+            }
+        }
+
+        public static Dictionary<string, PhoneMetadata> BuildShortNumberMap(Stream stream, bool liteBuild)
+        {
+            var document = new XmlDocument();
+            document.Load(stream);
+            document.Normalize();
+            var metadataCollection = new Dictionary<string,PhoneMetadata>();
+            foreach (XmlElement territory in document.GetElementsByTagName("territory"))
+            {
+                String regionCode = "";
+                // For the main metadata file this should always be set, but for other supplementary data
+                // files the country calling code may be all that is needed.
+                if (territory.HasAttribute("id"))
+                    regionCode = territory.GetAttribute("id");
+                PhoneMetadata metadata = LoadCountryMetadata(regionCode, territory, liteBuild);
+                metadataCollection.Add(regionCode,metadata);
+            }
+            return metadataCollection;
+        }
+
+        public static Dictionary<string,PhoneMetadata> GetRegionCodeToShortNumberMap(String filePrefix, bool liteBuild)
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var name = asm.GetManifestResourceNames().FirstOrDefault(n => n.EndsWith(filePrefix)) ?? "missing";
+            using (var stream = asm.GetManifestResourceStream(name))
+            {
+                return BuildShortNumberMap(stream,liteBuild);
             }
         }
     }

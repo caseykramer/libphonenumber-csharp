@@ -105,28 +105,21 @@ namespace PhoneNumbers
         // input from overflowing the regular-expression engine.
         private const int MAX_INPUT_STRING_LENGTH = 250;
         internal const String META_DATA_FILE_PREFIX = "PhoneNumberMetaData.xml";
+
+        // Region-code for the unknown region.
         internal const String UNKNOWN_REGION = "ZZ";
 
-        private String currentFilePrefix_ = META_DATA_FILE_PREFIX;
-
-        // A mapping from a country calling code to the region codes which denote the region represented
-        // by that country calling code. In the case of multiple regions sharing a calling code, such as
-        // the NANPA regions, the one indicated with "isMainCountryForCode" in the metadata should be
-        // first.
-        private Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap_ = null;
-
-        // The set of regions the library supports.
-        // There are roughly 240 of them and we set the initial capacity of the HashSet to 320 to offer a
-        // load factor of roughly 0.75.
-        private HashSet<String> supportedRegions_ = new HashSet<String>();
-
-        // The set of regions that share country calling code 1.
-        private HashSet<String> nanpaRegions_ = new HashSet<String>();
         private const int NANPA_COUNTRY_CODE = 1;
 
         // The prefix that needs to be inserted in front of a Colombian landline number when dialed from
         // a mobile phone in Colombia.
         private const String COLOMBIA_MOBILE_TO_FIXED_LINE_PREFIX = "3";
+
+        // Map of country calling codes that use a mobile token before the area code. One example of when
+        // this is relevant is when determining the length of the national destination code, which should
+        // be the length of the area code plus the length of the mobile token.
+        private static readonly Dictionary<int, String> MOBILE_TOKEN_MAPPINGS = new Dictionary<int,String>();
+
 
         // The PLUS_SIGN signifies the international prefix.
         internal const char PLUS_SIGN = '+';
@@ -139,8 +132,8 @@ namespace PhoneNumbers
         private const String RFC3966_ISDN_SUBADDRESS = ";isub=";
         
         // A map that contains characters that are essential when dialling. That means any of the
-        // characters in this map must not be removed from a number when dialing, otherwise the call will
-        // not reach the intended destination.
+        // characters in this map must not be removed from a number when dialing, otherwise the call
+        // will not reach the intended destination.
         private static readonly Dictionary<char, char> DIALLABLE_CHAR_MAPPINGS;
 
         // Only upper-case variants of alpha characters are stored.
@@ -279,8 +272,20 @@ namespace PhoneNumbers
         private static readonly Regex FG_PATTERN = new Regex("\\$FG", RegexOptions.Compiled);
         private static readonly Regex CC_PATTERN = new Regex("\\$CC", RegexOptions.Compiled);
 
+        // A pattern that is used to determine if the national prefix formatting rule has the first group
+        // only, i.e., does not start with the national prefix. Note that the pattern explicitly allows
+        // for unbalanced parentheses.
+        private static readonly Regex FIRST_GROUP_ONLY_PREFIX_PATTERN = new Regex("\\(?\\$1\\)?",RegexOptions.Compiled);
+
+
         static PhoneNumberUtil()
         {
+
+            Dictionary<int, String> mobileTokenMap = new Dictionary<int, String>();
+            mobileTokenMap.Add(52, "1");
+            mobileTokenMap.Add(54, "9");
+            MOBILE_TOKEN_MAPPINGS = mobileTokenMap;
+
             thisLock = new Object();
 
             // Simple ASCII digits map used to populate ALPHA_PHONE_MAPPINGS and
@@ -402,20 +407,6 @@ namespace PhoneNumbers
 
         private static PhoneNumberUtil instance_ = null;
 
-        // A mapping from a region code to the PhoneMetadata for that region.
-        private Dictionary<String, PhoneMetadata> regionToMetadataMap = new Dictionary<String, PhoneMetadata>();
-
-        // A mapping from a country calling code for a non-geographical entity to the PhoneMetadata for
-        // that country calling code. Examples of the country calling codes include 800 (International
-        // Toll Free Service) and 808 (International Shared Cost Service).
-        private readonly Dictionary<int, PhoneMetadata> countryCodeToNonGeographicalMetadataMap =
-            new Dictionary<int, PhoneMetadata>();
-
-        // A cache for frequently used region-specific regular expressions.
-        // As most people use phone numbers primarily from one to two countries, and there are roughly 60
-        // regular expressions needed, the initial capacity of 100 offers a rough load factor of 0.75.
-        private RegexCache regexCache = new RegexCache(100);
-
         public const String REGION_CODE_FOR_NON_GEO_ENTITY = "001";
 
         // Types of phone number matches. See detailed description beside the isNumberMatch() method.
@@ -460,7 +451,8 @@ namespace PhoneNumbers
             * are grouped in a possible way for this locale. For example, a US number written as
             * "65 02 53 00 00" and "650253 0000" are not accepted at this leniency level, whereas
             * "650 253 0000", "650 2530000" or "6502530000" are.
-            * Numbers with more than one '/' symbol are also dropped at this level.
+            * Numbers with more than one '/' symbol in the national significant number are also dropped at
+            * this level.
             * <p>
             * Warning: This level might result in lower coverage especially for regions outside of country
             * code "+1". If you are not sure about which level to use, email the discussion group
@@ -498,7 +490,7 @@ namespace PhoneNumbers
                     {
                         if (!util.IsValidNumber(number) ||
                            !PhoneNumberMatcher.ContainsOnlyValidXChars(number, candidate, util) ||
-                           PhoneNumberMatcher.ContainsMoreThanOneSlash(candidate) ||
+                           PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(number,candidate) ||
                            !PhoneNumberMatcher.IsNationalPrefixPresentIfRequired(number, util))
                         {
                             return false;
@@ -517,7 +509,7 @@ namespace PhoneNumbers
                     {
                         if (!util.IsValidNumber(number) ||
                                 !PhoneNumberMatcher.ContainsOnlyValidXChars(number, candidate, util) ||
-                                PhoneNumberMatcher.ContainsMoreThanOneSlash(candidate) ||
+                                PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(number,candidate) ||
                                 !PhoneNumberMatcher.IsNationalPrefixPresentIfRequired(number, util))
                         {
                             return false;
@@ -535,42 +527,90 @@ namespace PhoneNumbers
             }
         }
 
+        // A mapping from a country calling code to the region codes which denote the region represented
+        // by that country calling code. In the case of multiple regions sharing a calling code, such as
+        // the NANPA regions, the one indicated with "isMainCountryForCode" in the metadata should be
+        // first.
+        private readonly Dictionary<int, List<String>> _countryCallingCodeToRegionCodeMap;
+        
+        // The set of regions that share country calling code 1.
+        // There are roughly 26 regions and we set the initial capacity of the HashSet to 35 to offer a
+        // load factor of roughly 0.75.
+        private readonly HashSet<String> _nanpaRegions = new HashSet<String>();
+        
+        // A mapping from a region code to the PhoneMetadata for that region.
+        // Note: Synchronization, though only needed for the Android version of the library, is used in
+        // all versions for consistency.
+        private readonly Dictionary<String, PhoneMetadata> _regionToMetadataMap = new Dictionary<String, PhoneMetadata>();
+        
+        // A mapping from a country calling code for a non-geographical entity to the PhoneMetadata for
+        // that country calling code. Examples of the country calling codes include 800 (International
+        // Toll Free Service) and 808 (International Shared Cost Service).
+        // Note: Synchronization, though only needed for the Android version of the library, is used in
+        // all versions for consistency.
+        private readonly Dictionary<int, PhoneMetadata> countryCodeToNonGeographicalMetadataMap =
+            new Dictionary<int, PhoneMetadata>();
+        
+        // A cache for frequently used region-specific regular expressions.
+        // The initial capacity is set to 100 as this seems to be an optimal value for Android, based on
+        // performance measurements.
+        private readonly RegexCache regexCache = new RegexCache(100);
+        
+        // The set of regions the library supports.
+        // There are roughly 240 of them and we set the initial capacity of the HashSet to 320 to offer a
+        // load factor of roughly 0.75.
+        private readonly HashSet<String> supportedRegions = new HashSet<String>();
+        
+        // The set of county calling codes that map to the non-geo entity region ("001"). This set
+        // currently contains < 12 elements so the default capacity of 16 (load factor=0.75) is fine.
+        private readonly HashSet<int> countryCodesForNonGeographicalRegion = new HashSet<int>();
+        
+        // The prefix of the metadata files from which region data is loaded.
+        private readonly String _currentFilePrefix;
+
+
         // This class implements a singleton, so the only constructor is private.
-        private PhoneNumberUtil()
+        private PhoneNumberUtil(String filePrefix,Dictionary<int,List<String>> countryCallingCodeToRegionCodeMap)
         {
-        }
+            this._currentFilePrefix = filePrefix;
+            this._countryCallingCodeToRegionCodeMap = countryCallingCodeToRegionCodeMap;
+            foreach(var regionCodes in countryCallingCodeToRegionCodeMap)
+            {
+                // We can assume that if the county calling code maps to the non-geo entity region code then
+                // that's the only region code it maps to.
+                if (regionCodes.Value.Count == 1 && REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCodes.Value[0])) {
+                    // This is the subset of all country codes that map to the non-geo entity region code.
+                    this.countryCodesForNonGeographicalRegion.Add(regionCodes.Key);
+                } else {
+                    // The supported regions set does not include the "001" non-geo entity region code.
+                    this.supportedRegions.UnionWith(regionCodes.Value);
+                }
+            }
 
-        private void Init(String filePrefix)
-        {
-            currentFilePrefix_ = filePrefix;
-            foreach (var regionCodes in countryCallingCodeToRegionCodeMap_)
-                supportedRegions_.UnionWith(regionCodes.Value);
-            supportedRegions_.Remove(REGION_CODE_FOR_NON_GEO_ENTITY);
+            // If the non-geo entity still got added to the set of supported regions it must be because
+            // there are entries that list the non-geo entity alongside normal regions (which is wrong).
+            // If we discover this, remove the non-geo entity from the set of supported regions.
+            this.supportedRegions.Remove(REGION_CODE_FOR_NON_GEO_ENTITY);
             List<String> regions = null;
-            if (countryCallingCodeToRegionCodeMap_.TryGetValue(NANPA_COUNTRY_CODE, out regions))
-                nanpaRegions_.UnionWith(regions);
+            if (this._countryCallingCodeToRegionCodeMap.TryGetValue(NANPA_COUNTRY_CODE, out regions))
+                this._nanpaRegions.UnionWith(regions);
         }
 
-        private void LoadMetadataFromFile(String filePrefix, String regionCode, int countryCallingCode)
+
+        internal void LoadMetadataFromFile(String filePrefix, String regionCode, int countryCallingCode)
         {
             var asm = Assembly.GetExecutingAssembly();
             bool isNonGeoRegion = REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCode);
             var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(filePrefix)).FirstOrDefault() ?? "missing";
             using (var stream = asm.GetManifestResourceStream(name))
             {
-                try
+                var meta = BuildMetadataFromXml.BuildPhoneMetadataCollection(stream, false);
+                foreach (var m in meta.MetadataList)
                 {
-                    var meta = BuildMetadataFromXml.BuildPhoneMetadataCollection(stream, false);
-                    foreach (var m in meta.MetadataList)
-                    {
-                        if(isNonGeoRegion)
-                            countryCodeToNonGeographicalMetadataMap[m.CountryCode] = m;
-                        else
-                            regionToMetadataMap[m.Id] = m;
-                    }
-                }
-                catch (IOException)
-                {
+                    if(isNonGeoRegion)
+                        countryCodeToNonGeographicalMetadataMap[m.CountryCode] = m;
+                    else
+                        _regionToMetadataMap[m.Id] = m;
                 }
             }
         }
@@ -685,6 +725,18 @@ namespace PhoneNumbers
         }
 
         /**
+         * Normalizes a string of characters representing a phone number. This strips all characters which
+         * are not diallable on a mobile phone keypad (including all non-ASCII digits).
+         *
+         * @param number  a string of characters representing a phone number
+         * @return        the normalized string version of the phone number
+         */
+        public static String NormalizeDiallableCharsOnly(String number)
+        {
+            return NormalizeHelper(number, DIALLABLE_CHAR_MAPPINGS, true /* remove non matches */);
+        }
+
+        /**
         * Converts all alpha characters in a number to their respective digits on a keypad, but retains
         * existing formatting.
         */
@@ -736,19 +788,18 @@ namespace PhoneNumbers
         */
         public int GetLengthOfGeographicalAreaCode(PhoneNumber number)
         {
-            var regionCode = GetRegionCodeForNumber(number);
-            if (!IsValidRegionCode(regionCode))
+            PhoneMetadata metadata = GetMetadataForRegion(GetRegionCodeForNumber(number));
+            if (metadata == null)
                 return 0;
-            var metadata = GetMetadataForRegion(regionCode);
+            
             // If a country doesn't use a national prefix, and this number doesn't have an Italian leading
             // zero, we assume it is a closed dialling plan with no area codes.
             if (!metadata.HasNationalPrefix && !number.ItalianLeadingZero)
                 return 0;
 
-            var type = GetNumberTypeHelper(GetNationalSignificantNumber(number), metadata);
-            // Most numbers other than the two types below have to be dialled in full.
-            if (type != PhoneNumberType.FIXED_LINE && type != PhoneNumberType.FIXED_LINE_OR_MOBILE)
+            if(!IsNumberGeographical(number))
                 return 0;
+
             return GetLengthOfNationalDestinationCode(number);
         }
 
@@ -807,16 +858,38 @@ namespace PhoneNumbers
             if (numberGroups.Length <= 3)
                 return 0;
 
-            if (GetRegionCodeForCountryCode(number.CountryCode) == "AR" && GetNumberType(number) == PhoneNumberType.MOBILE)
-                // Argentinian mobile numbers, when formatted in the international format, are in the form of
-                // +54 9 NDC XXXX.... As a result, we take the length of the third group (NDC) and add 1 for
-                // the digit 9, which also forms part of the national significant number.
-                //
-                // TODO: Investigate the possibility of better modeling the metadata to make it
-                // easier to obtain the NDC.
-                return numberGroups[3].Length + 1;
+            if (GetNumberType(number) == PhoneNumberType.MOBILE)
+            {
+                // For example Argentinian mobile numbers, when formatted in the international format, are in
+                // the form of +54 9 NDC XXXX.... As a result, we take the length of the third group (NDC) and
+                // add the length of the second group (which is the mobile token), which also forms part of
+                // the national significant number. This assumes that the mobile token is always formatted
+                // separately from the rest of the phone number.
+                var mobileToken = GetCountryMobileToken(number.CountryCode);
+                if (mobileToken.Equals(""))
+                    return numberGroups[2].Length + numberGroups[3].Length;
+            }
             return numberGroups[2].Length;
         }
+
+        /**
+          * Returns the mobile token for the provided country calling code if it has one, otherwise
+          * returns an empty string. A mobile token is a number inserted before the area code when dialing
+          * a mobile number from that country from abroad.
+          *
+          * @param countryCallingCode  the country calling code for which we want the mobile token
+          * @return  the mobile token, as a string, for the given country calling code
+          */
+        public static String GetCountryMobileToken(int countryCallingCode)
+        {
+            if (MOBILE_TOKEN_MAPPINGS.ContainsKey(countryCallingCode))
+            {
+                return MOBILE_TOKEN_MAPPINGS[countryCallingCode];
+            }
+            return "";
+        }
+
+
 
         /**
         * Normalizes a string of characters representing a phone number by replacing all characters found
@@ -835,9 +908,9 @@ namespace PhoneNumbers
             bool removeNonMatches)
         {
             var normalizedNumber = new StringBuilder(number.Length);
-            var numberAsCharArray = number.ToCharArray();
-            foreach (var character in numberAsCharArray)
+            for(var i = 0; i < number.Length; i++)
             {
+                char character = number[i];
                 char newDigit;
                 if (normalizationReplacements.TryGetValue(char.ToUpper(character), out newDigit))
                     normalizedNumber.Append(newDigit);
@@ -847,18 +920,20 @@ namespace PhoneNumbers
             }
             return normalizedNumber.ToString();
         }
-
+        
+        /// <summary>
+        /// An unsafe version of getInstance() which must only be used for testing purposes. 
+        /// </summary>
         public static PhoneNumberUtil GetInstance(String baseFileLocation,
             Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap)
         {
             lock (thisLock)
             {
-                if (instance_ == null)
+                if (instance_ != null)
                 {
-                    instance_ = new PhoneNumberUtil();
-                    instance_.countryCallingCodeToRegionCodeMap_ = countryCallingCodeToRegionCodeMap;
-                    instance_.Init(baseFileLocation);
+                    throw new InvalidOperationException("PhoneNumberUtil instance is already set (you should call resetInstance() first)");
                 }
+                instance_ = new PhoneNumberUtil(baseFileLocation,countryCallingCodeToRegionCodeMap);                
                 return instance_;
             }
         }
@@ -879,7 +954,7 @@ namespace PhoneNumbers
         */
         public HashSet<String> GetSupportedRegions()
         {
-            return supportedRegions_;
+            return supportedRegions;
         }
 
         /**
@@ -911,13 +986,38 @@ namespace PhoneNumbers
                 return instance_;
             }
         }
+        
+        /**
+         * Helper function to check if the national prefix formatting rule has the first group only, i.e.,
+         * does not start with the national prefix.
+         */
+        internal static bool FormattingRuleHasFirstGroupOnly(String nationalPrefixFormattingRule)
+        {
+            return nationalPrefixFormattingRule.Length == 0 ||
+                FIRST_GROUP_ONLY_PREFIX_PATTERN.IsMatch(nationalPrefixFormattingRule);
+        }
+
+
+        /**
+         * Tests whether a phone number has a geographical association. It checks if the number is
+         * associated to a certain region in the country where it belongs to. Note that this doesn't
+         * verify if the number is actually in use.
+         */
+        public bool IsNumberGeographical(PhoneNumber phoneNumber)
+        {
+            PhoneNumberType numberType = GetNumberType(phoneNumber);
+            // TODO: Include mobile phone numbers from countries like Indonesia, which has some
+            // mobile numbers that are geographical.
+            return numberType == PhoneNumberType.FIXED_LINE ||
+                numberType == PhoneNumberType.FIXED_LINE_OR_MOBILE;
+        }
 
         /**
         * Helper function to check region code is not unknown or null.
         */
         private bool IsValidRegionCode(String regionCode)
         {
-            return regionCode != null && supportedRegions_.Contains(regionCode);
+            return regionCode != null && supportedRegions.Contains(regionCode);
         }
 
         /**
@@ -925,7 +1025,7 @@ namespace PhoneNumbers
         */
         private bool HasValidCountryCallingCode(int countryCallingCode)
         {
-            return countryCallingCodeToRegionCodeMap_.ContainsKey(countryCallingCode);
+            return _countryCallingCodeToRegionCodeMap.ContainsKey(countryCallingCode);
         }
 
         /**
@@ -946,6 +1046,11 @@ namespace PhoneNumbers
         {
             if (number.NationalNumber == 0 && number.HasRawInput)
             {
+                // Unparseable numbers that kept their raw input just use that.
+                // This is the only case where a number can be formatted as E164 without a
+                // leading '+' symbol (but the original number wasn't parseable anyway).
+                // TODO: Consider removing the 'if' above so that unparseable
+                // strings without raw input format to the empty string instead of "+00"
                 String rawInput = number.RawInput;
                 if (rawInput.Length > 0)
                 {
@@ -970,8 +1075,8 @@ namespace PhoneNumbers
             var nationalSignificantNumber = GetNationalSignificantNumber(number);
             if (numberFormat == PhoneNumberFormat.E164)
             {
-                // Early exit for E164 case since no formatting of the national number needs to be applied.
-                // Extensions are not formatted.
+                // Early exit for E164 case (even if the country calling code is invalid) since no formatting
+                // of the national number needs to be applied. Extensions are not formatted.
                 formattedNumber.Append(nationalSignificantNumber);
                 PrefixNumberWithCountryCallingCode(countryCallingCode, PhoneNumberFormat.E164,
                     formattedNumber);
@@ -987,6 +1092,12 @@ namespace PhoneNumbers
                 return;
             }
 
+            // Note GetRegionCodeForCountryCode() is used because formatting information for regions which
+            // share a country calling code is contained by only one region for performance reasons. For
+            // example, for NANPA regions it will be contained in the metadata for US.
+            regionCode = GetRegionCodeForCountryCode(countryCallingCode);
+            // Metadata cannot be null because the country calling code is valid (which means that the
+            // region code cannot be ZZ and must be one of our supported region codes).
             PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(countryCallingCode, regionCode);
             formattedNumber.Append(FormatNsn(nationalSignificantNumber, metadata, numberFormat));
             MaybeAppendFormattedExtension(number, metadata, numberFormat, formattedNumber);
@@ -1009,12 +1120,16 @@ namespace PhoneNumbers
         {
             int countryCallingCode = number.CountryCode;
             var nationalSignificantNumber = GetNationalSignificantNumber(number);
+            if (!HasValidCountryCallingCode(countryCallingCode))
+            {
+                return nationalSignificantNumber;
+            }
             // Note getRegionCodeForCountryCode() is used because formatting information for regions which
             // share a country calling code is contained by only one region for performance reasons. For
             // example, for NANPA regions it will be contained in the metadata for US.
             var regionCode = GetRegionCodeForCountryCode(countryCallingCode);
-            if (!HasValidCountryCallingCode(countryCallingCode))
-                return nationalSignificantNumber;
+            // Metadata cannot be null because the country calling code is valid
+
 
             PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(countryCallingCode, regionCode);
             StringBuilder formattedNumber = new StringBuilder(20);
@@ -1072,15 +1187,20 @@ namespace PhoneNumbers
         {
             var countryCallingCode = number.CountryCode;
             var nationalSignificantNumber = GetNationalSignificantNumber(number);
+            if (!HasValidCountryCallingCode(countryCallingCode))
+            {
+                return nationalSignificantNumber;
+            }
+
             // Note getRegionCodeForCountryCode() is used because formatting information for regions which
             // share a country calling code is contained by only one region for performance reasons. For
             // example, for NANPA regions it will be contained in the metadata for US.
             var regionCode = GetRegionCodeForCountryCode(countryCallingCode);
-            if (!HasValidCountryCallingCode(countryCallingCode))
-                return nationalSignificantNumber;
+            // Metadata cannot be null because the country calling code is valid.
+            PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(countryCallingCode, regionCode);
 
             var formattedNumber = new StringBuilder(20);
-            PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(countryCallingCode, regionCode);
+            
             formattedNumber.Append(FormatNsn(nationalSignificantNumber,
                 metadata, PhoneNumberFormat.NATIONAL, carrierCode));
             MaybeAppendFormattedExtension(number, metadata, PhoneNumberFormat.NATIONAL, formattedNumber);
@@ -1142,54 +1262,98 @@ namespace PhoneNumbers
                 return number.HasRawInput ? number.RawInput : "";
             }
 
-            String formattedNumber;
+            String formattedNumber = "";
             // Clear the extension, as that part cannot normally be dialed together with the main number.
             PhoneNumber numberNoExt = new PhoneNumber.Builder().MergeFrom(number).ClearExtension().Build();
-            PhoneNumberType numberType = GetNumberType(numberNoExt);
+            
             String regionCode = GetRegionCodeForCountryCode(countryCallingCode);
-            if (regionCode.Equals("CO") && regionCallingFrom.Equals("CO"))
+            PhoneNumberType numberType = GetNumberType(numberNoExt);
+            bool isValidNumber = (numberType != PhoneNumberType.UNKNOWN);
+            if (regionCallingFrom.Equals(regionCode))
             {
-                if (numberType == PhoneNumberType.FIXED_LINE)
+                bool isFixedLineOrMobile =
+                    (numberType == PhoneNumberType.FIXED_LINE) || (numberType == PhoneNumberType.MOBILE) ||
+                    (numberType == PhoneNumberType.FIXED_LINE_OR_MOBILE);
+                // Carrier codes may be needed in some countries. We handle this here.
+                if (regionCode.Equals("CO") && numberType == PhoneNumberType.FIXED_LINE)
                 {
                     formattedNumber =
                         FormatNationalNumberWithCarrierCode(numberNoExt, COLOMBIA_MOBILE_TO_FIXED_LINE_PREFIX);
                 }
-                else
+                else if (regionCode.Equals("BR") && isFixedLineOrMobile)
                 {
-                    // E164 doesn't work at all when dialing within Colombia.
-                    formattedNumber = Format(numberNoExt, PhoneNumberFormat.NATIONAL);
-                }
-            }
-            else if (regionCode.Equals("PE") && regionCallingFrom.Equals("PE"))
-            {
-                // In Peru, numbers cannot be dialled using E164 format from a mobile phone for Movistar.
-                // Instead they must be dialled in national format.
-                formattedNumber = Format(numberNoExt, PhoneNumberFormat.NATIONAL);
-            }
-            else if (regionCode.Equals("BR") && regionCallingFrom.Equals("BR") &&
-                ((numberType == PhoneNumberType.FIXED_LINE) || (numberType == PhoneNumberType.MOBILE) ||
-                (numberType == PhoneNumberType.FIXED_LINE_OR_MOBILE)))
-            {
-                formattedNumber = numberNoExt.HasPreferredDomesticCarrierCode
-                    ? FormatNationalNumberWithPreferredCarrierCode(numberNoExt, "")
+
+                    formattedNumber = numberNoExt.HasPreferredDomesticCarrierCode
+                        ? formattedNumber = FormatNationalNumberWithPreferredCarrierCode(numberNoExt, "")
                     // Brazilian fixed line and mobile numbers need to be dialed with a carrier code when
                     // called within Brazil. Without that, most of the carriers won't connect the call.
                     // Because of that, we return an empty string here.
                     : "";
+                }
+                else if (isValidNumber && regionCode.Equals("HU"))
+                {
+                    // The national format for HU numbers doesn't contain the national prefix, because that is
+                    // how numbers are normally written down. However, the national prefix is obligatory when
+                    // dialing from a mobile phone, except for short numbers. As a result, we add it back here
+                    // if it is a valid regular length phone number.
+                    formattedNumber =
+                        GetNddPrefixForRegion(regionCode, true /* strip non-digits */) +
+                        " " + Format(numberNoExt, PhoneNumberFormat.NATIONAL);
+                }
+                else if (countryCallingCode == NANPA_COUNTRY_CODE)
+                {
+                    // For NANPA countries, we output international format for numbers that can be dialed
+                    // internationally, since that always works, except for numbers which might potentially be
+                    // short numbers, which are always dialled in national format.
+                    PhoneMetadata regionMetadata = GetMetadataForRegion(regionCallingFrom);
+                    if (CanBeInternationallyDialled(numberNoExt) &&
+                        !IsShorterThanPossibleNormalNumber(regionMetadata,
+                            GetNationalSignificantNumber(numberNoExt)))
+                    {
+                        formattedNumber = Format(numberNoExt, PhoneNumberFormat.INTERNATIONAL);
+                    }
+                    else
+                    {
+                        formattedNumber = Format(numberNoExt, PhoneNumberFormat.NATIONAL);
+                    }
+                }
+                else
+                {
+                    // For non-geographical countries, and Mexican and Chilean fixed line and mobile numbers, we
+                    // output international format for numbers that can be dialed internationally as that always
+                    // works.
+                    if ((regionCode.Equals(REGION_CODE_FOR_NON_GEO_ENTITY) ||
+                        // MX fixed line and mobile numbers should always be formatted in international format,
+                        // even when dialed within MX. For national format to work, a carrier code needs to be
+                        // used, and the correct carrier code depends on if the caller and callee are from the
+                        // same local area. It is trickier to get that to work correctly than using
+                        // international format, which is tested to work fine on all carriers.
+                        // CL fixed line numbers need the national prefix when dialing in the national format,
+                        // but don't have it when used for display. The reverse is true for mobile numbers.
+                        // As a result, we output them in the international format to make it work.
+                        ((regionCode.Equals("MX") || regionCode.Equals("CL")) && isFixedLineOrMobile)) &&
+                        CanBeInternationallyDialled(numberNoExt))
+                    {
+                        formattedNumber = Format(numberNoExt, PhoneNumberFormat.INTERNATIONAL);
+                    }
+                    else
+                    {
+                        formattedNumber = Format(numberNoExt, PhoneNumberFormat.NATIONAL);
+                    }
+                }
             }
-            else if (CanBeInternationallyDialled(numberNoExt))
+            else if (isValidNumber && CanBeInternationallyDialled(numberNoExt))
             {
+                // We assume that short numbers are not diallable from outside their region, so if a number
+                // is not a valid regular length phone number, we treat it as if it cannot be internationally
+                // dialled.
+
                 return withFormatting ? Format(numberNoExt, PhoneNumberFormat.INTERNATIONAL)
                     : Format(numberNoExt, PhoneNumberFormat.E164);
             }
-            else
-            {
-                formattedNumber = (regionCallingFrom == regionCode)
-                    ? Format(numberNoExt, PhoneNumberFormat.NATIONAL) : "";
-            }
+            
             return withFormatting ? formattedNumber
-                : NormalizeHelper(formattedNumber, DIALLABLE_CHAR_MAPPINGS,
-                    true /* remove non matches */);
+                : NormalizeDiallableCharsOnly(formattedNumber);
         }
 
         /**
@@ -1213,7 +1377,7 @@ namespace PhoneNumbers
         {
             if (!IsValidRegionCode(regionCallingFrom))
             {
-                // LOGGER.log(Level.WARNING,
+                // logger.log(Level.WARNING,
                 //      "Trying to format number from invalid region "
                 //      + regionCallingFrom
                 //      + ". International formatting applied.");
@@ -1234,7 +1398,7 @@ namespace PhoneNumbers
             }
             else if (countryCallingCode == GetCountryCodeForValidRegion(regionCallingFrom))
             {
-                // For regions that share a country calling code, the country calling code need not be dialled.
+                // If regions share a country calling code, the country calling code need not be dialled.
                 // This also applies when dialling within a region, so this if clause covers both these cases.
                 // Technically this is the case for dialling from La Reunion to other overseas departments of
                 // France (French Guiana, Martinique, Guadeloupe), but not vice versa - so we don't cover this
@@ -1242,6 +1406,7 @@ namespace PhoneNumbers
                 // Details here: http://www.petitfute.com/voyage/225-info-pratiques-reunion
                 return Format(number, PhoneNumberFormat.NATIONAL);
             }
+            // Metadata cannot be null because we checked 'IsValidRegionCode()' above.
             PhoneMetadata metadataForRegionCallingFrom = GetMetadataForRegion(regionCallingFrom);
             String internationalPrefix = metadataForRegionCallingFrom.InternationalPrefix;
 
@@ -1344,10 +1509,20 @@ namespace PhoneNumbers
                         formattedNumber = nationalFormat;
                         break;
                     }
+                    // Metadata cannot be null here because getNddPrefixForRegion() (above) returns null if
+                    // there is no metadata for the region.
                     PhoneMetadata metadata = GetMetadataForRegion(regionCode);
                     String nationalNumber = GetNationalSignificantNumber(number);
                     NumberFormat formatRule =
                         ChooseFormattingPatternForNumber(metadata.NumberFormatList, nationalNumber);
+                    // The format rule could still be null here if the national number was 0 and there was no
+                    // raw input (this should not be possible for numbers generated by the phonenumber library
+                    // as they would also not have a country calling code and we would have exited earlier).
+                    if (formatRule == null)
+                    {
+                        formattedNumber = nationalFormat;
+                        break;
+                    }
                     // When the format we apply to this number doesn't contain national prefix, we can just
                     // return the national format.
                     // TODO: Refactor the code below with the code in isNationalPrefixPresentIfRequired.
@@ -1381,12 +1556,15 @@ namespace PhoneNumbers
             String rawInput = number.RawInput;
             // If no digit is inserted/removed/modified as a result of our formatting, we return the
             // formatted phone number; otherwise we return the raw input the user entered.
-            return (formattedNumber != null &&
-                NormalizeHelper(formattedNumber, DIALLABLE_CHAR_MAPPINGS, true /* remove non matches */)
-                    .Equals(NormalizeHelper(
-                        rawInput, DIALLABLE_CHAR_MAPPINGS, true /* remove non matches */)))
-                ? formattedNumber
-                : rawInput;
+            if (formattedNumber != null && rawInput.Length > 0)
+            {
+                String normalizedFormattedNumber = NormalizeDiallableCharsOnly(formattedNumber);
+                String normalizedRawInput = NormalizeDiallableCharsOnly(rawInput);
+                if (!normalizedFormattedNumber.Equals(normalizedRawInput)) {
+                    formattedNumber = rawInput;
+                }
+            }
+            return formattedNumber;
         }
 
         // Check if rawInput, which is assumed to be in the national format, has a national prefix. The
@@ -1497,7 +1675,7 @@ namespace PhoneNumbers
                 if (IsNANPACountry(regionCallingFrom))
                     return countryCode + " " + rawInput;
             }
-            else if (IsValidRegionCode(regionCallingFrom) &&
+            else if (metadataForRegionCallingFrom != null &&
                 countryCode == GetCountryCodeForValidRegion(regionCallingFrom))
             {
                 NumberFormat formattingPattern =
@@ -1534,6 +1712,7 @@ namespace PhoneNumbers
             }
             var formattedNumber = new StringBuilder(rawInput);
             String regionCode = GetRegionCodeForCountryCode(countryCode);
+            // Metadata cannot be null because the country calling code is valid.
             PhoneMetadata metadataForRegion = GetMetadataForRegionOrCallingCode(countryCode, regionCode);
             MaybeAppendFormattedExtension(number, metadataForRegion,
                 PhoneNumberFormat.INTERNATIONAL, formattedNumber);
@@ -1546,7 +1725,7 @@ namespace PhoneNumbers
             {
                 // Invalid region entered as country-calling-from (so no metadata was found for it) or the
                 // region chosen has multiple international dialling prefixes.
-                // LOGGER.log(Level.WARNING,
+                // logger.log(Level.WARNING,
                 // "Trying to format number from invalid region "
                 // + regionCallingFrom
                 // + ". International formatting applied.");
@@ -1565,8 +1744,12 @@ namespace PhoneNumbers
         */
         public String GetNationalSignificantNumber(PhoneNumber number)
         {
-            // If a leading zero has been set, we prefix this now. Note this is not a national prefix.
-            StringBuilder nationalNumber = new StringBuilder(number.ItalianLeadingZero ? "0" : "");
+            // If a leading zero(s) have been set, we prefix this now. Note this is not a national prefix.
+            StringBuilder nationalNumber = new StringBuilder();
+            if (number.ItalianLeadingZero)
+            {
+                nationalNumber.Append(new String('0',number.NumberOfLeadingZeros));
+            }
             nationalNumber.Append(number.NationalNumber);
             return nationalNumber.ToString();
         }
@@ -1648,7 +1831,7 @@ namespace PhoneNumbers
             return FormatNsnUsingPattern(nationalNumber, formattingPattern, numberFormat, null);
         }
 
-        // Note that carrierCode is optional - if NULL or an empty string, no carrier code replacement
+        // Note that carrierCode is optional - if null or an empty string, no carrier code replacement
         // will take place.
         private String FormatNsnUsingPattern(String nationalNumber, NumberFormat formattingPattern,
             PhoneNumberFormat numberFormat, String carrierCode)
@@ -1835,10 +2018,10 @@ namespace PhoneNumbers
         public PhoneNumberType GetNumberType(PhoneNumber number)
         {
             var regionCode = GetRegionCodeForNumber(number);
-            if (!IsValidRegionCode(regionCode) && !REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCode))
+            PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(number.CountryCode, regionCode);
+            if (metadata == null)
                 return PhoneNumberType.UNKNOWN;
             var nationalSignificantNumber = GetNationalSignificantNumber(number);
-            PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(number.CountryCode, regionCode);
             return GetNumberTypeHelper(nationalSignificantNumber, metadata);
         }
 
@@ -1889,22 +2072,26 @@ namespace PhoneNumbers
                 return PhoneNumberType.MOBILE;
             return PhoneNumberType.UNKNOWN;
         }
-
+   
+        /**
+         * Returns the metadata for the given region code or {@code null} if the region code is invalid
+         * or unknown.
+         */
         public PhoneMetadata GetMetadataForRegion(String regionCode)
         {
             if (!IsValidRegionCode(regionCode))
                 return null;
-            lock (regionToMetadataMap)
+            lock (_regionToMetadataMap)
             {
-                if (!regionToMetadataMap.ContainsKey(regionCode))
+                if (!_regionToMetadataMap.ContainsKey(regionCode))
                 {
                     // The regionCode here will be valid and won't be '001', so we don't need to worry about
                     // what to pass in for the country calling code.
-                    LoadMetadataFromFile(currentFilePrefix_, regionCode, 0);
+                    LoadMetadataFromFile(_currentFilePrefix, regionCode, 0);
                 }
             }
-            return regionToMetadataMap.ContainsKey(regionCode)
-                ? regionToMetadataMap[regionCode]
+            return _regionToMetadataMap.ContainsKey(regionCode)
+                ? _regionToMetadataMap[regionCode]
                 : null;
         }
 
@@ -1912,13 +2099,13 @@ namespace PhoneNumbers
         {
             lock (countryCodeToNonGeographicalMetadataMap)
             {
-                if (!countryCallingCodeToRegionCodeMap_.ContainsKey(countryCallingCode))
+                if (!_countryCallingCodeToRegionCodeMap.ContainsKey(countryCallingCode))
                 {
                     return null;
                 }
                 if (!countryCodeToNonGeographicalMetadataMap.ContainsKey(countryCallingCode))
                 {
-                    LoadMetadataFromFile(currentFilePrefix_, REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode);
+                    LoadMetadataFromFile(_currentFilePrefix, REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode);
                 }
             }
             PhoneMetadata metadata = null;
@@ -1927,13 +2114,19 @@ namespace PhoneNumbers
         }
 
 
-        private bool IsNumberMatchingDesc(String nationalNumber, PhoneNumberDesc numberDesc)
+        internal bool IsNumberPossibleForDesc(String nationalNumber, PhoneNumberDesc numberDesc)
         {
             var possibleNumberPatternMatch = regexCache.GetPatternForRegex(
                 numberDesc.PossibleNumberPattern).MatchAll(nationalNumber);
+            return possibleNumberPatternMatch.Success;
+        }
+
+        public bool IsNumberMatchingDesc(String nationalNumber, PhoneNumberDesc numberDesc) 
+        {
             var nationalNumberPatternMatch = regexCache.GetPatternForRegex(
                 numberDesc.NationalNumberPattern).MatchAll(nationalNumber);
-            return possibleNumberPatternMatch.Success && nationalNumberPatternMatch.Success;
+            return IsNumberPossibleForDesc(nationalNumber,numberDesc) && 
+                nationalNumberPatternMatch.Success;
         }
 
         /**
@@ -1956,6 +2149,10 @@ namespace PhoneNumbers
         * immediately exits with false. After this, the specific number pattern rules for the region are
         * examined. This is useful for determining for example whether a particular number is valid for
         * Canada, rather than just a valid NANPA number.
+        * Warning: In most cases, you want to use {@link #isValidNumber} instead. For example, this
+        * method will mark numbers from British Crown dependencies such as the Isle of Man as invalid for
+        * the region "GB" (United Kingdom), since it has its own region code, "IM", which may be
+        * undesirable.
         *
         * @param number       the phone number that we want to validate
         * @param regionCode   the region that we want to validate the phone number for
@@ -1998,7 +2195,7 @@ namespace PhoneNumbers
         public String GetRegionCodeForNumber(PhoneNumber number)
         {
             List<String> regions = null;
-            countryCallingCodeToRegionCodeMap_.TryGetValue(number.CountryCode, out regions);
+            _countryCallingCodeToRegionCodeMap.TryGetValue(number.CountryCode, out regions);
             if (regions == null)
             {
                 // String numberString = getNationalSignificantNumber(number);
@@ -2018,6 +2215,7 @@ namespace PhoneNumbers
             foreach (var regionCode in regionCodes)
             {
                 // If leadingDigits is present, use this. Otherwise, do full validation.
+                // Metadata cannot be null because the region codes come from the country calling code map.
                 PhoneMetadata metadata = GetMetadataForRegion(regionCode);
                 if (metadata.HasLeadingDigits)
                 {
@@ -2034,14 +2232,32 @@ namespace PhoneNumbers
         /**
         * Returns the region code that matches the specific country calling code. In the case of no
         * region code being found, ZZ will be returned. In the case of multiple regions, the one
-        * designated in the metadata as the "main" region for this calling code will be returned.
+        * designated in the metadata as the "main" region for this calling code will be returned. If the
+        * countryCallingCode entered is valid but doesn't match a specific region (such as in the case of
+        * non-geographical calling codes like 800) the value "001" will be returned (corresponding to
+        * the value for World in the UN M.49 schema).
         */
         public String GetRegionCodeForCountryCode(int countryCallingCode)
         {
             List<String> regionCodes = null;
-            return countryCallingCodeToRegionCodeMap_.TryGetValue(countryCallingCode, out regionCodes)
+            return _countryCallingCodeToRegionCodeMap.TryGetValue(countryCallingCode, out regionCodes)
                 ? regionCodes[0]
                 : UNKNOWN_REGION;
+        }
+
+        /**
+         * Returns a list with the region codes that match the specific country calling code. For
+         * non-geographical country calling codes, the region code 001 is returned. Also, in the case
+         * of no region code being found, an empty list is returned.
+         */
+        public List<String> GetRegionCodesForCountryCode(int countryCallingCode)
+        {
+            if (_countryCallingCodeToRegionCodeMap.ContainsKey(countryCallingCode))
+            {
+                List<String> regionCodes = _countryCallingCodeToRegionCodeMap[countryCallingCode];
+                return regionCodes ?? new List<String>();
+            }
+            return new List<string>();
         }
 
         /**
@@ -2074,6 +2290,8 @@ namespace PhoneNumbers
         private int GetCountryCodeForValidRegion(String regionCode)
         {
             PhoneMetadata metadata = GetMetadataForRegion(regionCode);
+            if(metadata == null)
+                throw new InvalidOperationException("Invalid region code: " + regionCode);
             return metadata.CountryCode;
         }
 
@@ -2093,15 +2311,15 @@ namespace PhoneNumbers
         */
         public String GetNddPrefixForRegion(String regionCode, bool stripNonDigits)
         {
-            if (!IsValidRegionCode(regionCode))
+            PhoneMetadata metadata = GetMetadataForRegion(regionCode);
+            if (metadata == null)
             {
-                //LOGGER.log(Level.WARNING,
+                //logger.log(Level.WARNING,
                 //    "Invalid or missing region code ("
                 //    + ((regionCode == null) ? "null" : regionCode)
                 //    + ") provided.");
                 return null;
             }
-            PhoneMetadata metadata = GetMetadataForRegion(regionCode);
             String nationalPrefix = metadata.NationalPrefix;
             // If no national prefix was found, we return null.
             if (nationalPrefix.Length == 0)
@@ -2122,7 +2340,7 @@ namespace PhoneNumbers
         */
         public bool IsNANPACountry(String regionCode)
         {
-            return regionCode != null && nanpaRegions_.Contains(regionCode);
+            return regionCode != null && _nanpaRegions.Contains(regionCode);
         }
 
         /**
@@ -2132,8 +2350,8 @@ namespace PhoneNumbers
         */
         public bool IsLeadingZeroPossible(int countryCallingCode)
         {
-            PhoneMetadata mainMetadataForCallingCode = GetMetadataForRegion(
-                GetRegionCodeForCountryCode(countryCallingCode));
+            PhoneMetadata mainMetadataForCallingCode = GetMetadataForRegionOrCallingCode(countryCallingCode,
+                                          GetRegionCodeForCountryCode(countryCallingCode));
             if (mainMetadataForCallingCode == null)
                 return false;
             return mainMetadataForCallingCode.LeadingZeroPossible;
@@ -2188,6 +2406,18 @@ namespace PhoneNumbers
         }
 
         /**
+         * Helper method to check whether a number is too short to be a regular length phone number in a
+         * region.
+         */
+        private bool IsShorterThanPossibleNormalNumber(PhoneMetadata regionMetadata, String number)
+        {
+            PhoneRegex possibleNumberPattern = regexCache.GetPatternForRegex(
+                regionMetadata.GeneralDesc.PossibleNumberPattern);
+            return TestNumberLengthAgainstPattern(possibleNumberPattern, number) ==
+                ValidationResult.TOO_SHORT;
+        }
+
+        /**
         * Check whether a phone number is a possible number. It provides a more lenient check than
         * {@link #isValidNumber} in the following sense:
         *<ol>
@@ -2204,7 +2434,7 @@ namespace PhoneNumbers
         *      numbers, that would most likely be area codes) and length (obviously includes the
         *      length of area codes for fixed line numbers), it will return false for the
         *      subscriber-number-only version.
-        * </ol
+        * </ol>
         * @param number  the number that needs to be checked
         * @return  a ValidationResult object which indicates whether the number is possible
         */
@@ -2219,6 +2449,7 @@ namespace PhoneNumbers
              if (!HasValidCountryCallingCode(countryCode))
                 return ValidationResult.INVALID_COUNTRY_CODE;
             String regionCode = GetRegionCodeForCountryCode(countryCode);
+            // Metadata cannot be null because the country calling code is valid.
             PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(countryCode, regionCode);
             PhoneNumberDesc generalNumDesc = metadata.GeneralDesc;
             // Handling case of numbers with no metadata.
@@ -2324,7 +2555,7 @@ namespace PhoneNumbers
             for (int i = 1; i <= MAX_LENGTH_COUNTRY_CODE && i <= numberLength; i++)
             {
                 potentialCountryCode = int.Parse(fullNumber.ToString().Substring(0, i));   //XXX: ToString
-                if (countryCallingCodeToRegionCodeMap_.ContainsKey(potentialCountryCode))
+                if (_countryCallingCodeToRegionCodeMap.ContainsKey(potentialCountryCode))
                 {
                     nationalNumber.Append(fullNumber.ToString().Substring(i));  //XXX: ToString
                     return potentialCountryCode;
@@ -2721,6 +2952,30 @@ namespace PhoneNumbers
         }
 
         /**
+         * A helper function to set the values related to leading zeros in a PhoneNumber.
+         */
+        static void SetItalianLeadingZerosForPhoneNumber(String nationalNumber, PhoneNumber.Builder phoneNumber)
+        {
+            if (nationalNumber.Length > 1 && nationalNumber[0] == '0')
+            {
+                phoneNumber.SetItalianLeadingZero(true);
+                int numberOfLeadingZeros = 1;
+                // Note that if the national number is all "0"s, the last "0" is not counted as a leading
+                // zero.
+                while (numberOfLeadingZeros < nationalNumber.Length - 1 &&
+                       nationalNumber[numberOfLeadingZeros] == '0')
+                {
+                    numberOfLeadingZeros++;
+                }
+                if (numberOfLeadingZeros != 1)
+                {
+                    phoneNumber.SetNumberOfLeadingZeros(numberOfLeadingZeros);
+                }                
+            }
+        }
+
+
+        /**
         * Parses a string and fills up the phoneNumber. This method is the same as the public
         * parse() method, with the exception that it allows the default region to be null, for use by
         * isNumberMatch(). checkRegion should be set to false if it is permitted for the default region
@@ -2797,6 +3052,7 @@ namespace PhoneNumbers
             {
                 String phoneNumberRegion = GetRegionCodeForCountryCode(countryCode);
                 if (phoneNumberRegion != defaultRegion)
+                    // Metadata cannot be null because the country calling code is valid.
                     regionMetadata = GetMetadataForRegionOrCallingCode(countryCode, phoneNumberRegion);
             }
             else
@@ -2822,9 +3078,16 @@ namespace PhoneNumbers
             if (regionMetadata != null)
             {
                 StringBuilder carrierCode = new StringBuilder();
-                MaybeStripNationalPrefixAndCarrierCode(normalizedNationalNumber, regionMetadata, carrierCode);
-                if (keepRawInput)
-                    phoneNumber.SetPreferredDomesticCarrierCode(carrierCode.ToString());
+                StringBuilder potentialNationalNumber = new StringBuilder(normalizedNationalNumber.ToString());
+                MaybeStripNationalPrefixAndCarrierCode(potentialNationalNumber, regionMetadata, carrierCode);
+                // We require that the NSN remaining after stripping the national prefix and carrier code be
+                // of a possible length for the region. Otherwise, we don't do the stripping, since the
+                // original number could be a valid short number.
+                if (!IsShorterThanPossibleNormalNumber(regionMetadata, potentialNationalNumber.ToString())) {
+                    normalizedNationalNumber = potentialNationalNumber;
+                    if (keepRawInput)
+                        phoneNumber.SetPreferredDomesticCarrierCode(carrierCode.ToString());
+                }
             }
             int lengthOfNationalNumber = normalizedNationalNumber.Length;
             if (lengthOfNationalNumber < MIN_LENGTH_FOR_NSN)
@@ -2835,9 +3098,12 @@ namespace PhoneNumbers
                 throw new NumberParseException(ErrorType.TOO_LONG,
                     "The string supplied is too long to be a phone number.");
 
-            if (normalizedNationalNumber[0] == '0')
-                phoneNumber.SetItalianLeadingZero(true);
-            phoneNumber.SetNationalNumber(ulong.Parse(normalizedNationalNumber.ToString()));
+            SetItalianLeadingZerosForPhoneNumber(normalizedNationalNumber.ToString(), phoneNumber);
+            ulong nbr;
+            if(ulong.TryParse(normalizedNationalNumber.ToString(),out nbr))
+            {
+                phoneNumber.SetNationalNumber(nbr);
+            }
         }
 
         private static bool AreEqual(PhoneNumber.Builder p1, PhoneNumber.Builder p2)
@@ -3104,14 +3370,31 @@ namespace PhoneNumbers
         */
         public bool CanBeInternationallyDialled(PhoneNumber number)
         {
-            String regionCode = GetRegionCodeForNumber(number);
-            if (!IsValidRegionCode(regionCode))
+             PhoneMetadata metadata = GetMetadataForRegion(GetRegionCodeForNumber(number));
+             if (metadata == null)
                 // Note numbers belonging to non-geographical entities (e.g. +800 numbers) are always
                 // internationally diallable, and will be caught here.
                 return true;
-            PhoneMetadata metadata = GetMetadataForRegion(regionCode);
+            
             String nationalSignificantNumber = GetNationalSignificantNumber(number);
             return !IsNumberMatchingDesc(nationalSignificantNumber, metadata.NoInternationalDialling);
         }
+
+        /**
+          * Returns true if the supplied region supports mobile number portability. Returns false for
+          * invalid, unknown or regions that don't support mobile number portability.
+          *
+          * @param regionCode  the region for which we want to know whether it supports mobile number
+          *                    portability or not.
+          */
+        public bool IsMobileNumberPortableRegion(String regionCode)
+        {
+            PhoneMetadata metadata = GetMetadataForRegion(regionCode);
+            if (metadata == null)
+                return false;
+
+            return metadata.MobileNumberPortableRegion;
+        }
+
     }
 }

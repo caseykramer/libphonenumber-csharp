@@ -430,6 +430,26 @@ namespace PhoneNumbers
                 }
 
                 PhoneNumber number = phoneUtil.ParseAndKeepRawInput(candidate, preferredRegion);
+                // Check Israel * numbers: these are a special case in that they are four-digit numbers that
+                // our library supports, but they can only be dialled with a leading *. Since we don't
+                // actually store or detect the * in our phone number library, this means in practice we
+                // detect most four digit numbers as being valid for Israel. We are considering moving these
+                // numbers to ShortNumberInfo instead, in which case this problem would go away, but in the
+                // meantime we want to restrict the false matches so we only allow these numbers if they are
+                // preceded by a star. We enforce this for all leniency levels even though these numbers are
+                // technically accepted by isPossibleNumber and isValidNumber since we consider it to be a
+                // deficiency in those methods that they accept these numbers without the *.
+                // TODO: Remove this or make it significantly less hacky once we've decided how to
+                // handle these short codes going forward in ShortNumberInfo. We could use the formatting
+                // rules for instance, but that would be slower.
+                if (phoneUtil.GetRegionCodeForCountryCode(number.CountryCode).Equals("IL") &&
+                    phoneUtil.GetNationalSignificantNumber(number).Length == 4 &&
+                    (offset == 0 || (offset > 0 && text[offset - 1] != '*')))
+                {
+                    // No match.
+                    return null;
+                }
+
                 if (phoneUtil.Verify(leniency, number, candidate, phoneUtil))
                 {
                     // We used parseAndKeepRawInput to create this number, but for now we don't return the extra
@@ -468,6 +488,14 @@ namespace PhoneNumbers
             String[] formattedNumberGroups)
         {
             int fromIndex = 0;
+            if (number.CountryCodeSource != PhoneNumber.Types.CountryCodeSource.FROM_DEFAULT_COUNTRY)
+            {
+                // First skip the country code if the normalized candidate contained it.
+                String countryCode = number.CountryCode.ToString();
+                fromIndex = normalizedCandidate.ToString().IndexOf(countryCode) + countryCode.Length;
+            }
+
+
             // Check each group of consecutive digits are not broken into separate groupings in the
             // {@code normalizedCandidate} string.
             for (int i = 0; i < formattedNumberGroups.Length; i++)
@@ -483,12 +511,18 @@ namespace PhoneNumbers
                 fromIndex += formattedNumberGroups[i].Length;
                 if (i == 0 && fromIndex < normalizedCandidate.Length)
                 {
-                    // We are at the position right after the NDC.
-                    if (char.IsDigit(normalizedCandidate[fromIndex]))
+                    // We are at the position right after the NDC. We get the region used for formatting
+                    // information based on the country code in the phone number, rather than the number itself,
+                    // as we do not need to distinguish between different countries with the same country
+                    // calling code and this is faster.
+                    String region = util.GetRegionCodeForCountryCode(number.CountryCode);
+                    if (util.GetNddPrefixForRegion(region, true) != null &&
+                        Char.IsDigit(normalizedCandidate.ToString()[fromIndex]))
                     {
+
                         // This means there is no formatting symbol after the NDC. In this case, we only
                         // accept the number if there is no formatting symbol at all in the number, except
-                        // for extensions.
+                        // for extensions. This is only important for countries with national prefixes.
                         String nationalSignificantNumber = util.GetNationalSignificantNumber(number);
                         return normalizedCandidate.ToString().Substring(fromIndex - formattedNumberGroups[i].Length)
                             .StartsWith(nationalSignificantNumber);
@@ -598,11 +632,36 @@ namespace PhoneNumbers
             return false;
         }
 
-        public static bool ContainsMoreThanOneSlash(String candidate)
+        public static bool ContainsMoreThanOneSlashInNationalNumber(PhoneNumber number, String candidate)
         {
-            int firstSlashIndex = candidate.IndexOf('/');
-            return (firstSlashIndex > 0 && candidate.Substring(firstSlashIndex + 1).Contains("/"));
+            int firstSlashInBodyIndex = candidate.IndexOf('/');
+            if (firstSlashInBodyIndex < 0)
+            {
+                // No slashes, this is okay.
+                return false;
+            }
+            // Now look for a second one.
+            int secondSlashInBodyIndex = candidate.IndexOf('/', firstSlashInBodyIndex + 1);
+            if (secondSlashInBodyIndex < 0)
+            {
+                // Only one slash, this is okay.
+                return false;
+            }
+
+            // If the first slash is after the country calling code, this is permitted.
+            bool candidateHasCountryCode =
+                (number.CountryCodeSource == PhoneNumber.Types.CountryCodeSource.FROM_NUMBER_WITH_PLUS_SIGN ||
+                 number.CountryCodeSource == PhoneNumber.Types.CountryCodeSource.FROM_NUMBER_WITHOUT_PLUS_SIGN);
+            if (candidateHasCountryCode &&
+                PhoneNumberUtil.NormalizeDigitsOnly(candidate.Substring(0, firstSlashInBodyIndex))
+                    .Equals(number.CountryCode.ToString()))
+            {
+                // Any more slashes and this is illegal.
+                return candidate.Substring(secondSlashInBodyIndex + 1).Contains("/");
+            }
+            return true;
         }
+
 
         public static bool ContainsOnlyValidXChars(
             PhoneNumber number, String candidate, PhoneNumberUtil util)
@@ -669,14 +728,7 @@ namespace PhoneNumbers
                     // present.
                     return true;
                 }
-                // Remove the first-group symbol.
-                String candidateNationalPrefixRule = formatRule.NationalPrefixFormattingRule;
-                // We assume that the first-group symbol will never be _before_ the national prefix.
-                candidateNationalPrefixRule =
-                    candidateNationalPrefixRule.Substring(0, candidateNationalPrefixRule.IndexOf("${1}"));
-                candidateNationalPrefixRule =
-                    PhoneNumberUtil.NormalizeDigitsOnly(candidateNationalPrefixRule);
-                if (candidateNationalPrefixRule.Length == 0)
+                if (PhoneNumberUtil.FormattingRuleHasFirstGroupOnly(formatRule.NationalPrefixFormattingRule))
                 {
                     // National Prefix not needed for this number.
                     return true;

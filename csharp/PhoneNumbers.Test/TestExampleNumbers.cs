@@ -26,6 +26,7 @@ namespace PhoneNumbers.Test
     class TestExampleNumbers
     {
         private PhoneNumberUtil phoneNumberUtil;
+        private ShortNumberInfo shortNumberInfo;
         private List<PhoneNumber> invalidCases = new List<PhoneNumber>();
         private List<PhoneNumber> wrongTypeCases = new List<PhoneNumber>();
 
@@ -34,6 +35,7 @@ namespace PhoneNumbers.Test
         {
             PhoneNumberUtil.ResetInstance();
             phoneNumberUtil = PhoneNumberUtil.GetInstance();
+            shortNumberInfo = new ShortNumberInfo(phoneNumberUtil);
         }
 
         [SetUp]
@@ -201,31 +203,6 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(0, wrongTypeCases.Count);
         }
 
-        // TODO: Update this to use connectsToEmergencyNumber or similar once that is
-        // implemented.
-        [Test]
-        public void TestEmergency()
-        {
-            ShortNumberUtil shortUtil = new ShortNumberUtil(phoneNumberUtil);
-            int wrongTypeCounter = 0;
-            foreach(var regionCode in phoneNumberUtil.GetSupportedRegions())
-            {
-                PhoneNumberDesc desc =
-                    phoneNumberUtil.GetMetadataForRegion(regionCode).Emergency;
-                if (desc.HasExampleNumber)
-                {
-                    String exampleNumber = desc.ExampleNumber;
-                    if (!new PhoneRegex(desc.PossibleNumberPattern).MatchAll(exampleNumber).Success ||
-                        !shortUtil.IsEmergencyNumber(exampleNumber, regionCode))
-                    {
-                        wrongTypeCounter++;
-                    // LOGGER.log(Level.SEVERE, "Emergency example number test failed for " + regionCode);
-                    }
-                }
-            }
-            Assert.AreEqual(0, wrongTypeCounter);
-        }
-
         [Test]
         public void TestGlobalNetworkNumbers()
         {
@@ -240,6 +217,7 @@ namespace PhoneNumbers.Test
                     // LOGGER.log(Level.SEVERE, "Failed validation for " + exampleNumber.toString());
                 }
             }
+            Assert.AreEqual(invalidCases.Count, 0);
         }
 
         [Test]
@@ -251,5 +229,91 @@ namespace PhoneNumbers.Test
                 Assert.IsNotNull(exampleNumber, "None found for region " + regionCode);
             }
         }
+
+        [Test]
+        public void TestShortNumbersValidAndCorrectCost()
+        {
+            List<String> invalidStringCases = new List<String>();
+            foreach (var regionCode in shortNumberInfo.SupportedRegions)
+            {
+                var exampleShortNumber = shortNumberInfo.GetExampleShortNumber(regionCode);
+                if (!shortNumberInfo.IsValidShortNumberForRegion(exampleShortNumber, regionCode))
+                {
+                    String invalidStringCase = "region_code: " + regionCode + ", national_number: " +
+                                               exampleShortNumber;
+                    invalidStringCases.Add(invalidStringCase);
+                }
+                PhoneNumber phoneNumber = phoneNumberUtil.Parse(exampleShortNumber, regionCode);
+                if (!shortNumberInfo.IsValidShortNumber(phoneNumber))
+                {
+                    invalidCases.Add(phoneNumber);
+                }
+
+                foreach (
+                    ShortNumberInfo.ShortNumberCost cost in Enum.GetValues(typeof (ShortNumberInfo.ShortNumberCost)))
+                {
+                    exampleShortNumber = shortNumberInfo.GetExampleShortNumberForCost(regionCode, cost);
+                    if (!exampleShortNumber.Equals(""))
+                    {
+                        if (cost != shortNumberInfo.GetExpectedCostForRegion(exampleShortNumber, regionCode))
+                        {
+                            wrongTypeCases.Add(phoneNumber);
+                        }
+                    }
+                }
+            }
+            Assert.AreEqual(0, invalidStringCases.Count);
+            Assert.AreEqual(0, invalidCases.Count);
+            Assert.AreEqual(0, wrongTypeCases.Count);
+        }
+
+        [Test]
+        public void TestEmergency()
+        {
+            int wrongTypeCounter = 0;
+            foreach (string regionCode in shortNumberInfo.SupportedRegions)
+            {
+                PhoneNumberDesc desc = MetadataManager.GetShortNumberMetadataForRegion(regionCode).Emergency;
+                if (desc.HasExampleNumber)
+                {
+                    String exampleNumber = desc.ExampleNumber;
+                    if (!(new PhoneRegex(desc.PossibleNumberPattern).Match(exampleNumber).Success) ||
+                        !shortNumberInfo.IsEmergencyNumber(exampleNumber, regionCode))
+                    {
+                        wrongTypeCounter++;
+                    }
+                    else if (shortNumberInfo.GetExpectedCostForRegion(exampleNumber, regionCode) !=
+                             ShortNumberInfo.ShortNumberCost.TOLL_FREE)
+                    {
+                        wrongTypeCounter++;
+                    }
+                }
+            }
+            Assert.AreEqual(0, wrongTypeCounter);
+        }
+
+        [Test]
+        public void TestCarrierSpecificShortNumbers()
+        {
+            int wrongTagCounter = 0;
+            foreach (string regionCode in shortNumberInfo.SupportedRegions) 
+            {
+                // Test the carrier-specific tag.
+                PhoneNumberDesc desc = MetadataManager.GetShortNumberMetadataForRegion(regionCode).CarrierSpecific;
+                if (desc.HasExampleNumber) 
+                {
+                    string exampleNumber = desc.ExampleNumber;
+                    PhoneNumber carrierSpecificNumber = phoneNumberUtil.Parse(exampleNumber, regionCode);
+                    if (!new PhoneRegex(desc.PossibleNumberPattern).Match(exampleNumber).Success ||
+                        !shortNumberInfo.IsCarrierSpecific(carrierSpecificNumber)) 
+                    {
+                        wrongTagCounter++;          
+                    }
+                }
+                // TODO: Test other tags here.
+            }
+            Assert.AreEqual(0, wrongTagCounter);
+        }
+
     }
 }

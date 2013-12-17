@@ -37,8 +37,12 @@ namespace PhoneNumbers.Test
     class TestPhoneNumberUtil: TestMetadataTestCase
     {
         // Set up some test numbers to re-use.
+        // TODO: Rewrite this as static functions that return new numbers each time to avoid
+        // any risk of accidental changes to mutable static state affecting many tests.
         private static readonly PhoneNumber ALPHA_NUMERIC_NUMBER =
             new PhoneNumber.Builder().SetCountryCode(1).SetNationalNumber(80074935247L).Build();
+         private static readonly PhoneNumber AE_UAN = 
+            new PhoneNumber.Builder().SetCountryCode(971).SetNationalNumber(600123456L).Build();
         private static readonly PhoneNumber AR_MOBILE =
             new PhoneNumber.Builder().SetCountryCode(54).SetNationalNumber(91187654321L).Build();
         private static readonly PhoneNumber AR_NUMBER =
@@ -106,6 +110,8 @@ namespace PhoneNumbers.Test
             new PhoneNumber.Builder().SetCountryCode(800).SetNationalNumber(1234567890L).Build();
         private static readonly PhoneNumber UNIVERSAL_PREMIUM_RATE =
             new PhoneNumber.Builder().SetCountryCode(979).SetNationalNumber(123456789L).Build();
+        private static readonly PhoneNumber UNKNOWN_COUNTRY_CODE_NO_RAW_INPUT =
+            new PhoneNumber.Builder().SetCountryCode(2).SetNationalNumber(12345L).Build();
 
 
         private static PhoneNumber.Builder Update(PhoneNumber p)
@@ -138,6 +144,24 @@ namespace PhoneNumbers.Test
         {
             Assert.That(phoneUtil.GetSupportedRegions().Count > 0);
         }
+
+        [Test]
+        public void TestGetInstanceLoadBadMetadata()
+        {
+            Assert.Null(phoneUtil.GetMetadataForRegion("No Such Region"));
+            Assert.Null(phoneUtil.GetMetadataForNonGeographicalRegion(-1));
+        }
+
+        [Test]
+        public void TestMissingMetadataFileThrowsRuntimeException()
+        {
+            // In normal usage we should never get a state where we are asking to load metadata that doesn't
+            // exist. However if the library is packaged incorrectly in the jar, this could happen and the
+            // best we can do is make sure the exception has the file name in it.
+            Assert.Throws<NullReferenceException>(() => phoneUtil.LoadMetadataFromFile("no/such/file", "XX", -1));
+            Assert.Throws<NullReferenceException>(() => phoneUtil.LoadMetadataFromFile("no/such/file", PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, 123));
+        }
+
 
         [Test]
         public void TestGetInstanceLoadUSMetadata()
@@ -215,11 +239,22 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void TestIsNumberGeographical()
+        {
+            Assert.False(phoneUtil.IsNumberGeographical(BS_MOBILE));  // Bahamas, mobile phone number.
+            Assert.True(phoneUtil.IsNumberGeographical(AU_NUMBER));  // Australian fixed line number.
+            Assert.False(phoneUtil.IsNumberGeographical(INTERNATIONAL_TOLL_FREE));  // International toll
+            // free number.
+        }
+
+        [Test]
         public void TestIsLeadingZeroPossible()
         {
             Assert.That(phoneUtil.IsLeadingZeroPossible(39));   // Italy
             Assert.False(phoneUtil.IsLeadingZeroPossible(1));   // USA
-            Assert.False(phoneUtil.IsLeadingZeroPossible(800)); // International toll free numbers
+            Assert.True(phoneUtil.IsLeadingZeroPossible(800)); // International toll free
+            Assert.False(phoneUtil.IsLeadingZeroPossible(979));  // International premium-rate
+
             Assert.False(phoneUtil.IsLeadingZeroPossible(888)); // Not in metadata file, just default to
             // false.
         }
@@ -291,6 +326,17 @@ namespace PhoneNumbers.Test
             // A number containing an invalid country calling code, which shouldn't have any NDC.
             PhoneNumber number = new PhoneNumber.Builder().SetCountryCode(123).SetNationalNumber(6502530000L).Build();
             Assert.AreEqual(0, phoneUtil.GetLengthOfNationalDestinationCode(number));
+        }
+
+        [Test]
+        public void TestGetCountryMobileToken()
+        {
+            Assert.AreEqual("1", PhoneNumberUtil.GetCountryMobileToken(phoneUtil.GetCountryCodeForRegion(
+                RegionCode.MX)));
+
+            // Country calling code for Sweden, which has no mobile token.
+            Assert.AreEqual("", PhoneNumberUtil.GetCountryMobileToken(phoneUtil.GetCountryCodeForRegion(
+                RegionCode.SE)));
         }
 
         [Test]
@@ -391,6 +437,14 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(expectedOutput,
                 PhoneNumberUtil.NormalizeDigitsOnly(inputNumber),
                 "Conversion did not correctly remove alpha character");
+        }
+
+        [Test]
+        public void TestNormaliseStripNonDiallableCharacters()
+        {
+            String inputNumber = "03*4-56&+a#234";
+            String expectedOutput = "03*456+234";
+            Assert.AreEqual(expectedOutput, PhoneNumberUtil.NormalizeDiallableCharsOnly(inputNumber), "Conversion did not correctly remove non-diallable characters");
         }
 
         [Test]
@@ -708,6 +762,9 @@ namespace PhoneNumbers.Test
             Assert.AreEqual("+5492234654321", phoneUtil.Format(arMobile, PhoneNumberFormat.E164));
             // We don't support this for the US so there should be no change.
             Assert.AreEqual("650 253 0000", phoneUtil.FormatNationalNumberWithCarrierCode(US_NUMBER, "15"));
+            // Invalid country code should just get the NSN.
+            Assert.AreEqual("12345",phoneUtil.FormatNationalNumberWithCarrierCode(UNKNOWN_COUNTRY_CODE_NO_RAW_INPUT, "89"));
+
         }
 
         [Test]
@@ -745,8 +802,22 @@ namespace PhoneNumbers.Test
         [Test]
         public void TestFormatNumberForMobileDialing()
         {
+            // Numbers are normally dialed in national format in-country, and international format from
+            // outside the country.
+            Assert.AreEqual("030123456",
+                phoneUtil.FormatNumberForMobileDialing(DE_NUMBER, RegionCode.DE, false));
+            Assert.AreEqual("+4930123456",
+                phoneUtil.FormatNumberForMobileDialing(DE_NUMBER, RegionCode.CH, false));
+            PhoneNumber deNumberWithExtn = new PhoneNumber.Builder().MergeFrom(DE_NUMBER).SetExtension("1234").Build();
+            Assert.AreEqual("030123456",
+                phoneUtil.FormatNumberForMobileDialing(deNumberWithExtn, RegionCode.DE, false));
+            Assert.AreEqual("+4930123456",
+                phoneUtil.FormatNumberForMobileDialing(deNumberWithExtn, RegionCode.CH, false));
+
             // US toll free numbers are marked as noInternationalDialling in the test metadata for testing
-            // purposes.
+            // purposes. For such numbers, we expect nothing to be returned when the region code is not the
+            // same one.
+
             Assert.AreEqual("800 253 0000",
                 phoneUtil.FormatNumberForMobileDialing(US_TOLLFREE, RegionCode.US,
                     true /*  keep formatting */));
@@ -783,6 +854,65 @@ namespace PhoneNumbers.Test
                 phoneUtil.FormatNumberForMobileDialing(INTERNATIONAL_TOLL_FREE, RegionCode.JP, false));
             Assert.AreEqual("+800 1234 5678",
                 phoneUtil.FormatNumberForMobileDialing(INTERNATIONAL_TOLL_FREE, RegionCode.JP, true));
+
+            // UAE numbers beginning with 600 (classified as UAN) need to be dialled without +971 locally.
+            Assert.AreEqual("+971600123456",
+                phoneUtil.FormatNumberForMobileDialing(AE_UAN, RegionCode.JP, false));
+            Assert.AreEqual("600123456",
+                phoneUtil.FormatNumberForMobileDialing(AE_UAN, RegionCode.AE, false));
+
+            Assert.AreEqual("+523312345678",
+                phoneUtil.FormatNumberForMobileDialing(MX_NUMBER1, RegionCode.MX, false));
+            Assert.AreEqual("+523312345678",
+                phoneUtil.FormatNumberForMobileDialing(MX_NUMBER1, RegionCode.US, false));
+
+            // Non-geographical numbers should always be dialed in international format.
+            Assert.AreEqual("+80012345678",
+                phoneUtil.FormatNumberForMobileDialing(INTERNATIONAL_TOLL_FREE, RegionCode.US, false));
+            Assert.AreEqual("+80012345678",
+                phoneUtil.FormatNumberForMobileDialing(INTERNATIONAL_TOLL_FREE, RegionCode.UN001, false));
+
+            // Test that a short number is formatted correctly for mobile dialing within the region,
+            // and is not diallable from outside the region.
+            PhoneNumber deShortNumber = new PhoneNumber.Builder().SetCountryCode(49).SetNationalNumber(123L).Build();
+            Assert.AreEqual("123", phoneUtil.FormatNumberForMobileDialing(deShortNumber, RegionCode.DE,
+                false));
+            Assert.AreEqual("", phoneUtil.FormatNumberForMobileDialing(deShortNumber, RegionCode.IT, false));
+
+            // Test the special logic for Hungary, where the national prefix must be added before dialing
+            // from a mobile phone for regular length numbers, but not for short numbers.
+            PhoneNumber huRegularNumber = new PhoneNumber.Builder().SetCountryCode(36)
+                .SetNationalNumber(301234567L).Build();
+            Assert.AreEqual("06301234567", phoneUtil.FormatNumberForMobileDialing(huRegularNumber,
+                RegionCode.HU, false));
+            Assert.AreEqual("+36301234567", phoneUtil.FormatNumberForMobileDialing(huRegularNumber,
+                RegionCode.JP, false));
+            PhoneNumber huShortNumber = new PhoneNumber.Builder().SetCountryCode(36).SetNationalNumber(104L).Build();
+            Assert.AreEqual("104", phoneUtil.FormatNumberForMobileDialing(huShortNumber, RegionCode.HU,
+                false));
+            Assert.AreEqual("", phoneUtil.FormatNumberForMobileDialing(huShortNumber, RegionCode.JP, false));
+
+            // Test the special logic for NANPA countries, for which regular length phone numbers are always
+            // output in international format, but short numbers are in national format.
+            PhoneNumber usRegularNumber = new PhoneNumber.Builder().SetCountryCode(1)
+                .SetNationalNumber(6502530000L).Build();
+            Assert.AreEqual("+16502530000", phoneUtil.FormatNumberForMobileDialing(usRegularNumber,
+                RegionCode.US, false));
+            Assert.AreEqual("+16502530000", phoneUtil.FormatNumberForMobileDialing(usRegularNumber,
+                RegionCode.CA, false));
+            Assert.AreEqual("+16502530000", phoneUtil.FormatNumberForMobileDialing(usRegularNumber,
+                RegionCode.BR, false));
+            PhoneNumber usShortNumber = new PhoneNumber.Builder().SetCountryCode(1).SetNationalNumber(911L).Build();
+            Assert.AreEqual("911", phoneUtil.FormatNumberForMobileDialing(usShortNumber, RegionCode.US,
+                false));
+            Assert.AreEqual("", phoneUtil.FormatNumberForMobileDialing(usShortNumber, RegionCode.CA, false));
+            Assert.AreEqual("", phoneUtil.FormatNumberForMobileDialing(usShortNumber, RegionCode.BR, false));
+
+            // Test that the Australian emergency number 000 is formatted correctly.
+            PhoneNumber auNumber = new PhoneNumber.Builder().SetCountryCode(61).SetNationalNumber(0L)
+                .SetItalianLeadingZero(true).SetNumberOfLeadingZeros(2).Build();
+            Assert.AreEqual("000", phoneUtil.FormatNumberForMobileDialing(auNumber, RegionCode.AU, false));
+            Assert.AreEqual("", phoneUtil.FormatNumberForMobileDialing(auNumber, RegionCode.NZ, false));
         }
 
         [Test]
@@ -986,6 +1116,10 @@ namespace PhoneNumbers.Test
             Assert.AreEqual("*1234", phoneUtil.FormatInOriginalFormat(starNumber, RegionCode.JP));
             PhoneNumber numberWithoutStar = phoneUtil.ParseAndKeepRawInput("1234", RegionCode.JP);
             Assert.AreEqual("1234", phoneUtil.FormatInOriginalFormat(numberWithoutStar, RegionCode.JP));
+
+            // Test an invalid national number without raw input is just formatted as the national number.
+            Assert.AreEqual("650253000",
+                phoneUtil.FormatInOriginalFormat(US_SHORT_BY_ONE_NUMBER, RegionCode.US));
         }
 
         [Test]
@@ -1213,6 +1347,19 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(RegionCode.GB, phoneUtil.GetRegionCodeForNumber(GB_MOBILE));
             Assert.AreEqual(RegionCode.UN001, phoneUtil.GetRegionCodeForNumber(INTERNATIONAL_TOLL_FREE));
             Assert.AreEqual(RegionCode.UN001, phoneUtil.GetRegionCodeForNumber(UNIVERSAL_PREMIUM_RATE));
+        }
+
+        [Test]
+        public void TestGetRegionCodesForCountryCode()
+        {
+            List<String> regionCodesForNANPA = phoneUtil.GetRegionCodesForCountryCode(1);
+            Assert.True(regionCodesForNANPA.Contains(RegionCode.US));
+            Assert.True(regionCodesForNANPA.Contains(RegionCode.BS));
+            Assert.True(phoneUtil.GetRegionCodesForCountryCode(44).Contains(RegionCode.GB));
+            Assert.True(phoneUtil.GetRegionCodesForCountryCode(49).Contains(RegionCode.DE));
+            Assert.True(phoneUtil.GetRegionCodesForCountryCode(800).Contains(RegionCode.UN001));
+            // Test with invalid country calling code.
+            Assert.IsEmpty(phoneUtil.GetRegionCodesForCountryCode(-1));
         }
 
         [Test]
@@ -2324,18 +2471,45 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(NZ_NUMBER, phoneUtil.Parse("tel:03-331-6005;phone-context=+64", RegionCode.ZZ));
             Assert.AreEqual(NZ_NUMBER, phoneUtil.Parse("  tel:03-331-6005;phone-context=+64", RegionCode.ZZ));
             Assert.AreEqual(NZ_NUMBER, phoneUtil.Parse("tel:03-331-6005;isub=12345;phone-context=+64",
-                RegionCode.ZZ));
+                                                       RegionCode.ZZ));
 
             // It is important that we set the carrier code to an empty string, since we used
             // ParseAndKeepRawInput and no carrier code was found.
             PhoneNumber nzNumberWithRawInput = new PhoneNumber.Builder().MergeFrom(NZ_NUMBER)
-                .SetRawInput("+64 3 331 6005")
-                .SetCountryCodeSource(PhoneNumber.Types.CountryCodeSource.FROM_NUMBER_WITH_PLUS_SIGN)
-                .SetPreferredDomesticCarrierCode("").Build();
+                                                                        .SetRawInput("+64 3 331 6005")
+                                                                        .SetCountryCodeSource(
+                                                                            PhoneNumber.Types.CountryCodeSource
+                                                                                       .FROM_NUMBER_WITH_PLUS_SIGN)
+                                                                        .SetPreferredDomesticCarrierCode("").Build();
             Assert.AreEqual(nzNumberWithRawInput, phoneUtil.ParseAndKeepRawInput("+64 3 331 6005",
-                                                                      RegionCode.ZZ));
+                                                                                 RegionCode.ZZ));
             // Null is also allowed for the region code in these cases.
             Assert.AreEqual(nzNumberWithRawInput, phoneUtil.ParseAndKeepRawInput("+64 3 331 6005", null));
+        }
+
+        [Test]
+        public void TestParseNumberTooShortIfNationalPrefixStripped()
+        {
+            // Test that a number whose first digits happen to coincide with the national prefix does not
+            // get them stripped if doing so would result in a number too short to be a possible (regular
+            // length) phone number for that region.
+            var byNumber = new PhoneNumber.Builder().SetCountryCode(375).SetNationalNumber(8123L).Build();
+            var workNumber = new PhoneNumber.Builder().MergeFrom(byNumber);
+            Assert.AreEqual(workNumber.Build(), phoneUtil.Parse("8123", RegionCode.BY));
+            workNumber = new PhoneNumber.Builder().MergeFrom(byNumber);
+            workNumber.SetNationalNumber(81234L);
+            Assert.AreEqual(workNumber.Build(), phoneUtil.Parse("81234", RegionCode.BY));
+
+            // The prefix doesn't get stripped, since the input is a viable 6-digit number, whereas the
+            // result of stripping is only 5 digits.
+            workNumber = new PhoneNumber.Builder().MergeFrom(byNumber);
+            workNumber.SetNationalNumber(812345L);
+            Assert.AreEqual(workNumber.Build(), phoneUtil.Parse("812345", RegionCode.BY));
+
+            // The prefix gets stripped, since only 6-digit numbers are possible.
+            workNumber = new PhoneNumber.Builder().MergeFrom(byNumber);
+            workNumber.SetNationalNumber(123456L);
+            Assert.AreEqual(workNumber.Build(), phoneUtil.Parse("8123456", RegionCode.BY));
         }
 
         [Test]
@@ -2465,6 +2639,33 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void TestParseItalianLeadingZeros() 
+        {
+            // Test the number "011".
+            PhoneNumber.Builder oneZero = new PhoneNumber.Builder();
+            oneZero.SetCountryCode(61).SetNationalNumber(11L).SetItalianLeadingZero(true);
+            Assert.AreEqual(oneZero.Build(), phoneUtil.Parse("011", RegionCode.AU));
+        
+            // Test the number "001".
+            PhoneNumber.Builder twoZeros = new PhoneNumber.Builder();
+            twoZeros.SetCountryCode(61).SetNationalNumber(1).SetItalianLeadingZero(true)
+                .SetNumberOfLeadingZeros(2);
+            Assert.AreEqual(twoZeros.Build(), phoneUtil.Parse("001", RegionCode.AU));
+        
+            // Test the number "000". This number has 2 leading zeros.
+            PhoneNumber.Builder stillTwoZeros = new PhoneNumber.Builder();
+            stillTwoZeros.SetCountryCode(61).SetNationalNumber(0L).SetItalianLeadingZero(true)
+                .SetNumberOfLeadingZeros(2);
+            Assert.AreEqual(stillTwoZeros.Build(), phoneUtil.Parse("000", RegionCode.AU));
+        
+            // Test the number "0000". This number has 3 leading zeros.
+            PhoneNumber.Builder threeZeros = new PhoneNumber.Builder();
+            threeZeros.SetCountryCode(61).SetNationalNumber(0L).SetItalianLeadingZero(true)
+                .SetNumberOfLeadingZeros(3);
+            Assert.AreEqual(threeZeros.Build(), phoneUtil.Parse("0000", RegionCode.AU));
+        }
+
+        [Test]
         public void TestCountryWithNoNumberDesc()
         {
             // Andorra is a country where we don't have PhoneNumberDesc info in the metadata.
@@ -2482,11 +2683,14 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
-        public void TestUnknownCountryCallingCodeForValidation()
+        public void TestUnknownCountryCallingCode()
         {
-            PhoneNumber invalidNumber = new PhoneNumber.Builder()
-                .SetCountryCode(0).SetNationalNumber(1234L).Build();
-            Assert.False(phoneUtil.IsValidNumber(invalidNumber));
+            Assert.False(phoneUtil.IsValidNumber(UNKNOWN_COUNTRY_CODE_NO_RAW_INPUT));
+            // It's not very well defined as to what the E164 representation for a number with an invalid
+            // country calling code is, but just prefixing the country code and national number is about
+            // the best we can do.
+            Assert.AreEqual("+212345",
+                phoneUtil.Format(UNKNOWN_COUNTRY_CODE_NO_RAW_INPUT, PhoneNumberFormat.E164));
         }
 
         [Test]
@@ -2698,5 +2902,15 @@ namespace PhoneNumbers.Test
             Assert.False(phoneUtil.IsAlphaNumber("1800 123-1234 extension: 1234"));
             Assert.False(phoneUtil.IsAlphaNumber("+800 1234-1234"));
         }
+
+        [Test]
+        public void TestIsMobileNumberPortableRegion()
+        {
+            Assert.True(phoneUtil.IsMobileNumberPortableRegion(RegionCode.US));
+            Assert.True(phoneUtil.IsMobileNumberPortableRegion(RegionCode.GB));
+            Assert.False(phoneUtil.IsMobileNumberPortableRegion(RegionCode.AE));
+            Assert.False(phoneUtil.IsMobileNumberPortableRegion(RegionCode.BS));
+        }
+
     }
 }

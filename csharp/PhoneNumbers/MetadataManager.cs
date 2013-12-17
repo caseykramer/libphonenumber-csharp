@@ -16,7 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
 
 namespace PhoneNumbers
@@ -28,48 +27,90 @@ namespace PhoneNumbers
     *
     * @author Lara Rennie
     */
+
     public class MetadataManager
     {
         internal const String ALTERNATE_FORMATS_FILE_PREFIX = "PhoneNumberAlternateFormats.xml";
+        internal const String SHORT_NUMBER_METADATA_FILE_PREFIX = "ShortNumberMetadata.xml";
 
-        private static readonly Dictionary<int, PhoneMetadata> callingCodeToAlternateFormatsMap =
+        private static readonly Dictionary<int, PhoneMetadata> CallingCodeToAlternateFormatsMap =
             new Dictionary<int, PhoneMetadata>();
 
         // A set of which country calling codes there are alternate format data for. If the set has an
         // entry for a code, then there should be data for that code linked into the resources.
-        private static readonly Dictionary<int, List<String>> countryCodeSet =
+        private static readonly Dictionary<int, List<String>> CountryCodeSet =
             BuildMetadataFromXml.GetCountryCodeToRegionCodeMap(ALTERNATE_FORMATS_FILE_PREFIX);
+
+        // A set of which region codes there are short number data for. If the set has an entry for a
+        // code, then there should be data for that code linked into the resources.
+        private static Dictionary<string, PhoneMetadata> RegionCodeToShortNumberMetadataMap = null;
+            
+
+        private static readonly object _regionCodeMapLock = new object();
+
 
         private MetadataManager()
         {
         }
 
-        static private void LoadMedataFromFile(String filePrefix)
+        private static void LoadAlternateFormatsMedataFromFile(String filePrefix)
         {
             var asm = Assembly.GetExecutingAssembly();
-            var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(filePrefix)).FirstOrDefault() ?? "missing";
+            var name = asm.GetManifestResourceNames().FirstOrDefault(n => n.EndsWith(filePrefix)) ?? "missing";
             using (var stream = asm.GetManifestResourceStream(name))
             {
                 var meta = BuildMetadataFromXml.BuildPhoneMetadataCollection(stream, false);
                 foreach (var m in meta.MetadataList)
                 {
-                    callingCodeToAlternateFormatsMap[m.CountryCode] = m;
+                    CallingCodeToAlternateFormatsMap[m.CountryCode] = m;
                 }
             }
         }
 
         public static PhoneMetadata GetAlternateFormatsForCountry(int countryCallingCode)
         {
-            lock(callingCodeToAlternateFormatsMap)
+            lock (CallingCodeToAlternateFormatsMap)
             {
-                if(!countryCodeSet.ContainsKey(countryCallingCode))
+                if (!CountryCodeSet.ContainsKey(countryCallingCode))
                     return null;
-                if(!callingCodeToAlternateFormatsMap.ContainsKey(countryCallingCode))
-                    LoadMedataFromFile(ALTERNATE_FORMATS_FILE_PREFIX);
-                return callingCodeToAlternateFormatsMap.ContainsKey(countryCallingCode)
-                    ? callingCodeToAlternateFormatsMap[countryCallingCode]
-                    : null;
+                if (!CallingCodeToAlternateFormatsMap.ContainsKey(countryCallingCode))
+                    LoadAlternateFormatsMedataFromFile(ALTERNATE_FORMATS_FILE_PREFIX);
+                return CallingCodeToAlternateFormatsMap.ContainsKey(countryCallingCode)
+                           ? CallingCodeToAlternateFormatsMap[countryCallingCode]
+                           : null;
             }
+        }
+
+        internal static HashSet<String> ShortNumberMetadataSupportedRegions
+        {
+            get
+            {
+                if(RegionCodeToShortNumberMetadataMap == null)
+                    lock (_regionCodeMapLock)
+                    {
+                        RegionCodeToShortNumberMetadataMap =
+                            BuildMetadataFromXml.GetRegionCodeToShortNumberMap(SHORT_NUMBER_METADATA_FILE_PREFIX, false);
+                    }
+                if (RegionCodeToShortNumberMetadataMap == null)
+                    return new HashSet<string>();
+                return new HashSet<string>(RegionCodeToShortNumberMetadataMap.Keys);
+            }
+        }
+
+        internal static PhoneMetadata GetShortNumberMetadataForRegion(string regionCode)
+        {
+            if (RegionCodeToShortNumberMetadataMap == null)
+            {
+                lock (_regionCodeMapLock)
+                {
+                    RegionCodeToShortNumberMetadataMap =
+                        BuildMetadataFromXml.GetRegionCodeToShortNumberMap(SHORT_NUMBER_METADATA_FILE_PREFIX, false);
+                }
+            }
+
+            return regionCode != null && RegionCodeToShortNumberMetadataMap.ContainsKey(regionCode)
+                       ? RegionCodeToShortNumberMetadataMap[regionCode]
+                       : null;
         }
     }
 }

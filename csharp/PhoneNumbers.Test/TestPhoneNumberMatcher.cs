@@ -24,6 +24,55 @@ namespace PhoneNumbers.Test
     [TestFixture]
     class TestPhoneNumberMatcher: TestMetadataTestCase
     {
+        [Test]
+        public void TestContainsMoreThanOneSlashInNationalNumber()
+        {
+            // A date should return true.
+            PhoneNumber.Builder number = new PhoneNumber.Builder();
+            number.SetCountryCode(1);
+            number.SetCountryCodeSource(PhoneNumbers.PhoneNumber.Types.CountryCodeSource.FROM_DEFAULT_COUNTRY);
+            String candidate = "1/05/2013";
+            Assert.True(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(number.Build(), candidate));
+
+
+            // Here, the country code source thinks it started with a country calling code, but this is not
+            // the same as the part before the slash, so it's still true.
+            number = new PhoneNumber.Builder();
+            number.SetCountryCode(274);
+            number.SetCountryCodeSource(PhoneNumbers.PhoneNumber.Types.CountryCodeSource.FROM_NUMBER_WITHOUT_PLUS_SIGN);
+            candidate = "27/4/2013";
+            Assert.True(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(number.Build(), candidate));
+
+            // Now it should be false, because the first slash is after the country calling code.
+            number = new PhoneNumber.Builder();
+            number.SetCountryCode(49);
+            number.SetCountryCodeSource(PhoneNumbers.PhoneNumber.Types.CountryCodeSource.FROM_NUMBER_WITH_PLUS_SIGN);
+            candidate = "49/69/2013";
+            Assert.False(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(number.Build(), candidate));
+
+            number = new PhoneNumber.Builder();
+            number.SetCountryCode(49);
+            number.SetCountryCodeSource(PhoneNumbers.PhoneNumber.Types.CountryCodeSource.FROM_NUMBER_WITHOUT_PLUS_SIGN);
+            candidate = "+49/69/2013";
+            var builtNumber = number.Build();
+            Assert.False(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(builtNumber, candidate));
+
+            candidate = "+ 49/69/2013";
+            Assert.False(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(builtNumber, candidate));
+
+            candidate = "+ 49/69/20/13";
+            Assert.True(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(builtNumber, candidate));
+
+            // Here, the first group is not assumed to be the country calling code, even though it is the
+            // same as it, so this should return true.
+            number = new PhoneNumber.Builder();
+            number.SetCountryCode(49);
+            number.SetCountryCodeSource(PhoneNumbers.PhoneNumber.Types.CountryCodeSource.FROM_DEFAULT_COUNTRY);
+            candidate = "49/69/2013";
+            Assert.True(PhoneNumberMatcher.ContainsMoreThanOneSlashInNationalNumber(number.Build(), candidate));
+        }
+
+
         /** See {@link PhoneNumberUtilTest#testParseNationalNumber()}. */
         [Test]
         public void TestFindNationalNumber()
@@ -457,6 +506,9 @@ namespace PhoneNumbers.Test
     new NumberTest("0900-1 123123", RegionCode.DE),
     new NumberTest("(0)900-1 123123", RegionCode.DE),
     new NumberTest("0 900-1 123123", RegionCode.DE),
+    // NDC also found as part of the country calling code; this shouldn't ruin the grouping
+    // expectations.
+    new NumberTest("+33 3 34 2312", RegionCode.FR),
   };
 
         /**
@@ -488,6 +540,7 @@ namespace PhoneNumbers.Test
             new NumberTest("0900-1 123 123", RegionCode.DE),
             new NumberTest("(0)900-1 123 123", RegionCode.DE),
             new NumberTest("0 900-1 123 123", RegionCode.DE),
+            new NumberTest("+33 3 34 23 12", RegionCode.FR),
         };
 
         [Test]
@@ -566,8 +619,7 @@ namespace PhoneNumbers.Test
             doTestNumberNonMatchesForLeniency(testCases, PhoneNumberUtil.Leniency.EXACT_GROUPING);
         }
 
-        private void doTestNumberMatchesForLeniency(List<NumberTest> testCases,
-                                                    PhoneNumberUtil.Leniency leniency)
+        private void doTestNumberMatchesForLeniency(List<NumberTest> testCases,PhoneNumberUtil.Leniency leniency)
         {
             int noMatchFoundCount = 0;
             int wrongMatchFoundCount = 0;
@@ -595,8 +647,7 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(0, wrongMatchFoundCount);
         }
 
-        private void doTestNumberNonMatchesForLeniency(List<NumberTest> testCases,
-                                                       PhoneNumberUtil.Leniency leniency)
+        private void doTestNumberNonMatchesForLeniency(List<NumberTest> testCases,PhoneNumberUtil.Leniency leniency)
         {
             int matchFoundCount = 0;
             foreach (NumberTest test in testCases)
@@ -923,8 +974,8 @@ namespace PhoneNumbers.Test
         {
             foreach (var context in contextPairs)
             {
-                String prefix = context.leadingText;
-                String text = prefix + number + context.trailingText;
+                string prefix = context.leadingText ?? "";
+                string text = prefix + number + context.trailingText;
 
                 int start = prefix.Length;
                 int length = number.Length;
