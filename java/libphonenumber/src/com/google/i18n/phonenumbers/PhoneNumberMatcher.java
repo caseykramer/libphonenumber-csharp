@@ -416,6 +416,25 @@ final class PhoneNumberMatcher implements Iterator<PhoneNumberMatch> {
       }
 
       PhoneNumber number = phoneUtil.parseAndKeepRawInput(candidate, preferredRegion);
+      // Check Israel * numbers: these are a special case in that they are four-digit numbers that
+      // our library supports, but they can only be dialled with a leading *. Since we don't
+      // actually store or detect the * in our phone number library, this means in practice we
+      // detect most four digit numbers as being valid for Israel. We are considering moving these
+      // numbers to ShortNumberInfo instead, in which case this problem would go away, but in the
+      // meantime we want to restrict the false matches so we only allow these numbers if they are
+      // preceded by a star. We enforce this for all leniency levels even though these numbers are
+      // technically accepted by isPossibleNumber and isValidNumber since we consider it to be a
+      // deficiency in those methods that they accept these numbers without the *.
+      // TODO: Remove this or make it significantly less hacky once we've decided how to
+      // handle these short codes going forward in ShortNumberInfo. We could use the formatting
+      // rules for instance, but that would be slower.
+      if (phoneUtil.getRegionCodeForCountryCode(number.getCountryCode()).equals("IL") &&
+          phoneUtil.getNationalSignificantNumber(number).length() == 4 &&
+          (offset == 0 || (offset > 0 && text.charAt(offset - 1) != '*'))) {
+        // No match.
+        return null;
+      }
+
       if (leniency.verify(number, candidate, phoneUtil)) {
         // We used parseAndKeepRawInput to create this number, but for now we don't return the extra
         // values parsed. TODO: stop clearing all values here and switch all users over
@@ -456,6 +475,11 @@ final class PhoneNumberMatcher implements Iterator<PhoneNumberMatch> {
                                               StringBuilder normalizedCandidate,
                                               String[] formattedNumberGroups) {
     int fromIndex = 0;
+    if (number.getCountryCodeSource() != CountryCodeSource.FROM_DEFAULT_COUNTRY) {
+      // First skip the country code if the normalized candidate contained it.
+      String countryCode = Integer.toString(number.getCountryCode());
+      fromIndex = normalizedCandidate.indexOf(countryCode) + countryCode.length();
+    }
     // Check each group of consecutive digits are not broken into separate groupings in the
     // {@code normalizedCandidate} string.
     for (int i = 0; i < formattedNumberGroups.length; i++) {
@@ -468,11 +492,16 @@ final class PhoneNumberMatcher implements Iterator<PhoneNumberMatch> {
       // Moves {@code fromIndex} forward.
       fromIndex += formattedNumberGroups[i].length();
       if (i == 0 && fromIndex < normalizedCandidate.length()) {
-        // We are at the position right after the NDC.
-        if (Character.isDigit(normalizedCandidate.charAt(fromIndex))) {
+        // We are at the position right after the NDC. We get the region used for formatting
+        // information based on the country code in the phone number, rather than the number itself,
+        // as we do not need to distinguish between different countries with the same country
+        // calling code and this is faster.
+        String region = util.getRegionCodeForCountryCode(number.getCountryCode());
+        if (util.getNddPrefixForRegion(region, true) != null &&
+            Character.isDigit(normalizedCandidate.charAt(fromIndex))) {
           // This means there is no formatting symbol after the NDC. In this case, we only
           // accept the number if there is no formatting symbol at all in the number, except
-          // for extensions.
+          // for extensions. This is only important for countries with national prefixes.
           String nationalSignificantNumber = util.getNationalSignificantNumber(number);
           return normalizedCandidate.substring(fromIndex - formattedNumberGroups[i].length())
               .startsWith(nationalSignificantNumber);
@@ -568,9 +597,30 @@ final class PhoneNumberMatcher implements Iterator<PhoneNumberMatch> {
     return false;
   }
 
-  static boolean containsMoreThanOneSlash(String candidate) {
-    int firstSlashIndex = candidate.indexOf('/');
-    return (firstSlashIndex > 0 && candidate.substring(firstSlashIndex + 1).contains("/"));
+  static boolean containsMoreThanOneSlashInNationalNumber(PhoneNumber number, String candidate) {
+    int firstSlashInBodyIndex = candidate.indexOf('/');
+    if (firstSlashInBodyIndex < 0) {
+      // No slashes, this is okay.
+      return false;
+    }
+    // Now look for a second one.
+    int secondSlashInBodyIndex = candidate.indexOf('/', firstSlashInBodyIndex + 1);
+    if (secondSlashInBodyIndex < 0) {
+      // Only one slash, this is okay.
+      return false;
+    }
+
+    // If the first slash is after the country calling code, this is permitted.
+    boolean candidateHasCountryCode =
+        (number.getCountryCodeSource() == CountryCodeSource.FROM_NUMBER_WITH_PLUS_SIGN ||
+         number.getCountryCodeSource() == CountryCodeSource.FROM_NUMBER_WITHOUT_PLUS_SIGN);
+    if (candidateHasCountryCode &&
+        PhoneNumberUtil.normalizeDigitsOnly(candidate.substring(0, firstSlashInBodyIndex))
+            .equals(Integer.toString(number.getCountryCode()))) {
+      // Any more slashes and this is illegal.
+      return candidate.substring(secondSlashInBodyIndex + 1).contains("/");
+    }
+    return true;
   }
 
   static boolean containsOnlyValidXChars(
@@ -595,7 +645,7 @@ final class PhoneNumberMatcher implements Iterator<PhoneNumberMatch> {
         // extension number.
         } else if (!PhoneNumberUtil.normalizeDigitsOnly(candidate.substring(index)).equals(
             number.getExtension())) {
-            return false;
+          return false;
         }
       }
     }
@@ -626,14 +676,8 @@ final class PhoneNumberMatcher implements Iterator<PhoneNumberMatch> {
         // present.
         return true;
       }
-      // Remove the first-group symbol.
-      String candidateNationalPrefixRule = formatRule.getNationalPrefixFormattingRule();
-      // We assume that the first-group symbol will never be _before_ the national prefix.
-      candidateNationalPrefixRule =
-          candidateNationalPrefixRule.substring(0, candidateNationalPrefixRule.indexOf("$1"));
-      candidateNationalPrefixRule =
-          PhoneNumberUtil.normalizeDigitsOnly(candidateNationalPrefixRule);
-      if (candidateNationalPrefixRule.length() == 0) {
+      if (PhoneNumberUtil.formattingRuleHasFirstGroupOnly(
+          formatRule.getNationalPrefixFormattingRule())) {
         // National Prefix not needed for this number.
         return true;
       }

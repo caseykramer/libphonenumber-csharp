@@ -16,27 +16,37 @@
 
 package com.google.i18n.phonenumbers;
 
-import com.google.i18n.phonenumbers.Phonemetadata.PhoneMetadata;
-
-import java.util.regex.Pattern;
+import java.util.Set;
 
 /*
  * Utility for international short phone numbers, such as short codes and emergency numbers. Note
  * most commercial short numbers are not handled here, but by the PhoneNumberUtil.
  *
+ * @deprecated("As of release 5.8, replaced by ShortNumberInfo.")
+ *
  * @author Shaopeng Jia
+ * @author David Yonge-Mallo
  */
-public class ShortNumberUtil {
+@Deprecated public class ShortNumberUtil {
 
-  private final PhoneNumberUtil phoneUtil;
-
-  public ShortNumberUtil() {
-    phoneUtil = PhoneNumberUtil.getInstance();
+  /**
+   * Cost categories of short numbers.
+   */
+  public enum ShortNumberCost {
+    TOLL_FREE,
+    STANDARD_RATE,
+    PREMIUM_RATE,
+    UNKNOWN_COST
   }
 
-  // @VisibleForTesting
-  ShortNumberUtil(PhoneNumberUtil util) {
-    phoneUtil = util;
+  public ShortNumberUtil() {
+  }
+
+  /**
+   * Convenience method to get a list of what regions the library has metadata for.
+   */
+  public Set<String> getSupportedRegions() {
+    return ShortNumberInfo.getInstance().getSupportedRegions();
   }
 
   /**
@@ -51,7 +61,7 @@ public class ShortNumberUtil {
    * @return  if the number might be used to connect to an emergency service in the given region.
    */
   public boolean connectsToEmergencyNumber(String number, String regionCode) {
-    return matchesEmergencyNumberHelper(number, regionCode, true /* allows prefix match */);
+    return ShortNumberInfo.getInstance().connectsToEmergencyNumber(number, regionCode);
   }
 
   /**
@@ -65,29 +75,6 @@ public class ShortNumberUtil {
    * @return  if the number exactly matches an emergency services number in the given region.
    */
   public boolean isEmergencyNumber(String number, String regionCode) {
-    return matchesEmergencyNumberHelper(number, regionCode, false /* doesn't allow prefix match */);
-  }
-
-  private boolean matchesEmergencyNumberHelper(String number, String regionCode,
-      boolean allowPrefixMatch) {
-    number = PhoneNumberUtil.extractPossibleNumber(number);
-    if (PhoneNumberUtil.PLUS_CHARS_PATTERN.matcher(number).lookingAt()) {
-      // Returns false if the number starts with a plus sign. We don't believe dialing the country
-      // code before emergency numbers (e.g. +1911) works, but later, if that proves to work, we can
-      // add additional logic here to handle it.
-      return false;
-    }
-    PhoneMetadata metadata = phoneUtil.getMetadataForRegion(regionCode);
-    if (metadata == null || !metadata.hasEmergency()) {
-      return false;
-    }
-    Pattern emergencyNumberPattern =
-        Pattern.compile(metadata.getEmergency().getNationalNumberPattern());
-    String normalizedNumber = PhoneNumberUtil.normalizeDigitsOnly(number);
-    // In Brazil, it is impossible to append additional digits to an emergency number to dial the
-    // number.
-    return (!allowPrefixMatch || regionCode.equals("BR"))
-        ? emergencyNumberPattern.matcher(normalizedNumber).matches()
-        : emergencyNumberPattern.matcher(normalizedNumber).lookingAt();
+    return ShortNumberInfo.getInstance().isEmergencyNumber(number, regionCode);
   }
 }

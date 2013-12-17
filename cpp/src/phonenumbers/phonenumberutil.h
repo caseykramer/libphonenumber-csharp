@@ -28,9 +28,9 @@
 #include <utility>
 #include <vector>
 
-#include "base/basictypes.h"
-#include "base/memory/scoped_ptr.h"
-#include "base/memory/singleton.h"
+#include "phonenumbers/base/basictypes.h"
+#include "phonenumbers/base/memory/scoped_ptr.h"
+#include "phonenumbers/base/memory/singleton.h"
 #include "phonenumbers/phonenumber.pb.h"
 
 class TelephoneNumber;
@@ -51,7 +51,7 @@ class AsYouTypeFormatter;
 class Logger;
 class NumberFormat;
 class PhoneMetadata;
-class PhoneNumberMatcherRegExps;
+class PhoneNumberDesc;
 class PhoneNumberRegExpsAndMappings;
 class RegExp;
 
@@ -60,21 +60,18 @@ class RegExp;
 // codes can be found here:
 // http://www.iso.org/iso/english_country_names_and_code_elements
 
-#ifdef USE_GOOGLE_BASE
-class PhoneNumberUtil {
-  friend struct DefaultSingletonTraits<PhoneNumberUtil>;
-#else
 class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
-  friend class Singleton<PhoneNumberUtil>;
-#endif
+ private:
   friend class AsYouTypeFormatter;
   friend class PhoneNumberMatcher;
   friend class PhoneNumberMatcherRegExps;
   friend class PhoneNumberMatcherTest;
   friend class PhoneNumberRegExpsAndMappings;
   friend class PhoneNumberUtilTest;
-  friend class ShortNumberUtil;
-  friend class ShortNumberUtilTest;
+  friend class ShortNumberInfo;
+  friend class ShortNumberInfoTest;
+  friend class Singleton<PhoneNumberUtil>;
+
  public:
   ~PhoneNumberUtil();
   static const char kRegionCodeForNonGeoEntity[];
@@ -83,10 +80,11 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // in ITU-T Recommendation E. 123. For example, the number of the Google
   // Zürich office will be written as "+41 44 668 1800" in INTERNATIONAL
   // format, and as "044 668 1800" in NATIONAL format. E164 format is as per
-  // INTERNATIONAL format but with no formatting applied e.g. +41446681800.
+  // INTERNATIONAL format but with no formatting applied e.g. "+41446681800".
   // RFC3966 is as per INTERNATIONAL format, but with all spaces and other
   // separating symbols replaced with a hyphen, and with any phone number
-  // extension appended with ";ext=".
+  // extension appended with ";ext=". It also will have a prefix of "tel:"
+  // added, e.g. "tel:+41-44-668-1800".
   enum PhoneNumberFormat {
     E164,
     INTERNATIONAL,
@@ -164,9 +162,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   //
   // The PhoneNumberUtil is implemented as a singleton. Therefore, calling
   // GetInstance multiple times will only result in one instance being created.
-#ifdef USE_GOOGLE_BASE
   static PhoneNumberUtil* GetInstance();
-#endif
 
   // Returns true if the number is a valid vanity (alpha) number such as 800
   // MICROSOFT. A valid vanity number will start with at least 3 digits and will
@@ -184,6 +180,11 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // converts wide-ascii and arabic-indic numerals to European numerals, and
   // strips punctuation and alpha characters.
   void NormalizeDigitsOnly(string* number) const;
+
+  // Normalizes a string of characters representing a phone number. This strips
+  // all characters which are not diallable on a mobile phone keypad (including
+  // all non-ASCII digits).
+  void NormalizeDiallableCharsOnly(string* number) const;
 
   // Gets the national significant number of a phone number. Note a national
   // significant number doesn't contain a national prefix or any formatting.
@@ -210,7 +211,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   //   area_code = national_significant_number.substr(0, area_code_length);
   //   subscriber_number = national_significant_number.substr(
   //       area_code_length, string::npos);
-  // else {
+  // } else {
   //   area_code = "";
   //   subscriber_number = national_significant_number;
   // }
@@ -249,13 +250,13 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // string subscriber_number;
   //
   // int national_destination_code_length =
-  //     phone_util.GetLengthOfGeographicalAreaCode(number);
+  //     phone_util.GetLengthOfNationalDestinationCode(number);
   // if (national_destination_code_length > 0) {
   //   national_destination_code = national_significant_number.substr(
   //       0, national_destination_code_length);
   //   subscriber_number = national_significant_number.substr(
   //       national_destination_code_length, string::npos);
-  // else {
+  // } else {
   //   national_destination_code = "";
   //   subscriber_number = national_significant_number;
   // }
@@ -263,6 +264,13 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // Refer to the unittests to see the difference between this function and
   // GetLengthOfGeographicalAreaCode().
   int GetLengthOfNationalDestinationCode(const PhoneNumber& number) const;
+
+  // Returns the mobile token for the provided country calling code if it has
+  // one, otherwise returns an empty string. A mobile token is a number inserted
+  // before the area code when dialing a mobile number from that country from
+  // abroad.
+  void GetCountryMobileToken(int country_calling_code,
+                             string* mobile_token) const;
 
   // Formats a phone number in the specified format using default rules. Note
   // that this does not promise to produce a phone number that the user can
@@ -379,10 +387,14 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // doesn't verify the number is actually in use, which is impossible to tell
   // by just looking at a number itself. If the country calling code is not the
   // same as the country calling code for the region, this immediately exits
-  // with false.  After this, the specific number pattern rules for the region
+  // with false. After this, the specific number pattern rules for the region
   // are examined.
   // This is useful for determining for example whether a particular number is
   // valid for Canada, rather than just a valid NANPA number.
+  // Warning: In most cases, you want to use IsValidNumber instead. For
+  // example, this method will mark numbers from British Crown dependencies
+  // such as the Isle of Man as invalid for the region "GB" (United Kingdom),
+  // since it has its own region code, "IM", which may be undesirable.
   bool IsValidNumberForRegion(
       const PhoneNumber& number,
       const string& region_code) const;
@@ -399,8 +411,20 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // Returns the region code that matches the specific country code. Note that
   // it is possible that several regions share the same country calling code
   // (e.g. US and Canada), and in that case, only one of the regions (normally
-  // the one with the largest population) is returned.
+  // the one with the largest population) is returned. If the
+  // countryCallingCode entered is valid but doesn't match a specific region
+  // (such as in the case of non-geographical calling codes like 800) the
+  // RegionCode 001 will be returned (corresponding to the value for World in
+  // the UN M.49 schema).
   void GetRegionCodeForCountryCode(int country_code, string* region_code) const;
+
+  // Populates a list with the region codes that match the specific country
+  // calling code. For non-geographical country calling codes, the region code
+  // 001 is returned. Also, in the case of no region code being found, the list
+  // is left unchanged.
+  void GetRegionCodesForCountryCallingCode(
+      int country_calling_code,
+      list<string>* region_codes) const;
 
   // Checks if this is a region under the North American Numbering Plan
   // Administration (NANPA).
@@ -540,9 +564,9 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   MatchType IsNumberMatchWithOneString(const PhoneNumber& first_number,
                                        const string& second_number) const;
 
-  // Overrides the default logging system. The provided logger destruction is
-  // handled by this class (i.e don't delete it).
-  static void SetLogger(Logger* logger);
+  // Overrides the default logging system. This takes ownership of the provided
+  // logger.
+  void SetLogger(Logger* logger);
 
   // Gets an AsYouTypeFormatter for the specific region.
   // Returns an AsYouTypeFormatter object, which could be used to format phone
@@ -562,6 +586,15 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // significant number could contain a leading zero. An example of such a
   // country is Italy.
   bool IsLeadingZeroPossible(int country_calling_code) const;
+
+  bool IsNumberPossibleForDesc(const string& national_number,
+                               const PhoneNumberDesc& number_desc) const;
+
+  bool IsNumberMatchingDesc(const string& national_number,
+                            const PhoneNumberDesc& number_desc) const;
+
+  PhoneNumberUtil::PhoneNumberType GetNumberTypeHelper(
+      const string& national_number, const PhoneMetadata& metadata) const;
 
  private:
   scoped_ptr<Logger> logger_;
@@ -629,14 +662,29 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // Checks if a number matches the plus chars pattern.
   bool StartsWithPlusCharsPattern(const string& number) const;
 
+  void SetItalianLeadingZerosForPhoneNumber(
+      const string& national_number, PhoneNumber* phone_number) const;
+
   // Checks whether a string contains only valid digits.
   bool ContainsOnlyValidDigits(const string& s) const;
 
-  // Checks if a format is eligible to be used by the AsYouTypeFormatter.
+  // Checks if a format is eligible to be used by the AsYouTypeFormatter. This
+  // method is here rather than in asyoutypeformatter.h since it depends on the
+  // valid punctuation declared by the phone number util.
   bool IsFormatEligibleForAsYouTypeFormatter(const string& format) const;
+
+  // Helper function to check if the national prefix formatting rule has the
+  // first group only, i.e., does not start with the national prefix.
+  bool FormattingRuleHasFirstGroupOnly(
+      const string& national_prefix_formatting_rule) const;
 
   // Trims unwanted end characters from a phone number string.
   void TrimUnwantedEndChars(string* number) const;
+
+  // Tests whether a phone number has a geographical association. It checks if
+  // the number is associated to a certain region in the country where it
+  // belongs to. Note that this doesn't verify if the number is actually in use.
+  bool IsNumberGeographical(const PhoneNumber& phone_number) const;
 
   // Helper function to check region code is not unknown or null.
   bool IsValidRegionCode(const string& region_code) const;
@@ -657,10 +705,6 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   // As per GetCountryCodeForRegion, but assumes the validity of the region_code
   // has already been checked.
   int GetCountryCodeForValidRegion(const string& region_code) const;
-
-  void GetRegionCodesForCountryCallingCode(
-      int country_calling_code,
-      list<string>* region_codes) const;
 
   const NumberFormat* ChooseFormattingPatternForNumber(
       const RepeatedPtrField<NumberFormat>& available_formats,
@@ -722,6 +766,7 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   bool ParsePrefixAsIdd(const RegExp& idd_pattern, string* number) const;
 
   void Normalize(string* number) const;
+
   PhoneNumber::CountryCodeSource MaybeStripInternationalPrefixAndNormalize(
       const string& possible_idd_prefix,
       string* number) const;
@@ -758,9 +803,13 @@ class PhoneNumberUtil : public Singleton<PhoneNumberUtil> {
   void BuildNationalNumberForParsing(const string& number_to_parse,
                                      string* national_number) const;
 
+  bool IsShorterThanPossibleNormalNumber(const PhoneMetadata* country_metadata,
+                                         const string& number) const;
+
   // Returns true if the number can be dialled from outside the region, or
   // unknown. If the number can only be dialled from within the region, returns
-  // false. Does not check the number is a valid number.
+  // false. Does not check the number is a valid number. Note that, at the
+  // moment, this method does not handle short numbers.
   bool CanBeInternationallyDialled(const PhoneNumber& number) const;
 
   DISALLOW_COPY_AND_ASSIGN(PhoneNumberUtil);

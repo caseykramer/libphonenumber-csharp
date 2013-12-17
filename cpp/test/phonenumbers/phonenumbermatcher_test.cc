@@ -22,9 +22,10 @@
 #include <gtest/gtest.h>
 #include <unicode/unistr.h>
 
-#include "base/basictypes.h"
-#include "base/memory/scoped_ptr.h"
-#include "base/memory/singleton.h"
+#include "phonenumbers/base/basictypes.h"
+#include "phonenumbers/base/memory/scoped_ptr.h"
+#include "phonenumbers/base/memory/singleton.h"
+#include "phonenumbers/default_logger.h"
 #include "phonenumbers/phonenumber.h"
 #include "phonenumbers/phonenumber.pb.h"
 #include "phonenumbers/phonenumbermatch.h"
@@ -77,10 +78,17 @@ class PhoneNumberMatcherTest : public testing::Test {
                  RegionCode::US(),
                  PhoneNumberMatcher::VALID, 5),
         offset_(0) {
+    PhoneNumberUtil::GetInstance()->SetLogger(new StdoutLogger());
   }
 
   bool IsLatinLetter(char32 letter) {
     return PhoneNumberMatcher::IsLatinLetter(letter);
+  }
+
+  bool ContainsMoreThanOneSlashInNationalNumber(
+      const PhoneNumber& phone_number, const string& candidate) {
+    return PhoneNumberMatcher::ContainsMoreThanOneSlashInNationalNumber(
+        phone_number, candidate, phone_util_);
   }
 
   bool ExtractMatch(const string& text, PhoneNumberMatch* match) {
@@ -224,7 +232,7 @@ class PhoneNumberMatcherTest : public testing::Test {
     // With a second number later.
     context_pairs.push_back(NumberContext("Call ", " or +1800-123-4567!"));
     // With a Month-Day date.
-    context_pairs.push_back(NumberContext("Call me on June 21 at", ""));
+    context_pairs.push_back(NumberContext("Call me on June 2 at", ""));
     // With publication pages.
     context_pairs.push_back(NumberContext(
         "As quoted by Alfonso 12-15 (2009), you may call me at ", ""));
@@ -321,6 +329,52 @@ class PhoneNumberMatcherTest : public testing::Test {
   PhoneNumberMatcher matcher_;
   int offset_;
 };
+
+TEST_F(PhoneNumberMatcherTest, ContainsMoreThanOneSlashInNationalNumber) {
+  // A date should return true.
+  PhoneNumber number;
+  number.set_country_code(1);
+  number.set_country_code_source(PhoneNumber::FROM_DEFAULT_COUNTRY);
+  string candidate = "1/05/2013";
+  EXPECT_TRUE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+
+  // Here, the country code source thinks it started with a country calling
+  // code, but this is not the same as the part before the slash, so it's still
+  // true.
+  number.Clear();
+  number.set_country_code(274);
+  number.set_country_code_source(PhoneNumber::FROM_NUMBER_WITHOUT_PLUS_SIGN);
+  candidate = "27/4/2013";
+  EXPECT_TRUE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+
+  // Now it should be false, because the first slash is after the country
+  // calling code.
+  number.Clear();
+  number.set_country_code(49);
+  number.set_country_code_source(PhoneNumber::FROM_NUMBER_WITH_PLUS_SIGN);
+  candidate = "49/69/2013";
+  EXPECT_FALSE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+
+  number.Clear();
+  number.set_country_code(49);
+  number.set_country_code_source(PhoneNumber::FROM_NUMBER_WITHOUT_PLUS_SIGN);
+  candidate = "+49/69/2013";
+  EXPECT_FALSE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+
+  candidate = "+ 49/69/2013";
+  EXPECT_FALSE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+
+  candidate = "+ 49/69/20/13";
+  EXPECT_TRUE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+
+  // Here, the first group is not assumed to be the country calling code, even
+  // though it is the same as it, so this should return true.
+  number.Clear();
+  number.set_country_code(49);
+  number.set_country_code_source(PhoneNumber::FROM_DEFAULT_COUNTRY);
+  candidate = "49/69/2013";
+  EXPECT_TRUE(ContainsMoreThanOneSlashInNationalNumber(number, candidate));
+}
 
 // See PhoneNumberUtilTest::ParseNationalNumber.
 TEST_F(PhoneNumberMatcherTest, FindNationalNumber) {
@@ -742,7 +796,8 @@ static const NumberTest kValidCases[] = {
   NumberTest("030-3-2 23 12 34", RegionCode::DE()),
   NumberTest("03 0 -3 2 23 12 34", RegionCode::DE()),
   NumberTest("(0)3 0 -3 2 23 12 34", RegionCode::DE()),
-  NumberTest("0 3 0 -3 2 23 12 34", RegionCode::DE()),};
+  NumberTest("0 3 0 -3 2 23 12 34", RegionCode::DE()),
+};
 
 // Strings with number-like things that should only be found up to and including
 // the "strict_grouping" leniency level.
@@ -757,6 +812,9 @@ static const NumberTest kStrictGroupingCases[] = {
   NumberTest("0900-1 123123", RegionCode::DE()),
   NumberTest("(0)900-1 123123", RegionCode::DE()),
   NumberTest("0 900-1 123123", RegionCode::DE()),
+  // NDC also found as part of the country calling code; this shouldn't ruin the
+  // grouping expectations.
+  NumberTest("+33 3 34 2312", RegionCode::FR()),
 };
 
 // Strings with number-like things that should be found at all levels.
@@ -795,6 +853,7 @@ static const NumberTest kExactGroupingCases[] = {
   NumberTest("0900-1 123 123", RegionCode::DE()),
   NumberTest("(0)900-1 123 123", RegionCode::DE()),
   NumberTest("0 900-1 123 123", RegionCode::DE()),
+  NumberTest("+33 3 34 23 12", RegionCode::FR()),
 };
 
 TEST_F(PhoneNumberMatcherTest, MatchesWithPossibleLeniency) {

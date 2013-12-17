@@ -100,6 +100,39 @@ namespace PhoneNumbers.Test
             Assert.AreEqual("+819012345678901", formatter.InputDigit('1'));
         }
 
+        [Test]
+        public void TestCountryWithSpaceInNationalPrefixFormattingRule()
+        {
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter("BY");
+            Assert.AreEqual("8", formatter.InputDigit('8'));
+            Assert.AreEqual("88", formatter.InputDigit('8'));
+            Assert.AreEqual("881", formatter.InputDigit('1'));
+            Assert.AreEqual("8 819", formatter.InputDigit('9'));
+            Assert.AreEqual("8 8190", formatter.InputDigit('0'));
+            // The formatting rule for 5 digit numbers states that no space should be present after the
+            // national prefix.
+            Assert.AreEqual("881 901", formatter.InputDigit('1'));
+            Assert.AreEqual("8 819 012", formatter.InputDigit('2'));
+            // Too long, no formatting rule applies.
+            Assert.AreEqual("88190123", formatter.InputDigit('3'));
+        }
+
+        [Test]
+        public void TestCountryWithSpaceInNationalPrefixFormattingRuleAndLongNdd()
+        {
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter("BY");
+            Assert.AreEqual("9", formatter.InputDigit('9'));
+            Assert.AreEqual("99", formatter.InputDigit('9'));
+            Assert.AreEqual("999", formatter.InputDigit('9'));
+            Assert.AreEqual("9999", formatter.InputDigit('9'));
+            Assert.AreEqual("99999 ", formatter.InputDigit('9'));
+            Assert.AreEqual("99999 1", formatter.InputDigit('1'));
+            Assert.AreEqual("99999 12", formatter.InputDigit('2'));
+            Assert.AreEqual("99999 123", formatter.InputDigit('3'));
+            Assert.AreEqual("99999 1234", formatter.InputDigit('4'));
+            Assert.AreEqual("99999 12 345", formatter.InputDigit('5'));
+        }
+
 
         [Test]
         public void TestAYTFUS()
@@ -918,7 +951,7 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
-        public void testAYTFLongNDD_SG()
+        public void TestAYTFLongNDD_SG()
         {
             AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter("SG");
             // 777777 9876 7890
@@ -937,5 +970,218 @@ namespace PhoneNumbers.Test
             Assert.AreEqual("777777 9876 789", formatter.InputDigit('9'));
             Assert.AreEqual("777777 9876 7890", formatter.InputDigit('0'));
         }
+
+        [Test]
+        public void TestAYTFShortNumberFormattingFix_AU()
+        {
+            // For Australia, the national prefix is not optional when formatting.
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.AU);
+
+            // 1234567890 - For leading digit 1, the national prefix formatting rule has first group only.
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("12", formatter.InputDigit('2'));
+            Assert.AreEqual("123", formatter.InputDigit('3'));
+            Assert.AreEqual("1234", formatter.InputDigit('4'));
+            Assert.AreEqual("1234 5", formatter.InputDigit('5'));
+            Assert.AreEqual("1234 56", formatter.InputDigit('6'));
+            Assert.AreEqual("1234 567", formatter.InputDigit('7'));
+            Assert.AreEqual("1234 567 8", formatter.InputDigit('8'));
+            Assert.AreEqual("1234 567 89", formatter.InputDigit('9'));
+            Assert.AreEqual("1234 567 890", formatter.InputDigit('0'));
+            
+            // +61 1234 567 890 - Test the same number, but with the country code.
+            formatter.Clear();
+            Assert.AreEqual("+", formatter.InputDigit('+'));
+            Assert.AreEqual("+6", formatter.InputDigit('6'));
+            Assert.AreEqual("+61 ", formatter.InputDigit('1'));
+            Assert.AreEqual("+61 1", formatter.InputDigit('1'));
+            Assert.AreEqual("+61 12", formatter.InputDigit('2'));
+            Assert.AreEqual("+61 123", formatter.InputDigit('3'));
+            Assert.AreEqual("+61 1234", formatter.InputDigit('4'));
+            Assert.AreEqual("+61 1234 5", formatter.InputDigit('5'));
+            Assert.AreEqual("+61 1234 56", formatter.InputDigit('6'));
+            Assert.AreEqual("+61 1234 567", formatter.InputDigit('7'));
+            Assert.AreEqual("+61 1234 567 8", formatter.InputDigit('8'));
+            Assert.AreEqual("+61 1234 567 89", formatter.InputDigit('9'));
+            Assert.AreEqual("+61 1234 567 890", formatter.InputDigit('0'));
+
+            // 212345678 - For leading digit 2, the national prefix formatting rule puts the national prefix
+            // before the first group.
+            formatter.Clear();
+            Assert.AreEqual("0", formatter.InputDigit('0'));
+            Assert.AreEqual("02", formatter.InputDigit('2'));
+            Assert.AreEqual("021", formatter.InputDigit('1'));
+            Assert.AreEqual("02 12", formatter.InputDigit('2'));
+            Assert.AreEqual("02 123", formatter.InputDigit('3'));
+            Assert.AreEqual("02 1234", formatter.InputDigit('4'));
+            Assert.AreEqual("02 1234 5", formatter.InputDigit('5'));
+            Assert.AreEqual("02 1234 56", formatter.InputDigit('6'));
+            Assert.AreEqual("02 1234 567", formatter.InputDigit('7'));
+            Assert.AreEqual("02 1234 5678", formatter.InputDigit('8'));
+
+            // 212345678 - Test the same number, but without the leading 0.
+            formatter.Clear();
+            Assert.AreEqual("2", formatter.InputDigit('2'));
+            Assert.AreEqual("21", formatter.InputDigit('1'));
+            Assert.AreEqual("212", formatter.InputDigit('2'));
+            Assert.AreEqual("2123", formatter.InputDigit('3'));
+            Assert.AreEqual("21234", formatter.InputDigit('4'));
+            Assert.AreEqual("212345", formatter.InputDigit('5'));
+            Assert.AreEqual("2123456", formatter.InputDigit('6'));
+            Assert.AreEqual("21234567", formatter.InputDigit('7'));
+            Assert.AreEqual("212345678", formatter.InputDigit('8'));
+
+            // +61 2 1234 5678 - Test the same number, but with the country code.
+            formatter.Clear();
+            Assert.AreEqual("+", formatter.InputDigit('+'));
+            Assert.AreEqual("+6", formatter.InputDigit('6'));
+            Assert.AreEqual("+61 ", formatter.InputDigit('1'));
+            Assert.AreEqual("+61 2", formatter.InputDigit('2'));
+            Assert.AreEqual("+61 21", formatter.InputDigit('1'));
+            Assert.AreEqual("+61 2 12", formatter.InputDigit('2'));
+            Assert.AreEqual("+61 2 123", formatter.InputDigit('3'));
+            Assert.AreEqual("+61 2 1234", formatter.InputDigit('4'));
+            Assert.AreEqual("+61 2 1234 5", formatter.InputDigit('5'));
+            Assert.AreEqual("+61 2 1234 56", formatter.InputDigit('6'));
+            Assert.AreEqual("+61 2 1234 567", formatter.InputDigit('7'));
+            Assert.AreEqual("+61 2 1234 5678", formatter.InputDigit('8'));
+        }
+
+        [Test]
+        public void TestAYTFShortNumberFormattingFix_KR()
+        {
+            // For Korea, the national prefix is not optional when formatting, and the national prefix
+            // formatting rule doesn't consist of only the first group.
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.KR);
+
+            // 111
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("11", formatter.InputDigit('1'));
+            Assert.AreEqual("111", formatter.InputDigit('1'));
+
+            // 114
+            formatter.Clear();
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("11", formatter.InputDigit('1'));
+            Assert.AreEqual("114", formatter.InputDigit('4'));
+
+            // 13121234 - Test a mobile number without the national prefix. Even though it is not an
+            // emergency number, it should be formatted as a block.
+            formatter.Clear();
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("13", formatter.InputDigit('3'));
+            Assert.AreEqual("131", formatter.InputDigit('1'));
+            Assert.AreEqual("1312", formatter.InputDigit('2'));
+            Assert.AreEqual("13121", formatter.InputDigit('1'));
+            Assert.AreEqual("131212", formatter.InputDigit('2'));
+            Assert.AreEqual("1312123", formatter.InputDigit('3'));
+            Assert.AreEqual("13121234", formatter.InputDigit('4'));
+
+            // +82 131-2-1234 - Test the same number, but with the country code.
+            formatter.Clear();
+            Assert.AreEqual("+", formatter.InputDigit('+'));
+            Assert.AreEqual("+8", formatter.InputDigit('8'));
+            Assert.AreEqual("+82 ", formatter.InputDigit('2'));
+            Assert.AreEqual("+82 1", formatter.InputDigit('1'));
+            Assert.AreEqual("+82 13", formatter.InputDigit('3'));
+            Assert.AreEqual("+82 131", formatter.InputDigit('1'));
+            Assert.AreEqual("+82 131-2", formatter.InputDigit('2'));
+            Assert.AreEqual("+82 131-2-1", formatter.InputDigit('1'));
+            Assert.AreEqual("+82 131-2-12", formatter.InputDigit('2'));
+            Assert.AreEqual("+82 131-2-123", formatter.InputDigit('3'));
+            Assert.AreEqual("+82 131-2-1234", formatter.InputDigit('4'));
+        }
+
+        public void testAYTFShortNumberFormattingFix_MX()
+        {
+            // For Mexico, the national prefix is optional when formatting.
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.MX);
+
+            // 911
+            Assert.AreEqual("9", formatter.InputDigit('9'));
+            Assert.AreEqual("91", formatter.InputDigit('1'));
+            Assert.AreEqual("911", formatter.InputDigit('1'));
+
+            // 800 123 4567 - Test a toll-free number, which should have a formatting rule applied to it
+            // even though it doesn't begin with the national prefix.
+            formatter.Clear();
+            Assert.AreEqual("8", formatter.InputDigit('8'));
+            Assert.AreEqual("80", formatter.InputDigit('0'));
+            Assert.AreEqual("800", formatter.InputDigit('0'));
+            Assert.AreEqual("800 1", formatter.InputDigit('1'));
+            Assert.AreEqual("800 12", formatter.InputDigit('2'));
+            Assert.AreEqual("800 123", formatter.InputDigit('3'));
+            Assert.AreEqual("800 123 4", formatter.InputDigit('4'));
+            Assert.AreEqual("800 123 45", formatter.InputDigit('5'));
+            Assert.AreEqual("800 123 456", formatter.InputDigit('6'));
+            Assert.AreEqual("800 123 4567", formatter.InputDigit('7'));
+
+            // +52 800 123 4567 - Test the same number, but with the country code.
+            formatter.Clear();
+            Assert.AreEqual("+", formatter.InputDigit('+'));
+            Assert.AreEqual("+5", formatter.InputDigit('5'));
+            Assert.AreEqual("+52 ", formatter.InputDigit('2'));
+            Assert.AreEqual("+52 8", formatter.InputDigit('8'));
+            Assert.AreEqual("+52 80", formatter.InputDigit('0'));
+            Assert.AreEqual("+52 800", formatter.InputDigit('0'));
+            Assert.AreEqual("+52 800 1", formatter.InputDigit('1'));
+            Assert.AreEqual("+52 800 12", formatter.InputDigit('2'));
+            Assert.AreEqual("+52 800 123", formatter.InputDigit('3'));
+            Assert.AreEqual("+52 800 123 4", formatter.InputDigit('4'));
+            Assert.AreEqual("+52 800 123 45", formatter.InputDigit('5'));
+            Assert.AreEqual("+52 800 123 456", formatter.InputDigit('6'));
+            Assert.AreEqual("+52 800 123 4567", formatter.InputDigit('7'));
+        }
+
+        [Test]
+        public void TestAYTFNoNationalPrefix()
+        {
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.IT);
+
+            Assert.AreEqual("3", formatter.InputDigit('3'));
+            Assert.AreEqual("33", formatter.InputDigit('3'));
+            Assert.AreEqual("333", formatter.InputDigit('3'));
+            Assert.AreEqual("333 3", formatter.InputDigit('3'));
+            Assert.AreEqual("333 33", formatter.InputDigit('3'));
+            Assert.AreEqual("333 333", formatter.InputDigit('3'));
+        }
+
+        [Test]
+        public void TestAYTFNoNationalPrefixFormattingRule()
+        {
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.AO);
+
+            Assert.AreEqual("3", formatter.InputDigit('3'));
+            Assert.AreEqual("33", formatter.InputDigit('3'));
+            Assert.AreEqual("333", formatter.InputDigit('3'));
+            Assert.AreEqual("333 3", formatter.InputDigit('3'));
+            Assert.AreEqual("333 33", formatter.InputDigit('3'));
+            Assert.AreEqual("333 333", formatter.InputDigit('3'));
+        }
+
+        [Test]
+        public void TestAYTFShortNumberFormattingFix_US()
+        {
+            // For the US, an initial 1 is treated specially.
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.US);
+
+            // 101 - Test that the initial 1 is not treated as a national prefix.
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("10", formatter.InputDigit('0'));
+            Assert.AreEqual("101", formatter.InputDigit('1'));
+
+            // 112 - Test that the initial 1 is not treated as a national prefix.
+            formatter.Clear();
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("11", formatter.InputDigit('1'));
+            Assert.AreEqual("112", formatter.InputDigit('2'));
+
+            // 122 - Test that the initial 1 is treated as a national prefix.
+            formatter.Clear();
+            Assert.AreEqual("1", formatter.InputDigit('1'));
+            Assert.AreEqual("12", formatter.InputDigit('2'));
+            Assert.AreEqual("1 22", formatter.InputDigit('2'));
+        }
+
     }
 }

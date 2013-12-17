@@ -679,6 +679,36 @@ namespace PhoneNumbers {
       get { return voicemail_; }
     }
     
+    public const int ShortCodeFieldNumber = 29;
+    private bool hasShortCode;
+    private global::PhoneNumbers.PhoneNumberDesc shortCode_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+    public bool HasShortCode {
+      get { return hasShortCode; }
+    }
+    public global::PhoneNumbers.PhoneNumberDesc ShortCode {
+      get { return shortCode_; }
+    }
+    
+    public const int StandardRateFieldNumber = 30;
+    private bool hasStandardRate;
+    private global::PhoneNumbers.PhoneNumberDesc standardRate_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+    public bool HasStandardRate {
+      get { return hasStandardRate; }
+    }
+    public global::PhoneNumbers.PhoneNumberDesc StandardRate {
+      get { return standardRate_; }
+    }
+    
+    public const int CarrierSpecificFieldNumber = 31;
+    private bool hasCarrierSpecific;
+    private global::PhoneNumbers.PhoneNumberDesc carrierSpecific_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+    public bool HasCarrierSpecific {
+      get { return hasCarrierSpecific; }
+    }
+    public global::PhoneNumbers.PhoneNumberDesc CarrierSpecific {
+      get { return carrierSpecific_; }
+    }
+    
     public const int NoInternationalDiallingFieldNumber = 24;
     private bool hasNoInternationalDialling;
     private global::PhoneNumbers.PhoneNumberDesc noInternationalDialling_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
@@ -833,24 +863,19 @@ namespace PhoneNumbers {
       get { return leadingZeroPossible_; }
     }
     
+    public const int MobileNumberPortableRegionFieldNumber = 32;
+    private bool hasMobileNumberPortableRegion;
+    private bool mobileNumberPortableRegion_ = false;
+    public bool HasMobileNumberPortableRegion {
+      get { return hasMobileNumberPortableRegion; }
+    }
+    public bool MobileNumberPortableRegion {
+      get { return mobileNumberPortableRegion_; }
+    }
+    
     public bool IsInitialized {
       get {
-        if (!hasGeneralDesc) return false;
-        if (!hasFixedLine) return false;
-        if (!hasMobile) return false;
-        if (!hasTollFree) return false;
-        if (!hasPremiumRate) return false;
-        if (!hasSharedCost) return false;
-        if (!hasPersonalNumber) return false;
-        if (!hasVoip) return false;
-        if (!hasPager) return false;
-        if (!hasUan) return false;
-        if (!hasEmergency) return false;
-        if (!hasVoicemail) return false;
-        if (!hasNoInternationalDialling) return false;
         if (!hasId) return false;
-        if (!hasCountryCode) return false;
-        if (!hasInternationalPrefix) return false;
         foreach (global::PhoneNumbers.NumberFormat element in NumberFormatList) {
           if (!element.IsInitialized) return false;
         }
@@ -879,6 +904,9 @@ namespace PhoneNumbers {
       if (hasUan) hash ^= uan_.GetHashCode();
       if (hasEmergency) hash ^= emergency_.GetHashCode();
       if (hasVoicemail) hash ^= voicemail_.GetHashCode();
+      if (hasShortCode) hash ^= shortCode_.GetHashCode();
+      if (hasStandardRate) hash ^= standardRate_.GetHashCode();
+      if (hasCarrierSpecific) hash ^= carrierSpecific_.GetHashCode();
       if (hasNoInternationalDialling) hash ^= noInternationalDialling_.GetHashCode();
       if (hasId) hash ^= id_.GetHashCode();
       if (hasCountryCode) hash ^= countryCode_.GetHashCode();
@@ -896,6 +924,7 @@ namespace PhoneNumbers {
       if (hasMainCountryForCode) hash ^= mainCountryForCode_.GetHashCode();
       if (hasLeadingDigits) hash ^= leadingDigits_.GetHashCode();
       if (hasLeadingZeroPossible) hash ^= leadingZeroPossible_.GetHashCode();
+      if (hasMobileNumberPortableRegion) hash ^= mobileNumberPortableRegion_.GetHashCode();
       return hash;
     }
     
@@ -914,6 +943,9 @@ namespace PhoneNumbers {
       if (hasUan != other.hasUan || (hasUan && !uan_.Equals(other.uan_))) return false;
       if (hasEmergency != other.hasEmergency || (hasEmergency && !emergency_.Equals(other.emergency_))) return false;
       if (hasVoicemail != other.hasVoicemail || (hasVoicemail && !voicemail_.Equals(other.voicemail_))) return false;
+      if (hasShortCode != other.hasShortCode || (hasShortCode && !shortCode_.Equals(other.shortCode_))) return false;
+      if (hasStandardRate != other.hasStandardRate || (hasStandardRate && !standardRate_.Equals(other.standardRate_))) return false;
+      if (hasCarrierSpecific != other.hasCarrierSpecific || (hasCarrierSpecific && !carrierSpecific_.Equals(other.carrierSpecific_))) return false;
       if (hasNoInternationalDialling != other.hasNoInternationalDialling || (hasNoInternationalDialling && !noInternationalDialling_.Equals(other.noInternationalDialling_))) return false;
       if (hasId != other.hasId || (hasId && !id_.Equals(other.id_))) return false;
       if (hasCountryCode != other.hasCountryCode || (hasCountryCode && !countryCode_.Equals(other.countryCode_))) return false;
@@ -933,6 +965,7 @@ namespace PhoneNumbers {
       if (hasMainCountryForCode != other.hasMainCountryForCode || (hasMainCountryForCode && !mainCountryForCode_.Equals(other.mainCountryForCode_))) return false;
       if (hasLeadingDigits != other.hasLeadingDigits || (hasLeadingDigits && !leadingDigits_.Equals(other.leadingDigits_))) return false;
       if (hasLeadingZeroPossible != other.hasLeadingZeroPossible || (hasLeadingZeroPossible && !leadingZeroPossible_.Equals(other.leadingZeroPossible_))) return false;
+      if (hasMobileNumberPortableRegion != other.hasMobileNumberPortableRegion || (hasMobileNumberPortableRegion && !mobileNumberPortableRegion_.Equals(other.mobileNumberPortableRegion_))) return false;
       return true;
     }
     
@@ -1025,6 +1058,15 @@ namespace PhoneNumbers {
         if (other.HasVoicemail) {
           MergeVoicemail(other.Voicemail);
         }
+        if (other.HasShortCode) {
+          MergeShortCode(other.ShortCode);
+        }
+        if (other.HasStandardRate) {
+          MergeStandardRate(other.StandardRate);
+        }
+        if (other.HasCarrierSpecific) {
+          MergeCarrierSpecific(other.CarrierSpecific);
+        }
         if (other.HasNoInternationalDialling) {
           MergeNoInternationalDialling(other.NoInternationalDialling);
         }
@@ -1069,6 +1111,9 @@ namespace PhoneNumbers {
         }
         if (other.HasLeadingZeroPossible) {
           LeadingZeroPossible = other.LeadingZeroPossible;
+        }
+        if (other.HasMobileNumberPortableRegion) {
+          MobileNumberPortableRegion = other.MobileNumberPortableRegion;
         }
         return this;
       }
@@ -1508,6 +1553,114 @@ namespace PhoneNumbers {
         return this;
       }
       
+      public bool HasShortCode {
+       get { return result.HasShortCode; }
+      }
+      public global::PhoneNumbers.PhoneNumberDesc ShortCode {
+        get { return result.ShortCode; }
+        set { SetShortCode(value); }
+      }
+      public Builder SetShortCode(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        result.hasShortCode = true;
+        result.shortCode_ = value;
+        return this;
+      }
+      public Builder SetShortCode(global::PhoneNumbers.PhoneNumberDesc.Builder builderForValue) {
+        if(builderForValue == null) throw new global::System.ArgumentNullException("builderForValue");
+        result.hasShortCode = true;
+        result.shortCode_ = builderForValue.Build();
+        return this;
+      }
+      public Builder MergeShortCode(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        if (result.HasShortCode &&
+            result.shortCode_ != global::PhoneNumbers.PhoneNumberDesc.DefaultInstance) {
+            result.shortCode_ = global::PhoneNumbers.PhoneNumberDesc.CreateBuilder(result.shortCode_).MergeFrom(value).BuildPartial();
+        } else {
+          result.shortCode_ = value;
+        }
+        result.hasShortCode = true;
+        return this;
+      }
+      public Builder ClearShortCode() {
+        result.hasShortCode = false;
+        result.shortCode_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+        return this;
+      }
+      
+      public bool HasStandardRate {
+       get { return result.HasStandardRate; }
+      }
+      public global::PhoneNumbers.PhoneNumberDesc StandardRate {
+        get { return result.StandardRate; }
+        set { SetStandardRate(value); }
+      }
+      public Builder SetStandardRate(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        result.hasStandardRate = true;
+        result.standardRate_ = value;
+        return this;
+      }
+      public Builder SetStandardRate(global::PhoneNumbers.PhoneNumberDesc.Builder builderForValue) {
+        if(builderForValue == null) throw new global::System.ArgumentNullException("builderForValue");
+        result.hasStandardRate = true;
+        result.standardRate_ = builderForValue.Build();
+        return this;
+      }
+      public Builder MergeStandardRate(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        if (result.HasStandardRate &&
+            result.standardRate_ != global::PhoneNumbers.PhoneNumberDesc.DefaultInstance) {
+            result.standardRate_ = global::PhoneNumbers.PhoneNumberDesc.CreateBuilder(result.standardRate_).MergeFrom(value).BuildPartial();
+        } else {
+          result.standardRate_ = value;
+        }
+        result.hasStandardRate = true;
+        return this;
+      }
+      public Builder ClearStandardRate() {
+        result.hasStandardRate = false;
+        result.standardRate_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+        return this;
+      }
+      
+      public bool HasCarrierSpecific {
+       get { return result.HasCarrierSpecific; }
+      }
+      public global::PhoneNumbers.PhoneNumberDesc CarrierSpecific {
+        get { return result.CarrierSpecific; }
+        set { SetCarrierSpecific(value); }
+      }
+      public Builder SetCarrierSpecific(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        result.hasCarrierSpecific = true;
+        result.carrierSpecific_ = value;
+        return this;
+      }
+      public Builder SetCarrierSpecific(global::PhoneNumbers.PhoneNumberDesc.Builder builderForValue) {
+        if(builderForValue == null) throw new global::System.ArgumentNullException("builderForValue");
+        result.hasCarrierSpecific = true;
+        result.carrierSpecific_ = builderForValue.Build();
+        return this;
+      }
+      public Builder MergeCarrierSpecific(global::PhoneNumbers.PhoneNumberDesc value) {
+        if(value == null) throw new global::System.ArgumentNullException("value");
+        if (result.HasCarrierSpecific &&
+            result.carrierSpecific_ != global::PhoneNumbers.PhoneNumberDesc.DefaultInstance) {
+            result.carrierSpecific_ = global::PhoneNumbers.PhoneNumberDesc.CreateBuilder(result.carrierSpecific_).MergeFrom(value).BuildPartial();
+        } else {
+          result.carrierSpecific_ = value;
+        }
+        result.hasCarrierSpecific = true;
+        return this;
+      }
+      public Builder ClearCarrierSpecific() {
+        result.hasCarrierSpecific = false;
+        result.carrierSpecific_ = global::PhoneNumbers.PhoneNumberDesc.DefaultInstance;
+        return this;
+      }
+      
       public bool HasNoInternationalDialling {
        get { return result.HasNoInternationalDialling; }
       }
@@ -1841,6 +1994,24 @@ namespace PhoneNumbers {
       public Builder ClearLeadingZeroPossible() {
         result.hasLeadingZeroPossible = false;
         result.leadingZeroPossible_ = false;
+        return this;
+      }
+      
+      public bool HasMobileNumberPortableRegion {
+        get { return result.HasMobileNumberPortableRegion; }
+      }
+      public bool MobileNumberPortableRegion {
+        get { return result.MobileNumberPortableRegion; }
+        set { SetMobileNumberPortableRegion(value); }
+      }
+      public Builder SetMobileNumberPortableRegion(bool value) {
+        result.hasMobileNumberPortableRegion = true;
+        result.mobileNumberPortableRegion_ = value;
+        return this;
+      }
+      public Builder ClearMobileNumberPortableRegion() {
+        result.hasMobileNumberPortableRegion = false;
+        result.mobileNumberPortableRegion_ = false;
         return this;
       }
     }

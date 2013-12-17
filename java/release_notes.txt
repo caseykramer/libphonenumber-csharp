@@ -1,3 +1,307 @@
+Dec 13, 2013: libphonenumber-5.9.1
+* Metadata changes:
+ - New alternate formatting data for country calling code(s): 505, 679
+ - Updated phone metadata for region code(s):
+   BF, CI, EG, EH, FJ, IN, KI, MA, MT, NG, NI, SI, SN, SR, TT
+ - Updated short number metadata for region code(s): KI
+ - Updated geocoding data for country calling code(s):
+   27 (en), 226 (en), 1 (en)
+ - New carrier data for country calling code(s): 356 (en), 677 (en)
+ - Updated carrier data for country calling code(s):
+   212 (en), 221 (en), 225 (en), 226 (en), 234 (en), 597 (en), 1 (en)
+
+Nov 12, 2013: libphonenumber-5.9
+* Code changes:
+ - Adding support for numbers with multiple Italian leading zeros, by adding a field
+   to the phone number proto to allow an arbitrary number of leading zeros, and
+   supporting this when parsing, validating and formatting.
+ - Adding more functionality to ShortNumberInfo -> such as getExpectedCostForRegion.
+ - Fix for parsing short numbers that start with the national prefix.
+ - Updating formatNumberForMobileDialing to work with short numbers.
+ - Stop finding Israeli 4-digit "star" numbers in text when no star is in fact present.
+ - Bug fix for finding phone numbers where the area code was also part of the country
+   calling code.
+
+* Metadata changes:
+ - Updated phone metadata for region code(s):
+   AU, BQ, BY, CI, CO, CW, GN, HN, IN, JO, KI, KW, MG, MK, MM, NA, PK, TC, TM,
+   UG
+ - New short number metadata for region code(s): CD, GN
+ - Updated short number metadata for region code(s):
+   AF, AG, AI, AM, AR, AS, AW, AZ, BD, BH, BI, BM, BO, BQ, BT, BW, BY, CA, CH,
+   CI, CM, CO, CW, DZ, FJ, GD, GE, GH, GT, GY, HN, HT, ID, IE, IM, IN, IQ, JM,
+   JO, KE, KG, KH, KI, KW, KZ, LR, SV
+ - New geocoding data for country calling code(s):
+   257 (en), 389 (en), 599 (en), 686 (en), 962 (en)
+ - Updated geocoding data for country calling code(s):
+   264 (en), 375 (be, en, ru)
+ - New carrier data for country calling code(s):
+   375 (be, ru), 389 (en), 599 (en), 965 (ar)
+ - Updated carrier data for country calling code(s):
+   57 (en), 61 (en), 92 (en), 225 (en), 256 (en), 257 (en), 261 (en), 375 (en),
+   686 (en), 962 (en), 965 (en)
+
+Oct 10, 2013: libphonenumber-5.8.8
+* Metadata changes:
+ - New alternate formatting data for country calling code(s):
+   350, 358, 36, 66, 84, 94, 995
+ - Updated alternate formatting data for country calling code(s):
+   31, 359, 372, 49, 62, 7
+ - Updated phone metadata for region code(s):
+   AR, BD, BE, BF, BR, CO, CR, FI, GI, GM, IS, MU
+ - Updated short number metadata for region code(s): AR, BE, ES, GI, PG, US
+ - Updated geocoding data for country calling code(s): 220 (en)
+ - Updated carrier data for country calling code(s):
+   20 (en), 220 (en), 224 (en), 230 (en), 852 (en)
+
+Oct 8, 2013: libphonenumber-5.8.7
+* Code changes:
+  - New method in the PhoneNumberUtil API - isMobileNumberPortableRegion.
+  - Carrier mapper: Updated API and added a getSafeDisplayName method that only returns the carrier
+                    if it's safe to display to the user.
+
+Oct 7, 2013:
+* Code changes:
+  - Added PhoneNumberToTimeZonesMapper including unittests to the geocoder maven project.
+  - Added build rules for generating the binary time zones mapping file from the text file.
+  - Modified PhoneNumberParserServlet.java (the appengine demo) to incorporate time zone mapping.
+* Metadata changes:
+  - Added the time zone mapping file.
+
+Sep 30, 2013:
+* Code changes:
+  - Added PhoneNumberToCarrierMapper including unittests.
+  - Added build rules for generating binary carrier mapping files from text files.
+  - Modified PhoneNumberParserServlet.java (the appengine demo) to incorporate carrier mapping.
+* Metadata changes:
+  - Added carrier mapping files for some NANPA countries, EG, SS, MA, DZ, TN, GM, SN, MR, ML, GN,
+    CI, BF, NE, TG, BJ, MU, LR, SL, GH, NG, TD, CF, CM, CV, ST, GQ, GA, CG, CD, AO, GW, SC, SD, RW,
+    ET, SO, DJ, KE, TZ, UG, BI, MZ, ZM, MG, ZW, MW, BW, SZ, ZA, AW, FO, GL, GR, NL, BE, FR, GI, PT,
+    LU, IE, AL, CY, FI, BG, HU, LT, EE, AM, BY, AD, UA, RS, HR, SI, BA, IT, RO, CH, CZ, SK, AT, DK,
+    NO, PL, DE, BZ, CR, PE, CU, AR, BR, CL, CO, VE, BO, PY, SR, UY, MY, AU, ID, PH, NZ, SG, TH, TL,
+    BN, PG, TO, VU, FJ, WS, KI, RU, VN, HK, KH, LA, CN, BD, TR, IN, PK, AF, LK, MV, JO, IQ, KW, SA,
+    YE, OM, PS, AE, IL, BH, QA, BT, NP, IR, TJ, TM, AZ, GE, KG and UZ in English.
+
+Sep 23, 2013: libphonenumber-5.8.6
+* Code changes:
+  - Restructured the geocoder binary generation code, moving the classes under tools/ from
+    geocoding/ to buildtools/ and renaming AreaCode to PhonePrefix.
+
+Sep 23, 2013: libphonenumber-5.8.5
+* Code changes:
+  - Restructured the geocoder, moving the utility classes to a new module internal/prefixmapper.
+
+Sep 20, 2013: libphonenumber-5.8.4
+* Metadata changes:
+ - Adding a token to indicate which countries have mobile portability.
+
+Sep 20, 2013: libphonenumber-5.8.3
+* Code changes:
+  - PhoneNumberOfflineGeocoder: Moved utility functionality to PrefixFileReader.
+  - Bug fix: Argentinian (and other countries with mobile tokens) mobile numbers now geocode
+             correctly.
+
+Sep 19, 2013: libphonenumber-5.8.2
+* Code changes:
+  - New method in the PhoneNumberUtil API - getCountryMobileToken.
+
+Sep 19, 2013: libphonenumber-5.8.1
+* Metadata changes:
+ - New alternate formatting data for country calling code(s): 675
+ - Updated phone metadata for region code(s):
+   AO, AU, BF, BW, CA, CH, CI, CN, DE, FR, MA, MR, MU, NI, PG, SA, SE, US, VI
+ - New short number metadata for region code(s): IQ
+ - Updated short number metadata for region code(s):
+   AU, BR, DO, EG, FR, GH, ID, IL, JM, KE, KZ, LR, MW, NG, NI, SA, SE, SL, TZ, US, UZ
+ - New geocoding data for country calling code(s):
+   966 (ar, en), 1 (en)
+
+Sep 2, 2013: libphonenumber-5.8
+* Code changes:
+ - Renamed ShortNumberUtil to ShortNumberInfo -> the former class is now deprecated and will be
+   deleted in a later release. At the moment it just delegates to ShortNumberInfo.
+ - New methods in the ShortNumberInfo API - isCarrierSpecific, singleton interface,
+   isPossibleShortNumber, isValidShortNumber, getShortNumberCost. Note this is an experimental API
+   at the moment and subject to change.
+ - Bug fixes:
+    -- AsYouTypeFormatting: 3-digit numbers can be formatted as a group where appropriate
+    -- AsYouTypeFormatting: Countries with an optional national prefix were considered before to
+       have always entered it, resulting in bugs where numbers without the national prefix were
+       not properly formatted.
+    -- Numbers in Chile that overlap with emergency numbers are no longer marked as connecting to
+       them
+    -- Not requiring the NDC to be alone for countries where there is no national prefix in strict
+       grouping when extracting phone numbers
+* Metadata changes:
+ - New alternate formatting data for country calling code(s):
+   30, 31, 385, 58, 62, 63, 971, 972
+ - Updated alternate formatting data for country calling code(s): 43, 44, 49
+ - Moved emergency phone number data to the ShortNumberMetadata.xml file
+ - Updated phone metadata for region code(s):
+   AT, EG, ML, NC, NL, SA
+ - New short number metadata for region code(s):
+   AR, CL, CO, ES, MX, NC
+ - Emergency metadata fixes for region code(s):
+   GA, JM, MH, VE
+
+Aug 09, 2013: libphonenumber-5.7.2
+* Metadata changes:
+ - New alternate formatting data for country calling code(s):
+   352, 359, 372, 373, 375, 595, 7, 855
+ - Updated phone metadata for region code(s):
+   AR, BF, BH, BR, BY, CH, CM, CN, GE, GW, HN, JM, KH, LT, LU, MU, NP, RO, SO
+ - New short number metadata for region code(s): BR
+ - Updated short number metadata for region code(s):
+   CH, FJ, GB, GG, IM, IT, JE, SH
+
+Aug 8, 2013: libphonenumber-5.7.1
+* Metadata/code changes:
+ - Change to the way the metadata is built; now only parts of the proto that are relevant will be
+   generated. This means short-code data won't be generated for the normal protos, and fixed-line
+   data won't be generated for short-number protos. This cuts the metadata binary size approximately
+   in half.
+
+Jul 17, 2013: libphonenumber-5.7
+* Code changes:
+ - Improve phone number extraction recall.
+ - Add support for loading short number metadata.
+
+Jul 16, 2013: libphonenumber-5.6.2
+* Metadata changes:
+ - Updated alternate formatting data for country calling code(s): 49, 61
+ - New metadata for region code(s): TA
+ - Updated metadata for region code(s):
+   BF, BH, BI, BJ, BR, CR, EH, GA, GE, GN, GU, IL, IN, IR, KH, KW, KZ, MA, MT,
+   NA, NE, NL, PH, RO, SH, SO, TK
+ - New geocoding data for country calling code(s): 47 (en), 82 (ar)
+ - Updated geocoding data for country calling code(s):
+   49 (en), 98 (en, fa), 241 (en)
+
+Jul 12, 2013: libphonenumber-5.6.1
+* Code changes:
+ - Rename all instances of PhoneNumberMetadata to PhoneNumberMetadata for consistency.
+
+Jun 05, 2013: libphonenumber-5.6
+* Code changes:
+ - Fix for as-you-type-formatting bug affecting countries with no national prefix
+   formatting rule, such as China.
+* Metadata changes:
+ - New alternate formatting data for country calling code(s): 351
+ - Updated alternate formatting data for country calling code(s): 49
+ - Updated metadata for region code(s):
+   AS, BG, BH, BJ, BL, CD, CI, DE, DZ, EH, FJ, GF, GP, IN, KH, KZ, MA, MD, MF,
+   ML, MY, NG, PT, PY, TC, TJ, TT
+
+May 08, 2013: libphonenumber-5.5
+* Code changes:
+ - Changed internal initialization code and made more fields final.
+   Note that we now throw an exception if an attempt is made to set the
+   metadata more than once (which should only happen during testing).
+ - Fix problem with formatNumberForMobileDialing for HU and CL.
+* Metadata changes:
+ - Updated alternate formatting data for country calling code(s): 49
+ - Updated metadata for region code(s):
+   AM, BF, BR, CR, DE, MA, MG, MM, SA, TL, UA
+ - Updated geocoding data for country calling code(s): 374 (am, en, ru)
+
+Apr 19, 2013: libphonenumber-5.4.2
+* Metadata changes:
+ - Updated metadata for region code(s): BF, GA, IN, KR, MV, PH, SO, UA, US
+
+Mar 25, 2013: libphonenumber-5.4.1
+* Metadata changes:
+ - Updated metadata for region code(s): BF, BH, CR, EC, IR, MG, PF, TD, TN
+ - New geocoding data for country calling code(s): 374 (am, ru)
+ - Updated geocoding data for country calling code(s):
+   98 (en, fa), 358 (en, se), 374 (en)
+
+Mar 07, 2013: libphonenumber-5.4
+* Code changes:
+ - Switch formatNumberForMobileDialing to prefer national format to international format when the
+   number is dialed from the same region the phone number is from.
+
+* Metadata changes:
+ - Updated metadata for region code(s):
+   BF, CD, CN, CZ, GN, IR, JP, KR, KW, LR, NZ, TT, UG, ZW
+ - New geocoding data for country calling code(s): 82 (cs)
+ - Updated geocoding data for country calling code(s):
+   82 (en, fr, ko, zh, zh_Hant), 98 (en, fa), 263 (en)
+
+Feb 11, 2013: libphonenumber-5.3.2
+* Metadata changes:
+ - Updated metadata for region code(s):
+   BD, BE, BY, CA, EH, GR, IE, IN, IS, LI, MA, MU, PT, SE, SG, TL
+ - New geocoding data for country calling code(s):
+   375 (be, en, ru), 1 (en)
+
+Jan 25, 2013: libphonenumber-5.3.1
+* Metadata changes:
+ - Updated metadata for region code(s): CN, DK, EH, GN, KH, KW, MA, MY, PA
+
+Jan 08, 2013: libphonenumber-5.3
+* Code changes:
+ - Handling UAN numbers in Argentina better when dialling them locally from a
+   mobile
+* Metadata changes:
+ - Updated metadata for region code(s):
+   BE, BW, CL, CN, CO, EH, KW, MA, ML, NG, PL, SY, ZA, ZM
+ - New geocoding data for country calling code(s): 32 (en, fr, nl)
+ - Updated geocoding data for country calling code(s): 27 (en), 86 (en, zh)
+
+Dec 06, 2012: libphonenumber-5.2.2
+* Metadata changes:
+ - New metadata for region code(s): EH
+ - Updated metadata for region code(s): BR, CL, CR, IN, MA, PG, PK, RO
+ - New geocoding data for country calling code(s): 241 (en)
+
+Nov 26, 2012: libphonenumber-5.2.1
+* Metadata changes:
+ - Updated metadata for region code(s):
+   AE, AW, BF, CN, DE, JO, KE, KH, LT, MM, MU, NG, RW, SR, TR, VU
+ - New geocoding data for country calling code(s): 359 (bg, en)
+
+Oct 10, 2012: libphonenumber-5.2
+* Code changes:
+ - Adds isNumberGeographical() method.
+ - Adds getRegionCodesForCountryCode() method.
+ - Fixing issue with getSupportedGlobalNetworkCallingCodes()
+   [http://code.google.com/p/libphonenumber/issues/detail?id=202]
+ - Ensures that returned collections are unmodifiable where necessary
+   [there is a very slight risk that this may break existing users who were relying on being able
+   to modify these collections, but doing so would be breaking lots of other assumptions that this
+   library makes - if you need to modify any affected collections you must copy them first]
+* Metadata changes:
+ - Updated metadata for region code(s): DE, GR, HR, OM, SB, ZA
+ - Removed metadata for region code: AN (Netherlands Antilles)
+ - Updated geocoding data for country calling code(s): 30 (el, en)
+
+Sep 27, 2012: libphonenumber-5.1.4
+* Metadata changes:
+ - Updated metadata for region code(s): AU, EC, KH, LB, TN, US
+
+Sep 17, 2012: libphonenumber-5.1.3
+* Metadata changes:
+ - Updated metadata for region code(s): EG, LA, LB, LI, PY
+ - Updated metadata for non-geographical calling codes: 800, 808, 888, 979
+ - Updated geocoding data for country calling code(s): 98 (en), 1 (en)
+
+Sep 11, 2010: libphonenumber-5.1.2
+* Bug fix:
+ - Fixing regression in AsYouTypeFormatter where it no longer worked for numbers entered in national
+   format for countries with no national prefix, e.g. Spain.
+
+Sep 5, 2010: libphonenumber-5.1.1
+* Code changes:
+  - Added better logging/exception handling for catching cases where metadata is invalid/missing.
+
+Sep 3, 2012: libphonenumber-5.1
+* Code changes:
+ - Inserting a space after the national prefix in the AsYouTypeFormatter when formatting numbers in
+   national format, if the formatting rules for that country dictate that a space is appropriate.
+ - Format emergency numbers and short-codes as a block in the AsYouTypeFormatter.
+* Metadata changes:
+ - Updated metadata for region code(s): BF, BG, DZ, GA, IT, JP, KW, PF
+
 Aug 20, 2012: libphonenumber-5.0.3
 * Metadata changes:
  - New alternate formatting data for country calling code(s): 43
@@ -19,13 +323,13 @@ July 26th, 2012: libphonenumber-5.0.1
 
 July 12th, 2012: libphonenumber-5.0
 * Code changes:
-  - Support for alternate formats when finding phone numbers.
-  - Allowing two-digit numbers to be parsed if they are entered in national-format with no
-    punctuation
+ - Support for alternate formats when finding phone numbers.
+ - Allowing two-digit numbers to be parsed if they are entered in national-format with no
+   punctuation
 * Metadata changes
-  - IL, GA
+ - IL, GA
 * Other
-  - Reflowed this file to 100 char width to make it unambiguous as to what the standard should be.
+ - Reflowed this file to 100 char width to make it unambiguous as to what the standard should be.
 
 July 6th, 2012: libphonenumber-4.9.1
 * Metadata changes

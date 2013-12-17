@@ -16,33 +16,35 @@
 
 package com.google.i18n.phonenumbers;
 
+import junit.framework.TestCase;
+
 /**
  * Unit tests for ShortNumberUtil.java
  *
  * @author Shaopeng Jia
  */
-public class ShortNumberUtilTest extends TestMetadataTestCase {
+public class ShortNumberUtilTest extends TestCase {
   private ShortNumberUtil shortUtil;
 
   public ShortNumberUtilTest() {
-    shortUtil = new ShortNumberUtil(phoneUtil);
+    shortUtil = new ShortNumberUtil();
   }
 
   public void testConnectsToEmergencyNumber_US() {
     assertTrue(shortUtil.connectsToEmergencyNumber("911", RegionCode.US));
-    assertTrue(shortUtil.connectsToEmergencyNumber("119", RegionCode.US));
+    assertTrue(shortUtil.connectsToEmergencyNumber("112", RegionCode.US));
     assertFalse(shortUtil.connectsToEmergencyNumber("999", RegionCode.US));
   }
 
   public void testConnectsToEmergencyNumberLongNumber_US() {
     assertTrue(shortUtil.connectsToEmergencyNumber("9116666666", RegionCode.US));
-    assertTrue(shortUtil.connectsToEmergencyNumber("1196666666", RegionCode.US));
+    assertTrue(shortUtil.connectsToEmergencyNumber("1126666666", RegionCode.US));
     assertFalse(shortUtil.connectsToEmergencyNumber("9996666666", RegionCode.US));
   }
 
   public void testConnectsToEmergencyNumberWithFormatting_US() {
     assertTrue(shortUtil.connectsToEmergencyNumber("9-1-1", RegionCode.US));
-    assertTrue(shortUtil.connectsToEmergencyNumber("1-1-9", RegionCode.US));
+    assertTrue(shortUtil.connectsToEmergencyNumber("1-1-2", RegionCode.US));
     assertFalse(shortUtil.connectsToEmergencyNumber("9-9-9", RegionCode.US));
   }
 
@@ -50,7 +52,7 @@ public class ShortNumberUtilTest extends TestMetadataTestCase {
     assertFalse(shortUtil.connectsToEmergencyNumber("+911", RegionCode.US));
     assertFalse(shortUtil.connectsToEmergencyNumber("\uFF0B911", RegionCode.US));
     assertFalse(shortUtil.connectsToEmergencyNumber(" +911", RegionCode.US));
-    assertFalse(shortUtil.connectsToEmergencyNumber("+119", RegionCode.US));
+    assertFalse(shortUtil.connectsToEmergencyNumber("+112", RegionCode.US));
     assertFalse(shortUtil.connectsToEmergencyNumber("+999", RegionCode.US));
   }
 
@@ -83,21 +85,21 @@ public class ShortNumberUtilTest extends TestMetadataTestCase {
 
   public void testIsEmergencyNumber_US() {
     assertTrue(shortUtil.isEmergencyNumber("911", RegionCode.US));
-    assertTrue(shortUtil.isEmergencyNumber("119", RegionCode.US));
+    assertTrue(shortUtil.isEmergencyNumber("112", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber("999", RegionCode.US));
   }
 
   public void testIsEmergencyNumberLongNumber_US() {
     assertFalse(shortUtil.isEmergencyNumber("9116666666", RegionCode.US));
-    assertFalse(shortUtil.isEmergencyNumber("1196666666", RegionCode.US));
+    assertFalse(shortUtil.isEmergencyNumber("1126666666", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber("9996666666", RegionCode.US));
   }
 
   public void testIsEmergencyNumberWithFormatting_US() {
     assertTrue(shortUtil.isEmergencyNumber("9-1-1", RegionCode.US));
     assertTrue(shortUtil.isEmergencyNumber("*911", RegionCode.US));
-    assertTrue(shortUtil.isEmergencyNumber("1-1-9", RegionCode.US));
-    assertTrue(shortUtil.isEmergencyNumber("*119", RegionCode.US));
+    assertTrue(shortUtil.isEmergencyNumber("1-1-2", RegionCode.US));
+    assertTrue(shortUtil.isEmergencyNumber("*112", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber("9-9-9", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber("*999", RegionCode.US));
   }
@@ -106,7 +108,7 @@ public class ShortNumberUtilTest extends TestMetadataTestCase {
     assertFalse(shortUtil.isEmergencyNumber("+911", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber("\uFF0B911", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber(" +911", RegionCode.US));
-    assertFalse(shortUtil.isEmergencyNumber("+119", RegionCode.US));
+    assertFalse(shortUtil.isEmergencyNumber("+112", RegionCode.US));
     assertFalse(shortUtil.isEmergencyNumber("+999", RegionCode.US));
   }
 

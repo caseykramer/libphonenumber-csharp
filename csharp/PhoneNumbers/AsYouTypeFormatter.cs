@@ -54,8 +54,8 @@ namespace PhoneNumbers
 
         private static readonly PhoneMetadata EMPTY_METADATA =
             new PhoneMetadata.Builder().SetInternationalPrefix("NA").BuildPartial();
-        private PhoneMetadata defaultMetaData;
-        private PhoneMetadata currentMetaData;
+        private PhoneMetadata defaultMetadata;
+        private PhoneMetadata currentMetadata;
 
         // A pattern that is used to match character classes in regular expressions. An example of a
         // character class is [1-4].
@@ -116,8 +116,8 @@ namespace PhoneNumbers
         {
             digitPattern = new Regex(digitPlaceholder, RegexOptions.Compiled);
             defaultCountry = regionCode;
-            currentMetaData = GetMetadataForRegion(defaultCountry);
-            defaultMetaData = currentMetaData;
+            currentMetadata = GetMetadataForRegion(defaultCountry);
+            defaultMetadata = currentMetadata;
         }
 
         // The metadata needed by this class is the same for all regions sharing the same country calling
@@ -165,12 +165,13 @@ namespace PhoneNumbers
         private void GetAvailableFormats(String leadingThreeDigits)
         {
             IList<NumberFormat> formatList =
-                (isInternationalFormatting && currentMetaData.IntlNumberFormatCount > 0)
-                ? currentMetaData.IntlNumberFormatList
-                : currentMetaData.NumberFormatList;
+                (isInternationalFormatting && currentMetadata.IntlNumberFormatCount > 0)
+                ? currentMetadata.IntlNumberFormatList
+                : currentMetadata.NumberFormatList;
+            bool nationalPrefixIsUsedByCountry = currentMetadata.HasNationalPrefix;
             foreach (NumberFormat format in formatList)
             {
-                if (IsFormatEligible(format.Format))
+                if (!nationalPrefixIsUsedByCountry || IsFormatEligible(format.Format) || format.NationalPrefixOptionalWhenFormatting)
                 {
                     possibleFormats.Add(format);
                 }
@@ -274,9 +275,9 @@ namespace PhoneNumbers
             isInternationalFormatting = false;
             isExpectingCountryCallingCode = false;
             possibleFormats.Clear();
-            if (!currentMetaData.Equals(defaultMetaData))
+            if (!currentMetadata.Equals(defaultMetadata))
             {
-                currentMetaData = GetMetadataForRegion(defaultCountry);
+                currentMetadata = GetMetadataForRegion(defaultCountry);
             }
         }
 
@@ -422,8 +423,8 @@ namespace PhoneNumbers
                 // Put the extracted NDD back to the national number before attempting to extract a new NDD.
                 nationalNumber.Insert(0, nationalPrefixExtracted);
                 // Remove the previously extracted NDD from prefixBeforeNationalNumber. We cannot simply set
-                // it to empty string because people sometimes enter national prefix after country code, e.g
-                // +44 (0)20-1234-5678.
+                // it to empty string because people sometimes incorrectly enter national prefix after the
+                // country code, e.g. +44 (0)20-1234-5678.
                 int indexOfPreviousNdd = prefixBeforeNationalNumber.ToString().LastIndexOf(nationalPrefixExtracted);
                 prefixBeforeNationalNumber.Length = indexOfPreviousNdd;
             }
@@ -483,6 +484,12 @@ namespace PhoneNumbers
             if (nationalNumber.Length >= MIN_LEADING_DIGITS_LENGTH)
             {
                 GetAvailableFormats(nationalNumber.ToString().Substring(0, MIN_LEADING_DIGITS_LENGTH));
+                // See if the accrued digits can be formatted properly already.
+                String formattedNumber = AttemptToFormatAccruedDigits();
+                if (formattedNumber.Length > 0)
+                {
+                    return formattedNumber;
+                }
                 return MaybeCreateNewTemplate() ? InputAccruedNationalNumber() : accruedInput.ToString();
             }
             else
@@ -517,17 +524,19 @@ namespace PhoneNumbers
         private String RemoveNationalPrefixFromNationalNumber()
         {
             int startOfNationalNumber = 0;
-            if (currentMetaData.CountryCode == 1 && nationalNumber[0] == '1')
+            if (currentMetadata.CountryCode == 1 && nationalNumber[0] == '1')
             {
                 startOfNationalNumber = 1;
                 prefixBeforeNationalNumber.Append("1 ");
                 isInternationalFormatting = true;
             }
-            else if (currentMetaData.HasNationalPrefixForParsing)
+            else if (currentMetadata.HasNationalPrefixForParsing)
             {
                 var m =
-                  regexCache.GetPatternForRegex(currentMetaData.NationalPrefixForParsing).MatchBeginning(nationalNumber.ToString());
-                if (m.Success)
+                  regexCache.GetPatternForRegex(currentMetadata.NationalPrefixForParsing).MatchBeginning(nationalNumber.ToString());
+                // Since some national prefix patterns are entirely optional, check that a national prefix
+                // could actually be extracted.
+                if (m.Success && m.Index > 0)
                 {
                     // When the national prefix is detected, we use international formatting rules instead of
                     // national ones, because national formatting rules could contain local formatting rules
@@ -553,7 +562,7 @@ namespace PhoneNumbers
         {
             var internationalPrefix =
                 regexCache.GetPatternForRegex("\\" + PhoneNumberUtil.PLUS_SIGN + "|" +
-                    currentMetaData.InternationalPrefix);
+                    currentMetadata.InternationalPrefix);
             var iddMatcher = internationalPrefix.MatchBeginning(accruedInputWithoutFormatting.ToString());
             if (iddMatcher.Success)
             {
@@ -597,11 +606,11 @@ namespace PhoneNumbers
             String newRegionCode = phoneUtil.GetRegionCodeForCountryCode(countryCode);
             if (PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY.Equals(newRegionCode))
             {
-                currentMetaData = phoneUtil.GetMetadataForNonGeographicalRegion(countryCode);
+                currentMetadata = phoneUtil.GetMetadataForNonGeographicalRegion(countryCode);
             }
             else if (!newRegionCode.Equals(defaultCountry))
             {
-                currentMetaData = GetMetadataForRegion(newRegionCode);
+                currentMetadata = GetMetadataForRegion(newRegionCode);
             }
             String countryCodeString = countryCode.ToString();
             prefixBeforeNationalNumber.Append(countryCodeString).Append(" ");
