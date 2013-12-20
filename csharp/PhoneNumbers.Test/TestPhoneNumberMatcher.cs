@@ -496,11 +496,11 @@ namespace PhoneNumbers.Test
          * "strict_grouping" leniency level.
          */
         private static readonly NumberTest[] STRICT_GROUPING_CASES = {
-    new NumberTest("(415) 6667777", "US"),
-    new NumberTest("415-6667777", "US"),
+     new NumberTest("(415) 6667777", RegionCode.US),
+    new NumberTest("415-6667777", RegionCode.US),
     // Should be found by strict grouping but not exact grouping, as the last two groups are
     // formatted together as a block.
-    new NumberTest("0800-2491234", "DE"),
+    new NumberTest("0800-2491234", RegionCode.DE),
     // Doesn't match any formatting in the test file, but almost matches an alternate format (the
     // last two groups have been squashed together here).
     new NumberTest("0900-1 123123", RegionCode.DE),
@@ -515,32 +515,32 @@ namespace PhoneNumbers.Test
          * Strings with number-like things that should be found at all levels.
          */
         private static readonly NumberTest[] EXACT_GROUPING_CASES = {
-            new NumberTest("\uFF14\uFF11\uFF15\uFF16\uFF16\uFF16\uFF17\uFF17\uFF17\uFF17", "US"),
-            new NumberTest("\uFF14\uFF11\uFF15-\uFF16\uFF16\uFF16-\uFF17\uFF17\uFF17\uFF17", "US"),
-            new NumberTest("4156667777", "US"),
-            new NumberTest("4156667777 x 123", "US"),
-            new NumberTest("415-666-7777", "US"),
-            new NumberTest("415/666-7777", "US"),
-            new NumberTest("415-666-7777 ext. 503", "US"),
-            new NumberTest("1 415 666 7777 x 123", "US"),
-            new NumberTest("+1 415-666-7777", "US"),
-            new NumberTest("+494949 49", "DE"),
-            new NumberTest("+49-49-34", "DE"),
-            new NumberTest("+49-4931-49", "DE"),
-            new NumberTest("04931-49", "DE"),  // With National Prefix
-            new NumberTest("+49-494949", "DE"),  // One group with country code
-            new NumberTest("+49-494949 ext. 49", "DE"),
-            new NumberTest("+49494949 ext. 49", "DE"),
-            new NumberTest("0494949", "DE"),
-            new NumberTest("0494949 ext. 49", "DE"),
-            new NumberTest("01 (33) 3461 2234", RegionCode.MX),  // Optional NP present
-            new NumberTest("(33) 3461 2234", RegionCode.MX),  // Optional NP omitted
-            new NumberTest("1800-10-10 22", RegionCode.AU),  // Breakdown assistance number.
-            // Doesn't match any formatting in the test file, but matches an alternate format exactly.
-            new NumberTest("0900-1 123 123", RegionCode.DE),
-            new NumberTest("(0)900-1 123 123", RegionCode.DE),
-            new NumberTest("0 900-1 123 123", RegionCode.DE),
-            new NumberTest("+33 3 34 23 12", RegionCode.FR),
+                new NumberTest("\uFF14\uFF11\uFF15\uFF16\uFF16\uFF16\uFF17\uFF17\uFF17\uFF17", RegionCode.US),
+    new NumberTest("\uFF14\uFF11\uFF15-\uFF16\uFF16\uFF16-\uFF17\uFF17\uFF17\uFF17", RegionCode.US),
+    new NumberTest("4156667777", RegionCode.US),
+    new NumberTest("4156667777 x 123", RegionCode.US),
+    new NumberTest("415-666-7777", RegionCode.US),
+    new NumberTest("415/666-7777", RegionCode.US),
+    new NumberTest("415-666-7777 ext. 503", RegionCode.US),
+    new NumberTest("1 415 666 7777 x 123", RegionCode.US),
+    new NumberTest("+1 415-666-7777", RegionCode.US),
+    new NumberTest("+494949 49", RegionCode.DE),
+    new NumberTest("+49-49-34", RegionCode.DE),
+    new NumberTest("+49-4931-49", RegionCode.DE),
+    new NumberTest("04931-49", RegionCode.DE),  // With National Prefix
+    new NumberTest("+49-494949", RegionCode.DE),  // One group with country code
+    new NumberTest("+49-494949 ext. 49", RegionCode.DE),
+    new NumberTest("+49494949 ext. 49", RegionCode.DE),
+    new NumberTest("0494949", RegionCode.DE),
+    new NumberTest("0494949 ext. 49", RegionCode.DE),
+    new NumberTest("01 (33) 3461 2234", RegionCode.MX),  // Optional NP present
+    new NumberTest("(33) 3461 2234", RegionCode.MX),  // Optional NP omitted
+    new NumberTest("1800-10-10 22", RegionCode.AU),  // Breakdown assistance number.
+    // Doesn't match any formatting in the test file, but matches an alternate format exactly.
+    new NumberTest("0900-1 123 123", RegionCode.DE),
+    new NumberTest("(0)900-1 123 123", RegionCode.DE),
+    new NumberTest("0 900-1 123 123", RegionCode.DE),
+    new NumberTest("+33 3 34 23 12", RegionCode.FR),
         };
 
         [Test]
@@ -1010,8 +1010,7 @@ namespace PhoneNumbers.Test
             }
         }
 
-        private IEnumerable<PhoneNumberMatch> findNumbersForLeniency(
-      String text, String defaultCountry, PhoneNumberUtil.Leniency leniency)
+        private IEnumerable<PhoneNumberMatch> findNumbersForLeniency(String text, String defaultCountry, PhoneNumberUtil.Leniency leniency)
         {
             return phoneUtil.FindNumbers(text, defaultCountry, leniency, long.MaxValue);
         }
