@@ -62,6 +62,7 @@ namespace PhoneNumbers
         private static readonly String SHARED_COST = "sharedCost";
         private static readonly String SHORT_CODE = "shortCode";
         private static readonly String TOLL_FREE = "tollFree";
+        private static readonly String STANDARD_RATE = "standardRate";
         private static readonly String UAN = "uan";
         private static readonly String VOICEMAIL = "voicemail";
         private static readonly String VOIP = "voip";
@@ -429,7 +430,7 @@ namespace PhoneNumbers
 
         private static String ReplaceFirst(String input, String value, String replacement)
         {
-            var p = input.IndexOf(value);
+            var p = input.IndexOf(value, System.StringComparison.Ordinal);
             if (p >= 0)
                 input = input.Substring(0, p) + replacement + input.Substring(p + value.Length);
             return input;
@@ -440,13 +441,14 @@ namespace PhoneNumbers
         {
             var generalDesc = ProcessPhoneNumberDescElement(null, element, GENERAL_DESC, liteBuild);
             metadata.SetGeneralDesc(generalDesc);
-            var shortCode = ProcessPhoneNumberDescElement(null, element, SHORT_CODE, liteBuild);
+            var shortCode = ProcessPhoneNumberDescElement(generalDesc, element, SHORT_CODE, liteBuild);
             if(shortCode != null)
                 metadata.SetShortCode(shortCode);
             metadata.SetFixedLine(ProcessPhoneNumberDescElement(generalDesc, element, FIXED_LINE, liteBuild));
             metadata.SetMobile(ProcessPhoneNumberDescElement(generalDesc, element, MOBILE, liteBuild));
             metadata.SetTollFree(ProcessPhoneNumberDescElement(generalDesc, element, TOLL_FREE, liteBuild));
             metadata.SetPremiumRate(ProcessPhoneNumberDescElement(generalDesc, element, PREMIUM_RATE, liteBuild));
+            metadata.SetStandardRate(ProcessPhoneNumberDescElement(generalDesc, element, STANDARD_RATE, liteBuild));
             metadata.SetSharedCost(ProcessPhoneNumberDescElement(generalDesc, element, SHARED_COST, liteBuild));
             metadata.SetVoip(ProcessPhoneNumberDescElement(generalDesc, element, VOIP, liteBuild));
             metadata.SetPersonalNumber(ProcessPhoneNumberDescElement(generalDesc, element,

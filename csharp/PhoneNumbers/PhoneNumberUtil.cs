@@ -275,7 +275,7 @@ namespace PhoneNumbers
         // A pattern that is used to determine if the national prefix formatting rule has the first group
         // only, i.e., does not start with the national prefix. Note that the pattern explicitly allows
         // for unbalanced parentheses.
-        private static readonly Regex FIRST_GROUP_ONLY_PREFIX_PATTERN = new Regex("\\(?\\$1\\)?",RegexOptions.Compiled);
+        private static readonly Regex FIRST_GROUP_ONLY_PREFIX_PATTERN = new Regex(@"^\$\{1\}",RegexOptions.Compiled);
 
 
         static PhoneNumberUtil()
@@ -866,7 +866,7 @@ namespace PhoneNumbers
                 // the national significant number. This assumes that the mobile token is always formatted
                 // separately from the rest of the phone number.
                 var mobileToken = GetCountryMobileToken(number.CountryCode);
-                if (mobileToken.Equals(""))
+                if (!mobileToken.Equals(""))
                     return numberGroups[2].Length + numberGroups[3].Length;
             }
             return numberGroups[2].Length;
@@ -2942,8 +2942,7 @@ namespace PhoneNumbers
         *                          text. This is to cover degenerate cases where the text has a lot of
         *                          false positives in it. Must be {@code >= 0}.
         */
-        public IEnumerable<PhoneNumberMatch> FindNumbers(String text, String defaultRegion,
-            Leniency leniency, long maxTries)
+        public IEnumerable<PhoneNumberMatch> FindNumbers(String text, String defaultRegion,Leniency leniency, long maxTries)
         {
             return new EnumerableFromConstructor<PhoneNumberMatch>(() =>
             {
