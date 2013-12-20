@@ -3,10 +3,10 @@
   <metadata>
     <id>libphonenumber-csharp</id>
     <version>$version$</version>
-    <authors>Patrick Mézard, Google, libphonenumber contributors</authors>
-    <owners>Patrick Mézard</owners>
+    <authors>Casey Kramer, Patrick Mézard, Google, libphonenumber contributors</authors>
+    <owners>Casey Kramer</owners>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <projectUrl>https://bitbucket.org/pmezard/libphonenumber-csharp/wiki/Home</projectUrl>
+    <projectUrl>https://bitbucket.org/drrandom/libphonenumber-csharp/wiki/Home</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>
 		C# port of Google's common Java, C++ and Javascript library for parsing, formatting, storing and validating international phone numbers.
