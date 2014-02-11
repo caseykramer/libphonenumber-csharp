@@ -20,8 +20,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using System.Xml.Linq;
-using System.Xml.XPath;
 using System.Reflection;
 
 namespace PhoneNumbers
@@ -140,7 +138,7 @@ namespace PhoneNumbers
         * Returns the national prefix of the provided country element.
         */
         // @VisibleForTesting
-        public static String GetNationalPrefix(XmlElement element)
+        public static String GetNationalPrefix(System.Xml.XmlElement element)
         {
             return element.HasAttribute(NATIONAL_PREFIX) ? element.GetAttribute(NATIONAL_PREFIX) : "";
         }
