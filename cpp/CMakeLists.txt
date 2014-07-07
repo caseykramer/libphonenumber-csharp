@@ -18,7 +18,7 @@ cmake_minimum_required (VERSION 2.8)
 
 project (libphonenumber)
 set (libphonenumber_VERSION_MAJOR 6)
-set (libphonenumber_VERSION_MINOR 0)
+set (libphonenumber_VERSION_MINOR 2)
 
 # Helper functions dealing with finding libraries and programs this library
 # depends on.
@@ -87,9 +87,9 @@ if (${USE_BOOST} STREQUAL "ON")
   if (WIN32)
     set (Boost_USE_STATIC_LIBS ON)
   endif ()
-  find_package (Boost 1.40.0 COMPONENTS date_time thread)
+  find_package (Boost 1.40.0 COMPONENTS date_time system thread)
   if (NOT Boost_FOUND)
-    print_error ("Boost Datetime/Thread" "Boost")
+    print_error ("Boost Date_Time/System/Thread" "Boost")
   endif ()
   include_directories (${Boost_INCLUDE_DIRS})
 endif ()

@@ -126,14 +126,15 @@ public class PhoneNumberUtilTest extends TestMetadataTestCase {
     // exist. However if the library is packaged incorrectly in the jar, this could happen and the
     // best we can do is make sure the exception has the file name in it.
     try {
-      phoneUtil.loadMetadataFromFile("no/such/file", "XX", -1);
+      phoneUtil.loadMetadataFromFile(
+          "no/such/file", "XX", -1, PhoneNumberUtil.DEFAULT_METADATA_LOADER);
       fail("expected exception");
     } catch (RuntimeException e) {
       assertTrue("Unexpected error: " + e, e.toString().contains("no/such/file_XX"));
     }
     try {
-      phoneUtil.loadMetadataFromFile(
-          "no/such/file", PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, 123);
+      phoneUtil.loadMetadataFromFile("no/such/file", PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY,
+          123, PhoneNumberUtil.DEFAULT_METADATA_LOADER);
       fail("expected exception");
     } catch (RuntimeException e) {
       assertTrue("Unexpected error: " + e, e.getMessage().contains("no/such/file_123"));
@@ -1700,6 +1701,8 @@ public class PhoneNumberUtilTest extends TestMetadataTestCase {
     assertEquals(NZ_NUMBER, phoneUtil.parse("tel:03-331-6005;phone-context=+64", RegionCode.NZ));
     assertEquals(NZ_NUMBER, phoneUtil.parse("tel:331-6005;phone-context=+64-3", RegionCode.NZ));
     assertEquals(NZ_NUMBER, phoneUtil.parse("tel:331-6005;phone-context=+64-3", RegionCode.US));
+    assertEquals(NZ_NUMBER, phoneUtil.parse(
+        "My number is tel:03-331-6005;phone-context=+64", RegionCode.NZ));
     // Test parsing RFC3966 format with optional user-defined parameters. The parameters will appear
     // after the context if present.
     assertEquals(NZ_NUMBER, phoneUtil.parse("tel:03-331-6005;phone-context=+64;a=%A1",
@@ -1708,6 +1711,8 @@ public class PhoneNumberUtilTest extends TestMetadataTestCase {
     assertEquals(NZ_NUMBER, phoneUtil.parse("tel:03-331-6005;isub=12345;phone-context=+64",
         RegionCode.NZ));
     assertEquals(NZ_NUMBER, phoneUtil.parse("tel:+64-3-331-6005;isub=12345", RegionCode.NZ));
+    // Test parsing RFC3966 with "tel:" missing.
+    assertEquals(NZ_NUMBER, phoneUtil.parse("03-331-6005;phone-context=+64", RegionCode.NZ));
     // Testing international prefixes.
     // Should strip country calling code.
     assertEquals(NZ_NUMBER, phoneUtil.parse("0064 3 331 6005", RegionCode.NZ));

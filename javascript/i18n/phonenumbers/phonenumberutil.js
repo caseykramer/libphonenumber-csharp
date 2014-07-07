@@ -1506,7 +1506,7 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.formatByPattern =
     // Before we do a replacement of the national prefix pattern $NP with the
     // national prefix, we need to copy the rule so that subsequent replacements
     // for different numbers have the appropriate national prefix.
-    /** type {i18n.phonenumbers.NumberFormat} */
+    /** @type {i18n.phonenumbers.NumberFormat} */
     var numFormatCopy = formattingPattern.clone();
     /** @type {string} */
     var nationalPrefixFormattingRule =
@@ -2238,8 +2238,8 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.getNationalSignificantNumber =
   /** @type {string} */
   var nationalNumber = '' + number.getNationalNumber();
   if (number.hasItalianLeadingZero() && number.getItalianLeadingZero()) {
-    return Array(number.getNumberOfLeadingZerosOrDefault() + 1).join('0')
-        + nationalNumber;
+    return Array(number.getNumberOfLeadingZerosOrDefault() + 1).join('0') +
+        nationalNumber;
   }
   return nationalNumber;
 };
@@ -3546,8 +3546,8 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.
     // Check if the original number is viable.
     /** @type {boolean} */
     var isViableOriginalNumber =
-      i18n.phonenumbers.PhoneNumberUtil.matchesEntirely_(
-          nationalNumberRule, numberStr);
+        i18n.phonenumbers.PhoneNumberUtil.matchesEntirely_(
+            nationalNumberRule, numberStr);
     // prefixMatcher[numOfGroups] == null implies nothing was captured by the
     // capturing groups in possibleNationalPrefix; therefore, no transformation
     // is necessary, and we just remove the national prefix.
@@ -3564,10 +3564,12 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.
       // we return.
       if (isViableOriginalNumber &&
           !i18n.phonenumbers.PhoneNumberUtil.matchesEntirely_(
-              nationalNumberRule, numberStr.substring(prefixMatcher[0].length))) {
+              nationalNumberRule,
+              numberStr.substring(prefixMatcher[0].length))) {
         return false;
       }
-      if (carrierCode != null && numOfGroups > 0 && prefixMatcher[numOfGroups] != null) {
+      if (carrierCode != null &&
+          numOfGroups > 0 && prefixMatcher[numOfGroups] != null) {
         carrierCode.append(prefixMatcher[1]);
       }
       number.set(numberStr.substring(prefixMatcher[0].length));
@@ -3720,7 +3722,7 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.parseAndKeepRawInput =
  * PhoneNumber.
  *
  * @param {string} nationalNumber the number we are parsing.
- * @param {i18n.phonenumbers.PhoneNumber} phoneNumber a phone number proto
+ * @param {i18n.phonenumbers.PhoneNumber} phoneNumber a phone number proto
  *     buffer to fill in.
  * @private
  */
@@ -3931,12 +3933,16 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.buildNationalNumberForParsing_ =
 
     // Now append everything between the "tel:" prefix and the phone-context.
     // This should include the national number, an optional extension or
-    // isdn-subaddress component.
-    nationalNumber.append(numberToParse.substring(
-        numberToParse.indexOf(
-            i18n.phonenumbers.PhoneNumberUtil.RFC3966_PREFIX_) +
-        i18n.phonenumbers.PhoneNumberUtil.RFC3966_PREFIX_.length,
-        indexOfPhoneContext));
+    // isdn-subaddress component. Note we also handle the case when "tel:" is
+    // missing, as we have seen in some of the phone number inputs.
+    // In that case, we append everything from the beginning.
+    var indexOfRfc3966Prefix = numberToParse.indexOf(
+        i18n.phonenumbers.PhoneNumberUtil.RFC3966_PREFIX_);
+    var indexOfNationalNumber = (indexOfRfc3966Prefix >= 0) ?
+        indexOfRfc3966Prefix +
+        i18n.phonenumbers.PhoneNumberUtil.RFC3966_PREFIX_.length : 0;
+    nationalNumber.append(numberToParse.substring(indexOfNationalNumber,
+          indexOfPhoneContext));
   } else {
     // Extract a possible number from the string passed in (this strips leading
     // characters that could not be the start of a phone number.)
