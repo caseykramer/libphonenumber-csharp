@@ -235,8 +235,6 @@ public class BuildMetadataFromXml {
                                          Element numberFormatElement,
                                          NumberFormat nationalFormat) {
     NumberFormat.Builder intlFormat = NumberFormat.newBuilder();
-    setLeadingDigitsPatterns(numberFormatElement, intlFormat);
-    intlFormat.setPattern(numberFormatElement.getAttribute(PATTERN));
     NodeList intlFormatPattern = numberFormatElement.getElementsByTagName(INTL_FORMAT);
     boolean hasExplicitIntlFormatDefined = false;
 
@@ -244,12 +242,15 @@ public class BuildMetadataFromXml {
       LOGGER.log(Level.SEVERE,
                  "A maximum of one intlFormat pattern for a numberFormat element should be " +
                  "defined.");
-      throw new RuntimeException("Invalid number of intlFormat patterns for country: " +
-                                 metadata.getId());
+      String countryId = metadata.getId().length() > 0 ?
+          metadata.getId() : Integer.toString(metadata.getCountryCode());
+      throw new RuntimeException("Invalid number of intlFormat patterns for country: " + countryId);
     } else if (intlFormatPattern.getLength() == 0) {
       // Default to use the same as the national pattern if none is defined.
       intlFormat.mergeFrom(nationalFormat);
     } else {
+      intlFormat.setPattern(numberFormatElement.getAttribute(PATTERN));
+      setLeadingDigitsPatterns(numberFormatElement, intlFormat);
       String intlFormatPatternValue = intlFormatPattern.item(0).getFirstChild().getNodeValue();
       if (!intlFormatPatternValue.equals("NA")) {
         intlFormat.setFormat(intlFormatPatternValue);
@@ -275,11 +276,13 @@ public class BuildMetadataFromXml {
     format.setPattern(validateRE(numberFormatElement.getAttribute(PATTERN)));
 
     NodeList formatPattern = numberFormatElement.getElementsByTagName(FORMAT);
-    if (formatPattern.getLength() != 1) {
-      LOGGER.log(Level.SEVERE,
-                 "Only one format pattern for a numberFormat element should be defined.");
-      throw new RuntimeException("Invalid number of format patterns for country: " +
-                                   metadata.getId());
+    int numFormatPatterns = formatPattern.getLength();
+    if (numFormatPatterns != 1) {
+      LOGGER.log(Level.SEVERE, "One format pattern for a numberFormat element should be defined.");
+      String countryId = metadata.getId().length() > 0 ?
+          metadata.getId() : Integer.toString(metadata.getCountryCode());
+      throw new RuntimeException("Invalid number of format patterns (" + numFormatPatterns +
+                                 ") for country: " + countryId);
     }
     format.setFormat(formatPattern.item(0).getFirstChild().getNodeValue());
   }
