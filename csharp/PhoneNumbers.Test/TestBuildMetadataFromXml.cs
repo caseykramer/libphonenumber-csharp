@@ -367,6 +367,36 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(0, metadata.IntlNumberFormatCount);
         }
 
+          // Tests setLeadingDigitsPatterns() in the case of international and national formatting rules
+          // being present but not both defined for this numberFormat - we don't want to add them twice.
+        [Test]
+        public void testSetLeadingDigitsPatternsNotAddedTwiceWhenInternationalFormatsPresent()
+        {
+            String xmlInput =
+                "  <availableFormats>" +
+                "    <numberFormat pattern=\"(1)(\\d{3})\">" +
+                "      <leadingDigits>1</leadingDigits>" +
+                "      <format>$1</format>" +
+                "    </numberFormat>" +
+                "    <numberFormat pattern=\"(2)(\\d{3})\">" +
+                "      <leadingDigits>2</leadingDigits>" +
+                "      <format>$1</format>" +
+                "      <intlFormat>9-$1</intlFormat>" +
+                "    </numberFormat>" +
+                "  </availableFormats>";
+            XmlElement element = parseXmlString(xmlInput);
+            PhoneMetadata.Builder metadata = new PhoneMetadata.Builder();
+            BuildMetadataFromXml.LoadAvailableFormats(
+                metadata, element, "0", "", false /* NP not optional */);
+            Assert.AreEqual(1, metadata.GetNumberFormat(0).LeadingDigitsPatternCount);
+            Assert.AreEqual(1, metadata.GetNumberFormat(1).LeadingDigitsPatternCount);
+            // When we merge the national format rules into the international format rules, we shouldn't add
+            // the leading digit patterns multiple times.
+            Assert.AreEqual(1, metadata.GetIntlNumberFormat(0).LeadingDigitsPatternCount);
+            Assert.AreEqual(1, metadata.GetIntlNumberFormat(1).LeadingDigitsPatternCount);
+        }
+
+
         // Tests setLeadingDigitsPatterns().
         [Test]
         public void TestSetLeadingDigitsPatterns()

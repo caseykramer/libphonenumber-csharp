@@ -206,8 +206,6 @@ namespace PhoneNumbers
             String nationalFormat)
         {
             NumberFormat.Builder intlFormat = new NumberFormat.Builder();
-            SetLeadingDigitsPatterns(numberFormatElement, intlFormat);
-            intlFormat.SetPattern(numberFormatElement.GetAttribute(PATTERN));
             var intlFormatPattern = numberFormatElement.GetElementsByTagName(INTL_FORMAT);
             bool hasExplicitIntlFormatDefined = false;
 
@@ -216,8 +214,9 @@ namespace PhoneNumbers
                 //LOGGER.log(Level.SEVERE,
                 //          "A maximum of one intlFormat pattern for a numberFormat element should be " +
                 //           "defined.");
-                throw new Exception("Invalid number of intlFormat patterns for country: " +
-                                    metadata.Id);
+                var countryId = metadata.Id.Length > 0 ?
+                    metadata.Id : metadata.CountryCode.ToString();
+                throw new InvalidOperationException("Invalid number of intlFormat patterns for country: " + countryId);
             }
             else if (intlFormatPattern.Count == 0)
             {
@@ -226,6 +225,8 @@ namespace PhoneNumbers
             }
             else
             {
+                intlFormat.SetPattern(numberFormatElement.GetAttribute(PATTERN));
+                SetLeadingDigitsPatterns(numberFormatElement, intlFormat);
                 String intlFormatPatternValue = intlFormatPattern[0].InnerText;
                 if (!intlFormatPatternValue.Equals("NA"))
                 {
@@ -255,12 +256,15 @@ namespace PhoneNumbers
             format.SetPattern(ValidateRE(numberFormatElement.GetAttribute(PATTERN)));
 
             var formatPattern = numberFormatElement.GetElementsByTagName(FORMAT);
-            if (formatPattern.Count != 1)
+            var numFormatPatterns = formatPattern.Count;
+            if (numFormatPatterns != 1)
             {
                 //LOGGER.log(Level.SEVERE,
                 //           "Only one format pattern for a numberFormat element should be defined.");
-                throw new Exception("Invalid number of format patterns for country: " +
-                                    metadata.Id);
+                var countryId = metadata.Id.Length > 0 ?
+                    metadata.Id : metadata.CountryCode.ToString();
+                throw new InvalidOperationException("Invalid number of format patterns (" + numFormatPatterns +
+                    ") for country: " + countryId);
             }
             String nationalFormat = formatPattern[0].InnerText;
             format.SetFormat(nationalFormat);

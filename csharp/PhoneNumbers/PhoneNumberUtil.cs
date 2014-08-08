@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using CountryCodeSource = PhoneNumbers.PhoneNumber.Types.CountryCodeSource;
@@ -89,16 +90,17 @@ namespace PhoneNumbers
     * http://www.iso.org/iso/country_codes/iso_3166_code_lists/country_names_and_code_elements.htm
     *
     * @author Shaopeng Jia
-    * @author Lara Rennie
     */
     public class PhoneNumberUtil
     {
+        internal static MetadataLoader DEFAULT_METADATA_LOADER = new DefaultMetadataLoader();
+
         // Flags to use when compiling regular expressions for phone numbers.
         internal static readonly RegexOptions REGEX_FLAGS = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
         // The minimum and maximum length of the national significant number.
         internal const int MIN_LENGTH_FOR_NSN = 2;
         // The ITU says the maximum length should be 15, but we have found longer numbers in Germany.
-        internal const int MAX_LENGTH_FOR_NSN = 16;
+        internal const int MAX_LENGTH_FOR_NSN = 17;
         // The maximum length of the country calling code.
         internal const int MAX_LENGTH_COUNTRY_CODE = 3;
         // We don't allow input strings for parsing to be longer than 250 chars. This prevents malicious
@@ -192,6 +194,13 @@ namespace PhoneNumbers
         // extension so that the first number is parsed correctly.
         private static readonly String SECOND_NUMBER_START = "[\\\\/] *x";
         internal static readonly Regex SECOND_NUMBER_START_PATTERN = new Regex(SECOND_NUMBER_START, RegexOptions.Compiled);
+        // Regular expression of trailing characters that we want to remove. We remove all characters that
+        
+        // are not alpha or numerical characters. The hash character is retained here, as it may signify
+        // the previous block was an extension.
+        private static readonly string UNWANTED_END_CHARS = "[[\\P{N}&&\\P{L}]&&[^#]]+$";
+        internal static readonly PhoneRegex UNWANTED_END_CHAR_PATTERN = new PhoneRegex(UNWANTED_END_CHARS,RegexOptions.Compiled);
+
 
         // We use this pattern to check if the phone number has at least three letters in it - if so, then
         // we treat it as a number where some phone-number digits are represented by letters.
@@ -534,8 +543,8 @@ namespace PhoneNumbers
         private readonly Dictionary<int, List<String>> _countryCallingCodeToRegionCodeMap;
         
         // The set of regions that share country calling code 1.
-        // There are roughly 26 regions and we set the initial capacity of the HashSet to 35 to offer a
-        // load factor of roughly 0.75.
+        // There are roughly 26 regions.
+        // We set the initial capacity of the HashSet to 35 to offer a load factor of roughly 0.75.
         private readonly HashSet<String> _nanpaRegions = new HashSet<String>();
         
         // A mapping from a region code to the PhoneMetadata for that region.
@@ -567,12 +576,14 @@ namespace PhoneNumbers
         
         // The prefix of the metadata files from which region data is loaded.
         private readonly String _currentFilePrefix;
-
+        //The metadata loader used to inject alternate metadata sources
+        private readonly MetadataLoader _metadataLoader;
 
         // This class implements a singleton, so the only constructor is private.
-        private PhoneNumberUtil(String filePrefix,Dictionary<int,List<String>> countryCallingCodeToRegionCodeMap)
+        public PhoneNumberUtil(String filePrefix,MetadataLoader metadataLoader, Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap)
         {
             this._currentFilePrefix = filePrefix;
+            this._metadataLoader = metadataLoader;
             this._countryCallingCodeToRegionCodeMap = countryCallingCodeToRegionCodeMap;
             foreach(var regionCodes in countryCallingCodeToRegionCodeMap)
             {
@@ -597,12 +608,13 @@ namespace PhoneNumbers
         }
 
 
-        internal void LoadMetadataFromFile(String filePrefix, String regionCode, int countryCallingCode)
+        internal void LoadMetadataFromFile(String filePrefix, String regionCode, int countryCallingCode, MetadataLoader metadataLoader)
         {
             var asm = Assembly.GetExecutingAssembly();
             bool isNonGeoRegion = REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCode);
             var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(filePrefix)).FirstOrDefault() ?? "missing";
-            using (var stream = asm.GetManifestResourceStream(name))
+            // asm.GetManifestResourceStream(name)
+            using (var stream = metadataLoader.LoadMetadata(name))
             {
                 var meta = BuildMetadataFromXml.BuildPhoneMetadataCollection(stream, false);
                 foreach (var m in meta.MetadataList)
@@ -745,47 +757,48 @@ namespace PhoneNumbers
             return NormalizeHelper(number, ALPHA_PHONE_MAPPINGS, false);
         }
 
-        /**
-        * Gets the length of the geographical area code from the {@code nationalNumber_} field of the
-        * PhoneNumber object passed in, so that clients could use it to split a national significant
-        * number into geographical area code and subscriber number. It works in such a way that the
-        * resultant subscriber number should be diallable, at least on some devices. An example of how
-        * this could be used:
-        *
-        * <pre>
-        * PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
-        * PhoneNumber number = phoneUtil.parse("16502530000", "US");
-        * String nationalSignificantNumber = phoneUtil.getNationalSignificantNumber(number);
-        * String areaCode;
-        * String subscriberNumber;
-        *
-        * int areaCodeLength = phoneUtil.getLengthOfGeographicalAreaCode(number);
-        * if (areaCodeLength > 0) {
-        *   areaCode = nationalSignificantNumber.substring(0, areaCodeLength);
-        *   subscriberNumber = nationalSignificantNumber.substring(areaCodeLength);
-        * } else {
-        *   areaCode = "";
-        *   subscriberNumber = nationalSignificantNumber;
-        * }
-        * </pre>
-        *
-        * N.B.: area code is a very ambiguous concept, so the I18N team generally recommends against
-        * using it for most purposes, but recommends using the more general {@code national_number}
-        * instead. Read the following carefully before deciding to use this method:
-        * <ul>
-        *  <li> geographical area codes change over time, and this method honors those changes;
-        *    therefore, it doesn't guarantee the stability of the result it produces.
-        *  <li> subscriber numbers may not be diallable from all devices (notably mobile devices, which
-        *    typically requires the full national_number to be dialled in most regions).
-        *  <li> most non-geographical numbers have no area codes, including numbers from non-geographical
-        *    entities
-        *  <li> some geographical numbers have no area codes.
-        * </ul>
-        *
-        * @param number  the PhoneNumber object for which clients want to know the length of the area
-        *     code.
-        * @return  the length of area code of the PhoneNumber object passed in.
-        */
+      /**
+       * Gets the length of the geographical area code from the
+       * PhoneNumber object passed in, so that clients could use it
+       * to split a national significant number into geographical area code and subscriber number. It
+       * works in such a way that the resultant subscriber number should be diallable, at least on some
+       * devices. An example of how this could be used:
+       *
+       * <pre>
+       * PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
+       * PhoneNumber number = phoneUtil.parse("16502530000", "US");
+       * String nationalSignificantNumber = phoneUtil.getNationalSignificantNumber(number);
+       * String areaCode;
+       * String subscriberNumber;
+       *
+       * int areaCodeLength = phoneUtil.getLengthOfGeographicalAreaCode(number);
+       * if (areaCodeLength > 0) {
+       *   areaCode = nationalSignificantNumber.substring(0, areaCodeLength);
+       *   subscriberNumber = nationalSignificantNumber.substring(areaCodeLength);
+       * } else {
+       *   areaCode = "";
+       *   subscriberNumber = nationalSignificantNumber;
+       * }
+       * </pre>
+       *
+       * N.B.: area code is a very ambiguous concept, so the I18N team generally recommends against
+       * using it for most purposes, but recommends using the more general {@code national_number}
+       * instead. Read the following carefully before deciding to use this method:
+       * <ul>
+       *  <li> geographical area codes change over time, and this method honors those changes;
+       *    therefore, it doesn't guarantee the stability of the result it produces.
+       *  <li> subscriber numbers may not be diallable from all devices (notably mobile devices, which
+       *    typically requires the full national_number to be dialled in most regions).
+       *  <li> most non-geographical numbers have no area codes, including numbers from non-geographical
+       *    entities
+       *  <li> some geographical numbers have no area codes.
+       * </ul>
+       *
+       * @param number  the PhoneNumber object for which clients 
+       *     want to know the length of the area code.
+       * @return  the length of area code of the PhoneNumber object 
+       *     passed in.
+       */
         public int GetLengthOfGeographicalAreaCode(PhoneNumber number)
         {
             PhoneMetadata metadata = GetMetadataForRegion(GetRegionCodeForNumber(number));
@@ -803,12 +816,13 @@ namespace PhoneNumbers
             return GetLengthOfNationalDestinationCode(number);
         }
 
-        /**
-        * Gets the length of the national destination code (NDC) from the PhoneNumber object passed in,
-        * so that clients could use it to split a national significant number into NDC and subscriber
-        * number. The NDC of a phone number is normally the first group of digit(s) right after the
-        * country calling code when the number is formatted in the international format, if there is a
-        * subscriber number part that follows. An example of how this could be used:
+       /**
+        * Gets the length of the national destination code (NDC) from the
+        * PhoneNumber object passed in, so that clients could use it
+        * to split a national significant number into NDC and subscriber number. The NDC of a phone
+        * number is normally the first group of digit(s) right after the country calling code when the
+        * number is formatted in the international format, if there is a subscriber number part that
+        * follows. An example of how this could be used:
         *
         * <pre>
         * PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
@@ -831,8 +845,10 @@ namespace PhoneNumbers
         * Refer to the unittests to see the difference between this function and
         * {@link #getLengthOfGeographicalAreaCode}.
         *
-        * @param number  the PhoneNumber object for which clients want to know the length of the NDC.
-        * @return  the length of NDC of the PhoneNumber object passed in.
+        * @param number  the PhoneNumber object for which clients 
+        *   want to know the length of the NDC.
+        * @return  the length of NDC of the PhoneNumber object 
+        *   passed in.
         */
         public int GetLengthOfNationalDestinationCode(PhoneNumber number)
         {
@@ -922,32 +938,53 @@ namespace PhoneNumbers
         }
         
         /// <summary>
-        /// An unsafe version of getInstance() which must only be used for testing purposes. 
+        /// Sets or resets the PhoneNumberUtil singleton instance if set to null, the next call to
+        /// <see cref="GetInstance">GetInstance</see> will load (and return) the default instance
         /// </summary>
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public static void SetInstance(PhoneNumberUtil util)
+        {
+            instance_ = util;
+        }
         public static PhoneNumberUtil GetInstance(String baseFileLocation,
             Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap)
         {
-            lock (thisLock)
+            if (instance_ == null)
             {
-                if (instance_ != null)
+                lock (thisLock)
                 {
-                    throw new InvalidOperationException("PhoneNumberUtil instance is already set (you should call resetInstance() first)");
+                    if (instance_ == null)
+                    {
+                        SetInstance(new PhoneNumberUtil(baseFileLocation, DEFAULT_METADATA_LOADER, countryCallingCodeToRegionCodeMap));
+                    }
                 }
-                instance_ = new PhoneNumberUtil(baseFileLocation,countryCallingCodeToRegionCodeMap);                
-                return instance_;
             }
+            return instance_;
         }
 
         /**
-        * Used for testing purposes only to reset the PhoneNumberUtil singleton to null.
-        */
-        public static void ResetInstance()
+       * Create a new {@link PhoneNumberUtil} instance to carry out international phone number
+       * formatting, parsing, or validation. The instance is loaded with all metadata by
+       * using the metadataLoader specified.
+       *
+       * This method should only be used in the rare case in which you want to manage your own
+       * metadata loading. Calling this method multiple times is very expensive, as each time
+       * a new instance is created from scratch. When in doubt, use {@link #getInstance}.
+       *
+       * @param metadataLoader Customized metadata loader. If null, default metadata loader will
+       *     be used. This should not be null.
+       * @return a PhoneNumberUtil instance
+       */
+        public static PhoneNumberUtil CreateInstance(MetadataLoader metadataLoader)
         {
-            lock (thisLock)
+            if(metadataLoader == null)
             {
-                instance_ = null;
+                throw new ArgumentException("metadataLoader cannot be null","metadataLoader");
             }
+            return new PhoneNumberUtil(META_DATA_FILE_PREFIX,metadataLoader,CountryCodeToRegionCodeMap.GetCountryCodeToRegionCodeMap());
         }
+
+
 
         /**
         * Convenience method to get a list of what regions the library has metadata for.
@@ -981,8 +1018,7 @@ namespace PhoneNumbers
             lock (thisLock)
             {
                 if (instance_ == null)
-                    return GetInstance(META_DATA_FILE_PREFIX,
-                        CountryCodeToRegionCodeMap.GetCountryCodeToRegionCodeMap());
+                    SetInstance(CreateInstance(DEFAULT_METADATA_LOADER));
                 return instance_;
             }
         }
@@ -1002,7 +1038,13 @@ namespace PhoneNumbers
          * Tests whether a phone number has a geographical association. It checks if the number is
          * associated to a certain region in the country where it belongs to. Note that this doesn't
          * verify if the number is actually in use.
+         *
+         * A similar method is implemented as PhoneNumberOfflineGeocoder.canBeGeocoded, which performs a
+         * looser check, since it only prevents cases where prefixes overlap for geocodable and
+         * non-geocodable numbers. Also, if new phone number types were added, we should check if this
+         * other method should be updated too.
          */
+
         public bool IsNumberGeographical(PhoneNumber phoneNumber)
         {
             PhoneNumberType numberType = GetNumberType(phoneNumber);
@@ -1073,6 +1115,7 @@ namespace PhoneNumbers
             formattedNumber.Length = 0;
             var countryCallingCode = number.CountryCode;
             var nationalSignificantNumber = GetNationalSignificantNumber(number);
+
             if (numberFormat == PhoneNumberFormat.E164)
             {
                 // Early exit for E164 case (even if the country calling code is invalid) since no formatting
@@ -1331,7 +1374,8 @@ namespace PhoneNumbers
                         // CL fixed line numbers need the national prefix when dialing in the national format,
                         // but don't have it when used for display. The reverse is true for mobile numbers.
                         // As a result, we output them in the international format to make it work.
-                        ((regionCode.Equals("MX") || regionCode.Equals("CL")) && isFixedLineOrMobile)) &&
+                        ((regionCode.Equals("MX") || regionCode.Equals("CL")) && 
+                         isFixedLineOrMobile)) &&
                         CanBeInternationallyDialled(numberNoExt))
                     {
                         formattedNumber = Format(numberNoExt, PhoneNumberFormat.INTERNATIONAL);
@@ -1525,7 +1569,8 @@ namespace PhoneNumbers
                     }
                     // When the format we apply to this number doesn't contain national prefix, we can just
                     // return the national format.
-                    // TODO: Refactor the code below with the code in isNationalPrefixPresentIfRequired.
+                    // TODO: Refactor the code below with the code in 
+                    // isNationalPrefixPresentIfRequired.
                     String candidateNationalPrefixRule = formatRule.NationalPrefixFormattingRule;
                     // We assume that the first-group symbol will never be _before_ the national prefix.
                     int indexOfFirstGroup = candidateNationalPrefixRule.IndexOf("${1}");
@@ -2087,7 +2132,7 @@ namespace PhoneNumbers
                 {
                     // The regionCode here will be valid and won't be '001', so we don't need to worry about
                     // what to pass in for the country calling code.
-                    LoadMetadataFromFile(_currentFilePrefix, regionCode, 0);
+                    LoadMetadataFromFile(_currentFilePrefix, regionCode, 0,_metadataLoader);
                 }
             }
             return _regionToMetadataMap.ContainsKey(regionCode)
@@ -2105,7 +2150,7 @@ namespace PhoneNumbers
                 }
                 if (!countryCodeToNonGeographicalMetadataMap.ContainsKey(countryCallingCode))
                 {
-                    LoadMetadataFromFile(_currentFilePrefix, REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode);
+                    LoadMetadataFromFile(_currentFilePrefix, REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode,_metadataLoader);
                 }
             }
             PhoneMetadata metadata = null;
@@ -2837,7 +2882,7 @@ namespace PhoneNumbers
             if (!IsValidRegionCode(defaultRegion))
             {
                 // If the number is null or empty, we can't infer the region.
-                if (numberToParse == null || numberToParse.Length == 0 ||
+                if ((numberToParse == null) || (numberToParse.Length == 0) ||
                   !PLUS_CHARS_PATTERN.MatchBeginning(numberToParse).Success)
                     return false;
             }
@@ -3139,9 +3184,14 @@ namespace PhoneNumbers
                 }
 
                 // Now append everything between the "tel:" prefix and the phone-context. This should include
-                // the national number, an optional extension or isdn-subaddress component.
-                int indexOfPrefix = numberToParse.IndexOf(RFC3966_PREFIX) + RFC3966_PREFIX.Length;
-                nationalNumber.Append(numberToParse.Substring(indexOfPrefix, indexOfPhoneContext - indexOfPrefix));
+                // the national number, an optional extension or isdn-subaddress component. Note we also
+                // handle the case when "tel:" is missing, as we have seen in some of the phone number inputs.
+                // In that case, we append everything from the beginning.
+                int indexOfRfc3966Prefix = numberToParse.IndexOf(RFC3966_PREFIX);
+                int indexOfNationalNumber = (indexOfRfc3966Prefix >= 0) ?
+                    indexOfRfc3966Prefix + RFC3966_PREFIX.Length : 0;
+                nationalNumber.Append(numberToParse.Substring(indexOfNationalNumber, indexOfPhoneContext));
+
             }
             else
             {
@@ -3361,7 +3411,7 @@ namespace PhoneNumbers
         /**
         * Returns true if the number can be dialled from outside the region, or unknown. If the number
         * can only be dialled from within the region, returns false. Does not check the number is a valid
-        * number.
+        * number. Note that, at the moment, this method does not handle short numbers.
         * TODO: Make this method public when we have enough metadata to make it worthwhile.
         *
         * @param number  the phone-number for which we want to know whether it is only diallable from

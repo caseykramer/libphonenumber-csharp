@@ -64,14 +64,12 @@ namespace PhoneNumbers.Test
         [TestFixtureSetUp]
         public void SetupFixture()
         {
-            PhoneNumberUtil.ResetInstance();
             geocoder = new PhoneNumberOfflineGeocoder(TEST_MAPPING_DATA_DIRECTORY);
         }
 
         [Test]
         public void testInstantiationWithRegularData()
         {
-            PhoneNumberUtil.ResetInstance();
             geocoder = PhoneNumberOfflineGeocoder.GetInstance();
         }
 

@@ -83,6 +83,7 @@
     <Compile Include="FlyweightMapStorage.cs" />
     <Compile Include="LocaleData.cs" />
     <Compile Include="MappingFileProvider.cs" />
+    <Compile Include="MetadataLoader.cs" />
     <Compile Include="MetadataManager.cs" />
     <Compile Include="NumberParseException.cs" />
     <Compile Include="Phonemetadata.cs" />

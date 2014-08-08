@@ -40,7 +40,7 @@ namespace PhoneNumbers
         *   <li>No alpha digits (vanity numbers such as 1-800-SIX-FLAGS) are currently supported.
         * </ul>
         */
-        private static readonly Regex PATTERN;
+        private static readonly PhoneRegex PATTERN;
 
         /**
         * Matches strings that look like publication pages. Example:
@@ -49,7 +49,7 @@ namespace PhoneNumbers
         *
         * The string "211-227 (2003)" is not a telephone number.
         */
-        private static readonly Regex PUB_PAGES = new Regex("\\d{1,5}-+\\d{1,5}\\s{0,4}\\(\\d{1,4}", RegexOptions.Compiled);
+        private static readonly PhoneRegex PUB_PAGES = new PhoneRegex("\\d{1,5}-+\\d{1,5}\\s{0,4}\\(\\d{1,4}", RegexOptions.Compiled);
 
         /**
         * Matches strings that look like dates using "/" as a separator. Examples: 3/10/2011, 31/10/96 or
@@ -63,7 +63,7 @@ namespace PhoneNumbers
         * trailing ":\d\d" -- that is covered by TIME_STAMPS_SUFFIX.
         */
         private static readonly Regex TIME_STAMPS =
-            new Regex("[12]\\d{3}[-/]?[01]\\d[-/]?[0-3]\\d [0-2]\\d$", RegexOptions.Compiled);
+            new Regex("[12]\\d{3}[-/]?[01]\\d[-/]?[0-3]\\d +[0-2]\\d$", RegexOptions.Compiled);
         private static readonly PhoneRegex TIME_STAMPS_SUFFIX = new PhoneRegex(":[0-5]\\d", RegexOptions.Compiled);
 
 
@@ -72,19 +72,41 @@ namespace PhoneNumbers
         * This also checks that there is something inside the brackets. Having no brackets at all is also
         * fine.
         */
-        private static readonly PhoneRegex MATCHING_BRACKETS;
+        private static readonly PhoneRegex MATCHING_BRACKETS;        
+
+        /**
+         * Patterns used to extract phone numbers from a larger phone-number-like pattern. These are
+         * ordered according to specificity. For example, white-space is last since that is frequently
+         * used in numbers, not just to separate two numbers. We have separate patterns since we don't
+         * want to break up the phone-number-like text on more than one different kind of symbol at one
+         * time, although symbols of the same type (e.g. space) can be safely grouped together.
+         *
+         * Note that if there is a match, we will always check any text found up to the first match as
+         * well.
+         */
+        private static readonly PhoneRegex[] INNER_MATCHES ={
+            // Breaks on the slash - e.g. "651-234-2345/332-445-1234"
+            new PhoneRegex("/+(.*)"),
+            // Note that the bracket here is inside the capturing group, since we consider it part of the
+            // phone number. Will match a pattern like "(650) 223 3345 (754) 223 3321".
+            new PhoneRegex("(\\([^(]*)"),
+            // Breaks on a hyphen - e.g. "12345 - 332-445-1234 is my number."
+            // We require a space on either side of the hyphen for it to be considered a separator.
+            new PhoneRegex("(?:\\p{Z}-|-\\p{Z})\\p{Z}*(.+)"),
+            // Various types of wide hyphens. Note we have decided not to enforce a space here, since it's
+            // possible that it's supposed to be used to break two numbers without spaces, and we haven't
+            // seen many instances of it used within a number.
+            new PhoneRegex("[\u2012-\u2015\uFF0D]\\p{Z}*(.+)"),
+            // Breaks on a full stop - e.g. "12345. 332-445-1234 is my number."
+            new PhoneRegex("\\.+\\p{Z}*([^.]+)"),
+            // Breaks on space - e.g. "3324451234 8002341234"
+            new PhoneRegex("\\p{Z}+(\\P{Z}+)")
+        };
 
         /**
         * Punctuation that may be at the start of a phone number - brackets and plus signs.
         */
         private static readonly PhoneRegex LEAD_CLASS;
-
-        /**
-        * Matches white-space, which may indicate the end of a phone number and the start of something
-        * else (such as a neighbouring zip-code). If white-space is found, continues to match all
-        * characters that are not typically used to start a phone number.
-        */
-        private static readonly PhoneRegex GROUP_SEPARATOR;
 
         static PhoneNumberMatcher()
         {
@@ -128,10 +150,10 @@ namespace PhoneNumbers
             String leadClassChars = openingParens + PhoneNumberUtil.PLUS_CHARS;
             String leadClass = "[" + leadClassChars + "]";
             LEAD_CLASS = new PhoneRegex(leadClass, RegexOptions.Compiled);
-            GROUP_SEPARATOR = new PhoneRegex("\\p{Z}" + "[^" + leadClassChars + "\\p{Nd}]*");
+            
 
             /* Phone number pattern allowing optional punctuation. */
-            PATTERN = new Regex(
+            PATTERN = new PhoneRegex(
                 "(?:" + leadClass + punctuation + ")" + leadLimit +
                 digitSequence + "(?:" + punctuation + digitSequence + ")" + blockLimit +
                 "(?:" + PhoneNumberUtil.EXTN_PATTERNS_FOR_MATCHING + ")?",
@@ -205,11 +227,13 @@ namespace PhoneNumbers
         */
         private PhoneNumberMatch Find(int index)
         {
-            Match matched = null;
-            while (maxTries > 0 && (matched = PATTERN.Match(text, index)).Success)
+            while (maxTries > 0)
             {
-                int start = matched.Index;
-                String candidate = text.Substring(start, matched.Length);
+                var matcher = PATTERN.Match(text, index);
+                if (!matcher.Success)
+                    break;
+                int start = matcher.Index;
+                String candidate = text.Substring(start, matcher.Length);
 
                 // Check for extra numbers at the end.
                 // TODO: This is the place to start when trying to support extraction of multiple phone number
@@ -218,7 +242,9 @@ namespace PhoneNumbers
 
                 PhoneNumberMatch match = ExtractMatch(candidate, start);
                 if (match != null)
+                {
                     return match;
+                }
 
                 index = start + candidate.Length;
                 maxTries--;
@@ -235,7 +261,9 @@ namespace PhoneNumbers
         {
             var trailingCharsMatcher = pattern.Match(candidate);
             if (trailingCharsMatcher.Success)
+            {
                 candidate = candidate.Substring(0, trailingCharsMatcher.Index);
+            }
             return candidate;
         }
 
@@ -305,13 +333,13 @@ namespace PhoneNumbers
         */
         private PhoneNumberMatch ExtractMatch(String candidate, int offset)
         {
-            // Skip a match that is more likely a publication page reference or a date.
-            if (PUB_PAGES.Match(candidate).Success || SLASH_SEPARATED_DATES.Match(candidate).Success)
+            // Skip a match that is more likely to be a date.
+            if (SLASH_SEPARATED_DATES.Match(candidate).Success)
                 return null;
             // Skip potential time-stamps.
             if (TIME_STAMPS.Match(candidate).Success)
             {
-                String followingText = text.ToString().Substring(offset + candidate.Length);
+                String followingText = text.Substring(offset + candidate.Length);
                 if (TIME_STAMPS_SUFFIX.MatchBeginning(followingText).Success)
                     return null;
             }
@@ -337,50 +365,42 @@ namespace PhoneNumbers
         */
         private PhoneNumberMatch ExtractInnerMatch(String candidate, int offset)
         {
-            // Try removing either the first or last "group" in the number and see if this gives a result.
-            // We consider white space to be a possible indications of the start or end of the phone number.
-            var groupMatcher = GROUP_SEPARATOR.Match(candidate);
-            if (groupMatcher.Success)
+            foreach(var possibleInnterMatch in INNER_MATCHES)
             {
-                // Try the first group by itself.
-                String firstGroupOnly = candidate.Substring(0, groupMatcher.Index);
-                firstGroupOnly = TrimAfterUnwantedChars(firstGroupOnly);
-                PhoneNumberMatch match = ParseAndVerify(firstGroupOnly, offset);
-                if (match != null)
-                    return match;
-                maxTries--;
-
-                int withoutFirstGroupStart = groupMatcher.Index + groupMatcher.Length;
-                // Try the rest of the candidate without the first group.
-                String withoutFirstGroup = candidate.Substring(withoutFirstGroupStart);
-                withoutFirstGroup = TrimAfterUnwantedChars(withoutFirstGroup);
-                match = ParseAndVerify(withoutFirstGroup, offset + withoutFirstGroupStart);
-                if (match != null)
-                    return match;
-                maxTries--;
-
-                if (maxTries > 0)
+                int rangeStart = 0;
+                var groupMatcher = possibleInnterMatch.Matches(candidate);
+                var isFirstMatch = true;
+                foreach(Match groupMatch in groupMatcher)
                 {
-                    int lastGroupStart = withoutFirstGroupStart;
-                    while ((groupMatcher = groupMatcher.NextMatch()).Success)
+                    if (!groupMatch.Success)
                     {
-                        // Find the last group.
-                        lastGroupStart = groupMatcher.Index;
+                        continue;
                     }
-                    String withoutLastGroup = candidate.Substring(0, lastGroupStart);
-                    withoutLastGroup = TrimAfterUnwantedChars(withoutLastGroup);
-                    if (withoutLastGroup.Equals(firstGroupOnly))
+                    if(maxTries <= 0)
                     {
-                        // If there are only two groups, then the group "without the last group" is the same as
-                        // the first group. In these cases, we don't want to re-check the number group, so we exit
-                        // already.
-                        return null;
+                        break;
                     }
-                    match = ParseAndVerify(withoutLastGroup, offset);
-                    if (match != null)
-                        return match;
+                
+                    if (isFirstMatch)
+                    {
+                        // We should handle any group before this one too
+                        var group = TrimAfterFirstMatch(PhoneNumberUtil.UNWANTED_END_CHAR_PATTERN, candidate.Substring(0, groupMatch.Index));
+                        var match = ParseAndVerify(group, offset);
+                        if(match != null)
+                        {
+                            return match;
+                        }
+                        maxTries--;
+                        isFirstMatch = false;
+                    }
+                    var nextGroup = TrimAfterFirstMatch(PhoneNumberUtil.UNWANTED_END_CHAR_PATTERN, groupMatch.Value);
+                    var nextMatch = ParseAndVerify(nextGroup, offset + groupMatch.Index);
+                    if (nextMatch != null)
+                    {
+                        return nextMatch;
+                    }
                     maxTries--;
-                }
+                }                
             }
             return null;
         }
@@ -400,7 +420,7 @@ namespace PhoneNumbers
             {
                 // Check the candidate doesn't contain any formatting which would indicate that it really
                 // isn't a phone number.
-                if (!MATCHING_BRACKETS.MatchAll(candidate).Success)
+                if (!MATCHING_BRACKETS.MatchAll(candidate).Success || PUB_PAGES.MatchBeginning(candidate).Success)
                     return null;
 
                 // If leniency is set to VALID or stricter, we also want to skip numbers that are surrounded

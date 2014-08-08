@@ -24,8 +24,6 @@ namespace PhoneNumbers.Test
 {
     /**
     * Some basic tests to check that the phone number metadata can be correctly loaded.
-    *
-    * @author Lara Rennie
     */
     [TestFixture]
     public class TestMedataManager

@@ -25,26 +25,12 @@ namespace PhoneNumbers.Test
     [TestFixture]
     class TestExampleNumbers
     {
-        private PhoneNumberUtil phoneNumberUtil;
-        private ShortNumberInfo shortNumberInfo;
+        private static readonly PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.CreateInstance(PhoneNumberUtil.DEFAULT_METADATA_LOADER);
+        private static readonly ShortNumberInfo shortNumberInfo = new ShortNumberInfo(phoneNumberUtil);
         private List<PhoneNumber> invalidCases = new List<PhoneNumber>();
         private List<PhoneNumber> wrongTypeCases = new List<PhoneNumber>();
 
-        [TestFixtureSetUp]
-        public void SetupFixture()
-        {
-            PhoneNumberUtil.ResetInstance();
-            phoneNumberUtil = PhoneNumberUtil.GetInstance();
-            shortNumberInfo = new ShortNumberInfo(phoneNumberUtil);
-        }
-
-        [SetUp]
-        protected void SetUp()
-        {
-            invalidCases.Clear();
-            wrongTypeCases.Clear();
-        }
-
+        
         /**
         * @param exampleNumberRequestedType  type we are requesting an example number for
         * @param possibleExpectedTypes       acceptable types that this number should match, such as

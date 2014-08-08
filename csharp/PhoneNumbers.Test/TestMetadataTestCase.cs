@@ -28,7 +28,6 @@ namespace PhoneNumbers.Test
     * used for regression test purposes.
     *
     * @author Shaopeng Jia
-    * @author Lara Rennie
     */
     class TestMetadataTestCase
     {
@@ -44,10 +43,10 @@ namespace PhoneNumbers.Test
 
         static PhoneNumberUtil InitializePhoneUtilForTesting()
         {
-            PhoneNumberUtil.ResetInstance();
-            return PhoneNumberUtil.GetInstance(
-                TEST_META_DATA_FILE_PREFIX,
+            PhoneNumberUtil phoneUtil = new PhoneNumberUtil(TEST_META_DATA_FILE_PREFIX,PhoneNumberUtil.DEFAULT_METADATA_LOADER,                
                 CountryCodeToRegionCodeMapForTesting.GetCountryCodeToRegionCodeMap());
+            PhoneNumberUtil.SetInstance(phoneUtil);
+            return phoneUtil;
         }
     }
 }

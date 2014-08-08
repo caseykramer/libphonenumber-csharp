@@ -94,7 +94,8 @@ namespace PhoneNumbers.Test
 
             doTestFindInContext("64(0)64123456", "NZ");
             // Check that using a "/" is fine in a phone number.
-            doTestFindInContext("123/45678", "DE");
+            // Note that real Polish numbers do *not* start with a 0.
+            doTestFindInContext("0123/456789", RegionCode.PL);
             doTestFindInContext("123-456-7890", "US");
         }
 
@@ -254,6 +255,45 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void testFourMatchesInARow()
+        {
+            string number1 = "415-666-7777";
+            string number2 = "800-443-1223";
+            string number3 = "212-443-1223";
+            string number4 = "650-443-1223";
+            string text = number1 + " - " + number2 + " - " + number3 + " - " + number4;
+
+            var iterator = phoneUtil.FindNumbers(text, RegionCode.US).GetEnumerator();
+            PhoneNumberMatch match = iterator.MoveNext() ? iterator.Current : null;
+            AssertMatchProperties(match, text, number1, RegionCode.US);
+
+            match = iterator.MoveNext() ? iterator.Current : null;
+            AssertMatchProperties(match, text, number2, RegionCode.US);
+
+            match = iterator.MoveNext() ? iterator.Current : null;
+            AssertMatchProperties(match, text, number3, RegionCode.US);
+
+            match = iterator.MoveNext() ? iterator.Current : null;
+            AssertMatchProperties(match, text, number4, RegionCode.US);
+        }
+        
+           
+        [Test]
+        public void testMatchesFoundWithMultipleSpaces() {
+            string number1 = "(415) 666-7777";
+            string number2 = "(800) 443-1223";
+            string text = number1 + " " + number2;
+        
+            var iterator = phoneUtil.FindNumbers(text, RegionCode.US).GetEnumerator();
+            PhoneNumberMatch match = iterator.MoveNext() ? iterator.Current : null;
+            AssertMatchProperties(match, text, number1, RegionCode.US);
+        
+            match = iterator.MoveNext() ? iterator.Current : null;
+            AssertMatchProperties(match, text, number2, RegionCode.US);
+        }
+        
+
+        [Test]
         public void TestMatchWithSurroundingZipcodes()
         {
             String number = "415-666-7777";
@@ -262,9 +302,7 @@ namespace PhoneNumbers.Test
 
             var iterator = phoneUtil.FindNumbers(zipPreceding, "US").GetEnumerator();
             PhoneNumberMatch match = iterator.MoveNext() ? iterator.Current : null;
-            Assert.IsNotNull(match, "Did not find a number in '" + zipPreceding + "'; expected " + number);
-            Assert.AreEqual(expectedResult, match.Number);
-            Assert.AreEqual(number, match.RawString);
+            AssertMatchProperties(match, zipPreceding, number, RegionCode.US);
 
             // Now repeat, but this time the phone number has spaces in it. It should still be found.
             number = "(415) 666 7777";
@@ -273,9 +311,7 @@ namespace PhoneNumbers.Test
             iterator = phoneUtil.FindNumbers(zipFollowing, "US").GetEnumerator();
 
             PhoneNumberMatch matchWithSpaces = iterator.MoveNext() ? iterator.Current : null;
-            Assert.IsNotNull(matchWithSpaces, "Did not find a number in '" + zipFollowing + "'; expected " + number);
-            Assert.AreEqual(expectedResult, matchWithSpaces.Number);
-            Assert.AreEqual(number, matchWithSpaces.RawString);
+            AssertMatchProperties(matchWithSpaces, zipFollowing, number, RegionCode.US);            
         }
 
         [Test]
@@ -436,20 +472,24 @@ namespace PhoneNumbers.Test
          * Strings with number-like things that shouldn't be found under any level.
          */
         private static readonly NumberTest[] IMPOSSIBLE_CASES = {
-    new NumberTest("12345", "US"),
-    new NumberTest("23456789", "US"),
-    new NumberTest("234567890112", "US"),
-    new NumberTest("650+253+1234", "US"),
-    new NumberTest("3/10/1984", "CA"),
-    new NumberTest("03/27/2011", "US"),
-    new NumberTest("31/8/2011", "US"),
-    new NumberTest("1/12/2011", "US"),
-    new NumberTest("10/12/82", "DE"),
-    new NumberTest("650x2531234", RegionCode.US),
-    new NumberTest("2012-01-02 08:00", RegionCode.US),
-    new NumberTest("2012/01/02 08:00", RegionCode.US),
-    new NumberTest("20120102 08:00", RegionCode.US),
-  };
+                        new NumberTest("12345", "US"),
+                        new NumberTest("23456789", "US"),
+                        new NumberTest("234567890112", "US"),
+                        new NumberTest("650+253+1234", "US"),
+                        new NumberTest("3/10/1984", "CA"),
+                        new NumberTest("03/27/2011", "US"),
+                        new NumberTest("31/8/2011", "US"),
+                        new NumberTest("1/12/2011", "US"),
+                        new NumberTest("10/12/82", "DE"),
+                        new NumberTest("650x2531234", RegionCode.US),
+                        new NumberTest("2012-01-02 08:00", RegionCode.US),
+                        new NumberTest("2012/01/02 08:00", RegionCode.US),
+                        new NumberTest("20120102 08:00", RegionCode.US),
+                        new NumberTest("2014-04-12 04:04 PM",RegionCode.US),
+                        new NumberTest("2014-04-12 &nbsp;04:04 PM", RegionCode.US),
+                        new NumberTest("2014-04-12 &nbsp;04:04 PM", RegionCode.US),
+                        new NumberTest("2014-04-12  04:04 PM", RegionCode.US),
+                                                                };
 
         /**
          * Strings with number-like things that should only be found under "possible".
@@ -884,6 +924,19 @@ namespace PhoneNumbers.Test
             Assert.That(iterator.MoveNext());
             Assert.IsFalse(iterator.MoveNext());
         }
+
+        /**
+         * Asserts that the expected match is non-null, and that the raw string and expected
+         * proto buffer are set appropriately.
+         */
+        private void AssertMatchProperties(PhoneNumberMatch match, String text, String number, String region)
+        {
+            PhoneNumber expectedResult = phoneUtil.Parse(number, region);
+            Assert.IsNotNull(match,"Did not find a number in '" + text + "'; expected " + number);
+            Assert.AreEqual(expectedResult, match.Number);
+            Assert.AreEqual(number, match.RawString);
+        }
+
 
         /**
         * Asserts that another number can be found in {@code text} starting at {@code index}, and that

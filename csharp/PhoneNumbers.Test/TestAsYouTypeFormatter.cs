@@ -1183,5 +1183,65 @@ namespace PhoneNumbers.Test
             Assert.AreEqual("1 22", formatter.InputDigit('2'));
         }
 
+        [Test]
+        public void TestAYTFClearNDDAfterIDDExtraction()
+        {
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.KR);
+
+            // Check that when we have successfully extracted an IDD, the previously extracted NDD is
+            // cleared since it is no longer valid.
+            Assert.AreEqual("0", formatter.InputDigit('0'));
+            Assert.AreEqual("00", formatter.InputDigit('0'));
+            Assert.AreEqual("007", formatter.InputDigit('7'));
+            Assert.AreEqual("0070", formatter.InputDigit('0'));
+            Assert.AreEqual("00700", formatter.InputDigit('0'));
+            Assert.AreEqual("0", formatter.getExtractedNationalPrefix());
+
+            // Once the IDD "00700" has been extracted, it no longer makes sense for the initial "0" to be
+            // treated as an NDD.
+            Assert.AreEqual("00700 1 ", formatter.InputDigit('1'));
+            Assert.AreEqual("", formatter.getExtractedNationalPrefix());
+
+            Assert.AreEqual("00700 1 2", formatter.InputDigit('2'));
+            Assert.AreEqual("00700 1 23", formatter.InputDigit('3'));
+            Assert.AreEqual("00700 1 234", formatter.InputDigit('4'));
+            Assert.AreEqual("00700 1 234 5", formatter.InputDigit('5'));
+            Assert.AreEqual("00700 1 234 56", formatter.InputDigit('6'));
+            Assert.AreEqual("00700 1 234 567", formatter.InputDigit('7'));
+            Assert.AreEqual("00700 1 234 567 8", formatter.InputDigit('8'));
+            Assert.AreEqual("00700 1 234 567 89", formatter.InputDigit('9'));
+            Assert.AreEqual("00700 1 234 567 890", formatter.InputDigit('0'));
+            Assert.AreEqual("00700 1 234 567 8901", formatter.InputDigit('1'));
+            Assert.AreEqual("00700123456789012", formatter.InputDigit('2'));
+            Assert.AreEqual("007001234567890123", formatter.InputDigit('3'));
+            Assert.AreEqual("0070012345678901234", formatter.InputDigit('4'));
+            Assert.AreEqual("00700123456789012345", formatter.InputDigit('5'));
+            Assert.AreEqual("007001234567890123456", formatter.InputDigit('6'));
+            Assert.AreEqual("0070012345678901234567", formatter.InputDigit('7'));
+        }
+
+        [Test]
+        public void TestAYTFNumberPatternsBecomingInvalidShouldNotResultInDigitLoss()
+        {
+            AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter(RegionCode.CN);
+
+            Assert.AreEqual("+", formatter.InputDigit('+'));
+            Assert.AreEqual("+8", formatter.InputDigit('8'));
+            Assert.AreEqual("+86 ", formatter.InputDigit('6'));
+            Assert.AreEqual("+86 9", formatter.InputDigit('9'));
+            Assert.AreEqual("+86 98", formatter.InputDigit('8'));
+            Assert.AreEqual("+86 988", formatter.InputDigit('8'));
+            Assert.AreEqual("+86 988 1", formatter.InputDigit('1'));
+            // Now the number pattern is no longer valid because there are multiple leading digit patterns;
+            // when we try again to extract a country code we should ensure we use the last leading digit
+            // pattern, rather than the first one such that it *thinks* it's found a valid formatting rule
+            // again.
+            // https://code.google.com/p/libphonenumber/issues/detail?id=437
+            Assert.AreEqual("+8698812", formatter.InputDigit('2'));
+            Assert.AreEqual("+86988123", formatter.InputDigit('3'));
+            Assert.AreEqual("+869881234", formatter.InputDigit('4'));
+            Assert.AreEqual("+8698812345", formatter.InputDigit('5'));
+        }
+
     }
 }
