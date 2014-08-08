@@ -103,7 +103,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="PhoneNumberMetaData.xml" />
-    <EmbeddedResource Include="PhoneNumberMetaDataForTesting.xml" />
+    <EmbeddedResource Include="PhoneNumberMetaDataForTesting.xml">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="res\test_1_en" />

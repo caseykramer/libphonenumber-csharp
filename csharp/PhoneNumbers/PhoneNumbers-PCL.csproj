@@ -35,7 +35,7 @@
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
-    <ItemGroup>
+  <ItemGroup>
     <Compile Include="AreaCodeMap.cs" />
     <Compile Include="AreaCodeMapStorageStrategy.cs" />
     <Compile Include="AreaCodeParser.cs" />
@@ -45,6 +45,7 @@
     <Compile Include="FlyweightMapStorage.cs" />
     <Compile Include="LocaleData.cs" />
     <Compile Include="MappingFileProvider.cs" />
+    <Compile Include="MetadataLoader.cs" />
     <Compile Include="MetadataManager.cs" />
     <Compile Include="NumberParseException.cs" />
     <Compile Include="Phonemetadata.cs" />
@@ -237,8 +238,7 @@
   <ItemGroup>
     <EmbeddedResource Include="ShortNumberMetadata.xml" />
   </ItemGroup>
-<Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
-
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

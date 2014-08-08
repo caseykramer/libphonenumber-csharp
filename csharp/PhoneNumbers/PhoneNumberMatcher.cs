@@ -366,8 +366,7 @@ namespace PhoneNumbers
         private PhoneNumberMatch ExtractInnerMatch(String candidate, int offset)
         {
             foreach(var possibleInnterMatch in INNER_MATCHES)
-            {
-                int rangeStart = 0;
+            {                
                 var groupMatcher = possibleInnterMatch.Matches(candidate);
                 var isFirstMatch = true;
                 foreach(Match groupMatch in groupMatcher)
@@ -393,8 +392,8 @@ namespace PhoneNumbers
                         maxTries--;
                         isFirstMatch = false;
                     }
-                    var nextGroup = TrimAfterFirstMatch(PhoneNumberUtil.UNWANTED_END_CHAR_PATTERN, groupMatch.Value);
-                    var nextMatch = ParseAndVerify(nextGroup, offset + groupMatch.Index);
+                    var nextGroup = TrimAfterFirstMatch(PhoneNumberUtil.UNWANTED_END_CHAR_PATTERN, groupMatch.Groups[1].Value);
+                    var nextMatch = ParseAndVerify(nextGroup, offset + groupMatch.Groups[1].Index);
                     if (nextMatch != null)
                     {
                         return nextMatch;

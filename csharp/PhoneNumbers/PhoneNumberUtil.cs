@@ -198,7 +198,7 @@ namespace PhoneNumbers
         
         // are not alpha or numerical characters. The hash character is retained here, as it may signify
         // the previous block was an extension.
-        private static readonly string UNWANTED_END_CHARS = "[[\\P{N}&&\\P{L}]&&[^#]]+$";
+        private static readonly string UNWANTED_END_CHARS = "[[\\P{N} - [\\p{L} - [^#]+$";  // Converted from the java "[[\\P{N}&&\\P{L}]&&[^#]]+$"; because .Net doesn't have character class addition
         internal static readonly PhoneRegex UNWANTED_END_CHAR_PATTERN = new PhoneRegex(UNWANTED_END_CHARS,RegexOptions.Compiled);
 
 
@@ -1374,9 +1374,9 @@ namespace PhoneNumbers
                         // CL fixed line numbers need the national prefix when dialing in the national format,
                         // but don't have it when used for display. The reverse is true for mobile numbers.
                         // As a result, we output them in the international format to make it work.
-                        ((regionCode.Equals("MX") || regionCode.Equals("CL")) && 
-                         isFixedLineOrMobile)) &&
-                        CanBeInternationallyDialled(numberNoExt))
+                        ((regionCode.Equals("MX") || regionCode.Equals("CL")) &&
+                             isFixedLineOrMobile)) &&
+                          CanBeInternationallyDialled(numberNoExt))
                     {
                         formattedNumber = Format(numberNoExt, PhoneNumberFormat.INTERNATIONAL);
                     }
@@ -3190,7 +3190,7 @@ namespace PhoneNumbers
                 int indexOfRfc3966Prefix = numberToParse.IndexOf(RFC3966_PREFIX);
                 int indexOfNationalNumber = (indexOfRfc3966Prefix >= 0) ?
                     indexOfRfc3966Prefix + RFC3966_PREFIX.Length : 0;
-                nationalNumber.Append(numberToParse.Substring(indexOfNationalNumber, indexOfPhoneContext));
+                nationalNumber.Append(numberToParse.Substring(indexOfNationalNumber, indexOfPhoneContext - indexOfNationalNumber));
 
             }
             else

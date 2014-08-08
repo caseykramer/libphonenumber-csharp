@@ -222,6 +222,9 @@ namespace PhoneNumbers
             {
                 // Default to use the same as the national pattern if none is defined.
                 intlFormat.SetFormat(nationalFormat);
+                // Set leading digits pattern
+                SetLeadingDigitsPatterns(numberFormatElement, intlFormat);
+                intlFormat.SetPattern(numberFormatElement.GetAttribute(PATTERN));
             }
             else
             {
