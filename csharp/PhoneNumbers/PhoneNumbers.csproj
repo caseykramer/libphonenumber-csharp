@@ -305,6 +305,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PreBuildEvent>python $(SolutionDir)\lib\version.py</PreBuildEvent>
+    <PreBuildEvent>REM python $(SolutionDir)\lib\version.py</PreBuildEvent>
   </PropertyGroup>
 </Project>
