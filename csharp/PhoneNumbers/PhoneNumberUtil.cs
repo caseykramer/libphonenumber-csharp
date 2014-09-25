@@ -2072,9 +2072,7 @@ namespace PhoneNumbers
 
         private PhoneNumberType GetNumberTypeHelper(String nationalNumber, PhoneMetadata metadata)
         {
-            var generalNumberDesc = metadata.GeneralDesc;
-            if (!generalNumberDesc.HasNationalNumberPattern ||
-                !IsNumberMatchingDesc(nationalNumber, generalNumberDesc))
+            if (!IsNumberMatchingDesc(nationalNumber, metadata.GeneralDesc))
                 return PhoneNumberType.UNKNOWN;
 
             if (IsNumberMatchingDesc(nationalNumber, metadata.PremiumRate))
@@ -2215,17 +2213,8 @@ namespace PhoneNumbers
                 // match that of the region code.
                 return false;
             }
-            var generalNumDesc = metadata.GeneralDesc;
             var nationalSignificantNumber = GetNationalSignificantNumber(number);
 
-            // For regions where we don't have metadata for PhoneNumberDesc, we treat any number passed in
-            // as a valid number if its national significant number is between the minimum and maximum
-            // lengths defined by ITU for a national significant number.
-            if (!generalNumDesc.HasNationalNumberPattern)
-            {
-                int numberLength = nationalSignificantNumber.Length;
-                return numberLength > MIN_LENGTH_FOR_NSN && numberLength <= MAX_LENGTH_FOR_NSN;
-            }
             return GetNumberTypeHelper(nationalSignificantNumber, metadata) != PhoneNumberType.UNKNOWN;
         }
 
@@ -2496,19 +2485,8 @@ namespace PhoneNumbers
             String regionCode = GetRegionCodeForCountryCode(countryCode);
             // Metadata cannot be null because the country calling code is valid.
             PhoneMetadata metadata = GetMetadataForRegionOrCallingCode(countryCode, regionCode);
-            PhoneNumberDesc generalNumDesc = metadata.GeneralDesc;
-            // Handling case of numbers with no metadata.
-            if (!generalNumDesc.HasNationalNumberPattern)
-            {
-                int numberLength = nationalNumber.Length;
-                if (numberLength < MIN_LENGTH_FOR_NSN)
-                    return ValidationResult.TOO_SHORT;
-                if (numberLength > MAX_LENGTH_FOR_NSN)
-                    return ValidationResult.TOO_LONG;
-                return ValidationResult.IS_POSSIBLE;
-            }
             var possibleNumberPattern =
-                regexCache.GetPatternForRegex(generalNumDesc.PossibleNumberPattern);
+                regexCache.GetPatternForRegex(metadata.GeneralDesc.PossibleNumberPattern);
             return TestNumberLengthAgainstPattern(possibleNumberPattern, nationalNumber);
         }
 

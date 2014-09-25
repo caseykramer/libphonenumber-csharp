@@ -245,7 +245,7 @@
         </numberFormat>
       </availableFormats>
     </territory>
-    
+
     <!-- Christmas Islands -->
     <!-- Country calling code shared with Australia. -->
     <!-- This country is used to test ShortNumberInfo, so at least the country calling code must be

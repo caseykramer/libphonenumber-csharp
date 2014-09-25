@@ -1448,18 +1448,7 @@ namespace PhoneNumbers.Test
             phoneUtil.IsPossibleNumberWithReason(number));
 
             Assert.AreEqual(PhoneNumberUtil.ValidationResult.TOO_LONG,
-                 phoneUtil.IsPossibleNumberWithReason(INTERNATIONAL_TOLL_FREE_TOO_LONG));
-
-            // Try with number that we don't have metadata for.
-            var adNumber = new PhoneNumber.Builder().SetCountryCode(376).SetNationalNumber(12345L).Build();
-            Assert.AreEqual(PhoneNumberUtil.ValidationResult.IS_POSSIBLE,
-                phoneUtil.IsPossibleNumberWithReason(adNumber));
-            adNumber = Update(adNumber).SetCountryCode(376).SetNationalNumber(1L).Build();
-            Assert.AreEqual(PhoneNumberUtil.ValidationResult.TOO_SHORT,
-                phoneUtil.IsPossibleNumberWithReason(adNumber));
-            adNumber = Update(adNumber).SetCountryCode(376).SetNationalNumber(123456789012345678L).Build();
-            Assert.AreEqual(PhoneNumberUtil.ValidationResult.TOO_LONG,
-                phoneUtil.IsPossibleNumberWithReason(adNumber));
+                 phoneUtil.IsPossibleNumberWithReason(INTERNATIONAL_TOLL_FREE_TOO_LONG));            
         }
 
         [Test]
@@ -2675,7 +2664,7 @@ namespace PhoneNumbers.Test
             Assert.AreEqual("+37612345", phoneUtil.Format(adNumber, PhoneNumberFormat.E164));
             Assert.AreEqual("12345", phoneUtil.Format(adNumber, PhoneNumberFormat.NATIONAL));
             Assert.AreEqual(PhoneNumberType.UNKNOWN, phoneUtil.GetNumberType(adNumber));
-            Assert.That(phoneUtil.IsValidNumber(adNumber));
+            Assert.That(phoneUtil.IsValidNumber(adNumber),Is.False);
 
             // Test dialing a US number from within Andorra.
             Assert.AreEqual("00 1 650 253 0000",
