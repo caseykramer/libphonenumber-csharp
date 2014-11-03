@@ -39,6 +39,16 @@ namespace PhoneNumbers
             beginRegex_ = new Regex(String.Format("^(?:{0})", pattern), o);
         }
 
+        public bool matches(string value)
+        {
+            return MatchAll(value).Success;
+        }
+
+        public bool lookingAt(string value)
+        {
+            return MatchBeginning(value).Success;
+        }
+
         public Match MatchAll(String value)
         {
             return allRegex_.Match(value);

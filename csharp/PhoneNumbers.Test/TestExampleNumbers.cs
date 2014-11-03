@@ -26,7 +26,7 @@ namespace PhoneNumbers.Test
     class TestExampleNumbers
     {
         private static readonly PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.CreateInstance(PhoneNumberUtil.DEFAULT_METADATA_LOADER);
-        private static readonly ShortNumberInfo shortNumberInfo = new ShortNumberInfo(phoneNumberUtil);
+        private static readonly ShortNumberInfo shortNumberInfo = ShortNumberInfo.GetInstance();
         private List<PhoneNumber> invalidCases = new List<PhoneNumber>();
         private List<PhoneNumber> wrongTypeCases = new List<PhoneNumber>();
 
@@ -223,7 +223,7 @@ namespace PhoneNumbers.Test
             foreach (var regionCode in shortNumberInfo.SupportedRegions)
             {
                 var exampleShortNumber = shortNumberInfo.GetExampleShortNumber(regionCode);
-                if (!shortNumberInfo.IsValidShortNumberForRegion(exampleShortNumber, regionCode))
+                if (!shortNumberInfo.IsValidShortNumberForRegion(phoneNumberUtil.Parse(exampleShortNumber,regionCode),regionCode))
                 {
                     String invalidStringCase = "region_code: " + regionCode + ", national_number: " +
                                                exampleShortNumber;
@@ -241,7 +241,7 @@ namespace PhoneNumbers.Test
                     exampleShortNumber = shortNumberInfo.GetExampleShortNumberForCost(regionCode, cost);
                     if (!exampleShortNumber.Equals(""))
                     {
-                        if (cost != shortNumberInfo.GetExpectedCostForRegion(exampleShortNumber, regionCode))
+                        if (cost != shortNumberInfo.GetExpectedCostForRegion(phoneNumberUtil.Parse(exampleShortNumber, regionCode),regionCode))
                         {
                             wrongTypeCases.Add(phoneNumber);
                         }
@@ -263,13 +263,14 @@ namespace PhoneNumbers.Test
                 if (desc.HasExampleNumber)
                 {
                     String exampleNumber = desc.ExampleNumber;
-                    if (!(new PhoneRegex(desc.PossibleNumberPattern).Match(exampleNumber).Success) ||
-                        !shortNumberInfo.IsEmergencyNumber(exampleNumber, regionCode))
+                    PhoneNumber phoneNumber = phoneNumberUtil.Parse(exampleNumber, regionCode);
+                    if (!shortNumberInfo.IsPossibleShortNumberForRegion(phoneNumber, regionCode)
+                        || !shortNumberInfo.IsEmergencyNumber(exampleNumber, regionCode))
                     {
                         wrongTypeCounter++;
                     }
-                    else if (shortNumberInfo.GetExpectedCostForRegion(exampleNumber, regionCode) !=
-                             ShortNumberInfo.ShortNumberCost.TOLL_FREE)
+                    else if (shortNumberInfo.GetExpectedCostForRegion(phoneNumber, regionCode) 
+                        != ShortNumberInfo.ShortNumberCost.TOLL_FREE)
                     {
                         wrongTypeCounter++;
                     }
@@ -290,8 +291,8 @@ namespace PhoneNumbers.Test
                 {
                     string exampleNumber = desc.ExampleNumber;
                     PhoneNumber carrierSpecificNumber = phoneNumberUtil.Parse(exampleNumber, regionCode);
-                    if (!new PhoneRegex(desc.PossibleNumberPattern).Match(exampleNumber).Success ||
-                        !shortNumberInfo.IsCarrierSpecific(carrierSpecificNumber)) 
+                    if (!shortNumberInfo.IsPossibleShortNumberForRegion(carrierSpecificNumber, regionCode)
+                            || !shortNumberInfo.IsCarrierSpecific(carrierSpecificNumber))
                     {
                         wrongTagCounter++;          
                     }

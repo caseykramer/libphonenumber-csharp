@@ -998,9 +998,9 @@ namespace PhoneNumbers
         * Convenience method to get a list of what global network calling codes the library has metadata
         * for.
         */
-        public Dictionary<int, PhoneMetadata>.KeyCollection GetSupportedGlobalNetworkCallingCodes()
+        public List<int> GetSupportedGlobalNetworkCallingCodes()
         {
-            return countryCodeToNonGeographicalMetadataMap.Keys;
+            return new List<int>(countryCodesForNonGeographicalRegion);
         }
 
         /**

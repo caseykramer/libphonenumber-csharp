@@ -145,6 +145,18 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void TestGetSupportedGlobalNetworkCallingCodes() 
+        {
+            var globalNetworkCallingCodes = phoneUtil.GetSupportedGlobalNetworkCallingCodes(); 
+            Assert.That(globalNetworkCallingCodes.Count > 0,Is.True);
+            foreach (int callingCode in globalNetworkCallingCodes)
+            {
+              Assert.That(callingCode > 0,Is.True);
+              Assert.That(RegionCode.UN001, Is.EqualTo (phoneUtil.GetRegionCodeForCountryCode(callingCode)));
+            }
+        }
+
+        [Test]
         public void TestGetInstanceLoadBadMetadata()
         {
             Assert.Null(phoneUtil.GetMetadataForRegion("No Such Region"));
