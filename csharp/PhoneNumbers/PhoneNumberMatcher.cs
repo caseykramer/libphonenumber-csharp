@@ -366,7 +366,8 @@ namespace PhoneNumbers
         private PhoneNumberMatch ExtractInnerMatch(String candidate, int offset)
         {
             foreach(var possibleInnterMatch in INNER_MATCHES)
-            {                
+            {
+                int rangeStart = 0;
                 var groupMatcher = possibleInnterMatch.Matches(candidate);
                 var isFirstMatch = true;
                 foreach(Match groupMatch in groupMatcher)

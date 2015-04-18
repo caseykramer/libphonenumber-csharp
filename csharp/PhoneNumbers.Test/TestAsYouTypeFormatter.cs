@@ -78,7 +78,7 @@ namespace PhoneNumbers.Test
         [Test]
         public void TestTooLongNumberMatchingMultipleLeadingDigits()
         {
-            // See http://code.google.com/p/libphonenumber/issues/detail?id=36
+            // See https://github.com/googlei18n/libphonenumber/issues/36
             // The bug occurred last time for countries which have two formatting rules with exactly the
             // same leading digits pattern but differ in length.
             AsYouTypeFormatter formatter = phoneUtil.GetAsYouTypeFormatter("ZZ");
@@ -1236,7 +1236,7 @@ namespace PhoneNumbers.Test
             // when we try again to extract a country code we should ensure we use the last leading digit
             // pattern, rather than the first one such that it *thinks* it's found a valid formatting rule
             // again.
-            // https://code.google.com/p/libphonenumber/issues/detail?id=437
+            // https://github.com/googlei18n/libphonenumber/issues/437
             Assert.AreEqual("+8698812", formatter.InputDigit('2'));
             Assert.AreEqual("+86988123", formatter.InputDigit('3'));
             Assert.AreEqual("+869881234", formatter.InputDigit('4'));

@@ -446,6 +446,9 @@ namespace PhoneNumbers
             ableToFormat = true;
             isExpectingCountryCallingCode = false;
             possibleFormats.Clear();
+            lastMatchPosition = 0;
+            formattingTemplate.Length = 0;
+            currentFormattingPattern = "";
             return AttemptToChooseFormattingPattern();
         }
 
@@ -736,6 +739,8 @@ namespace PhoneNumbers
 
         private String InputDigitHelper(char nextChar)
         {
+            // Note that formattingTemplate is not guaranteed to have a value, it could be empty, e.g.
+            // when the next digit is entered after extracting an IDD or NDD.
             var digitMatcher = DIGIT_PATTERN.Match(formattingTemplate.ToString(), lastMatchPosition);
             if (digitMatcher.Success)
             {
