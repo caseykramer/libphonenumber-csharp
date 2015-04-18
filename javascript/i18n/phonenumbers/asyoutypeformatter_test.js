@@ -73,7 +73,7 @@ function testInvalidPlusSign() {
 }
 
 function testTooLongNumberMatchingMultipleLeadingDigits() {
-  // See http://code.google.com/p/libphonenumber/issues/detail?id=36
+  // See https://github.com/googlei18n/libphonenumber/issues/36
   // The bug occurred last time for countries which have two formatting rules
   // with exactly the same leading digits pattern but differ in length.
   /** @type {i18n.phonenumbers.AsYouTypeFormatter} */
@@ -1154,17 +1154,19 @@ function testAYTFClearNDDAfterIddExtraction() {
   /** @type {i18n.phonenumbers.AsYouTypeFormatter} */
   var f = new i18n.phonenumbers.AsYouTypeFormatter(RegionCode.KR);
 
-  // Check that when we have successfully extracted an IDD, the previously
-  // extracted NDD is cleared since it is no longer valid.
   assertEquals('0', f.inputDigit('0'));
   assertEquals('00', f.inputDigit('0'));
   assertEquals('007', f.inputDigit('7'));
   assertEquals('0070', f.inputDigit('0'));
   assertEquals('00700', f.inputDigit('0'));
-  assertEquals('0', f.getExtractedNationalPrefix_());
+  // NDD is '0' at this stage (the first '0' in '00700') because it's not
+  // clear if the number is a national number or using the IDD to dial out.
   assertEquals('00700 1 ', f.inputDigit('1'));
-  assertEquals('', f.getExtractedNationalPrefix_());
+  // NDD should be cleared here because IDD '00700' was extracted after the
+  // country calling code '1' (US) was entered.
   assertEquals('00700 1 2', f.inputDigit('2'));
+  // The remaining long sequence of inputs is because the original bug that
+  // this test if for only triggered after a lot of subsequent inputs.
   assertEquals('00700 1 23', f.inputDigit('3'));
   assertEquals('00700 1 234', f.inputDigit('4'));
   assertEquals('00700 1 234 5', f.inputDigit('5'));
@@ -1197,7 +1199,7 @@ function testAYTFNumberPatternsBecomingInvalidShouldNotResultInDigitLoss() {
   // leading digit patterns; when we try again to extract a country code we
   // should ensure we use the last leading digit pattern, rather than the first
   // one such that it *thinks* it's found a valid formatting rule again.
-  // https://code.google.com/p/libphonenumber/issues/detail?id=437
+  // https://github.com/googlei18n/libphonenumber/issues/437
   assertEquals('+8698812', f.inputDigit('2'));
   assertEquals('+86988123', f.inputDigit('3'));
   assertEquals('+869881234', f.inputDigit('4'));
