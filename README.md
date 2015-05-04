@@ -1,3 +1,9 @@
+# Details about this port
+This repository contains a port of the libphonenumber library to C#. The port can be found in the "csharp" branch. The  At this time it contains basic parsing and validation functionality and the "As You Type" formatter.
+
+There is an automated build of the C# port available, and you can download the latest version [here](https://ci.appveyor.com/project/caseykramer/libphonenumber-csharp-k73qg/build/artifacts)
+[![Build status](https://ci.appveyor.com/api/projects/status/f1fjcg0egdrlx79e?svg=true)](https://ci.appveyor.com/project/caseykramer/libphonenumber-csharp-k73qg)
+
 # What is it?
 
 Google's common Java, C++ and JavaScript library for parsing, formatting, storing and validating international phone numbers. The Java version is optimized for running on smartphones, and is used by the Android framework since 4.0 (Ice Cream Sandwich).
