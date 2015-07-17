@@ -153,8 +153,11 @@ namespace PhoneNumbers
             foreach (String region in regionCodes)
             {
                 PhoneMetadata phoneMetadata = MetadataManager.GetShortNumberMetadataForRegion(region);
+                if (phoneMetadata == null)
+                    continue;
                 if (_matcherApi.MatchesPossibleNumber(shortNumber, phoneMetadata.GeneralDesc))
-                    return true;
+                    return true;                
+                
             }
             return false;
         }
