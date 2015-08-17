@@ -105,8 +105,7 @@ namespace PhoneNumbers
         internal const int MAX_LENGTH_COUNTRY_CODE = 3;
         // We don't allow input strings for parsing to be longer than 250 chars. This prevents malicious
         // input from overflowing the regular-expression engine.
-        private const int MAX_INPUT_STRING_LENGTH = 250;
-        internal const String META_DATA_FILE_PREFIX = "PhoneNumberMetaData.xml";
+        private const int MAX_INPUT_STRING_LENGTH = 250;       
 
         // Region-code for the unknown region.
         internal const String UNKNOWN_REGION = "ZZ";
@@ -536,6 +535,8 @@ namespace PhoneNumbers
             }
         }
 
+        private IMetadataSource _metadataSource;
+
         // A mapping from a country calling code to the region codes which denote the region represented
         // by that country calling code. In the case of multiple regions sharing a calling code, such as
         // the NANPA regions, the one indicated with "isMainCountryForCode" in the metadata should be
@@ -546,19 +547,6 @@ namespace PhoneNumbers
         // There are roughly 26 regions.
         // We set the initial capacity of the HashSet to 35 to offer a load factor of roughly 0.75.
         private readonly HashSet<String> _nanpaRegions = new HashSet<String>();
-        
-        // A mapping from a region code to the PhoneMetadata for that region.
-        // Note: Synchronization, though only needed for the Android version of the library, is used in
-        // all versions for consistency.
-        private readonly Dictionary<String, PhoneMetadata> _regionToMetadataMap = new Dictionary<String, PhoneMetadata>();
-        
-        // A mapping from a country calling code for a non-geographical entity to the PhoneMetadata for
-        // that country calling code. Examples of the country calling codes include 800 (International
-        // Toll Free Service) and 808 (International Shared Cost Service).
-        // Note: Synchronization, though only needed for the Android version of the library, is used in
-        // all versions for consistency.
-        private readonly Dictionary<int, PhoneMetadata> countryCodeToNonGeographicalMetadataMap =
-            new Dictionary<int, PhoneMetadata>();
         
         // A cache for frequently used region-specific regular expressions.
         // The initial capacity is set to 100 as this seems to be an optimal value for Android, based on
@@ -573,17 +561,12 @@ namespace PhoneNumbers
         // The set of county calling codes that map to the non-geo entity region ("001"). This set
         // currently contains < 12 elements so the default capacity of 16 (load factor=0.75) is fine.
         private readonly HashSet<int> countryCodesForNonGeographicalRegion = new HashSet<int>();
-        
-        // The prefix of the metadata files from which region data is loaded.
-        private readonly String _currentFilePrefix;
-        //The metadata loader used to inject alternate metadata sources
-        private readonly MetadataLoader _metadataLoader;
+                
 
         // This class implements a singleton, so the only constructor is private.
-        public PhoneNumberUtil(String filePrefix,MetadataLoader metadataLoader, Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap)
+        public PhoneNumberUtil(IMetadataSource metadataSource, Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap)
         {
-            this._currentFilePrefix = filePrefix;
-            this._metadataLoader = metadataLoader;
+            this._metadataSource = metadataSource;
             this._countryCallingCodeToRegionCodeMap = countryCallingCodeToRegionCodeMap;
             foreach(var regionCodes in countryCallingCodeToRegionCodeMap)
             {
@@ -605,26 +588,6 @@ namespace PhoneNumbers
             List<String> regions = null;
             if (this._countryCallingCodeToRegionCodeMap.TryGetValue(NANPA_COUNTRY_CODE, out regions))
                 this._nanpaRegions.UnionWith(regions);
-        }
-
-
-        internal void LoadMetadataFromFile(String filePrefix, String regionCode, int countryCallingCode, MetadataLoader metadataLoader)
-        {
-            var asm = Assembly.GetExecutingAssembly();
-            bool isNonGeoRegion = REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCode);
-            var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(filePrefix)).FirstOrDefault() ?? "missing";
-            // asm.GetManifestResourceStream(name)
-            using (var stream = metadataLoader.LoadMetadata(name))
-            {
-                var meta = BuildMetadataFromXml.BuildPhoneMetadataCollection(stream, false);
-                foreach (var m in meta.MetadataList)
-                {
-                    if(isNonGeoRegion)
-                        countryCodeToNonGeographicalMetadataMap[m.CountryCode] = m;
-                    else
-                        _regionToMetadataMap[m.Id] = m;
-                }
-            }
         }
 
         /**
@@ -955,13 +918,34 @@ namespace PhoneNumbers
                 {
                     if (instance_ == null)
                     {
-                        SetInstance(new PhoneNumberUtil(baseFileLocation, DEFAULT_METADATA_LOADER, countryCallingCodeToRegionCodeMap));
+                        SetInstance(CreateInstance(DEFAULT_METADATA_LOADER));
                     }
                 }
             }
             return instance_;
         }
 
+          /**
+            * Create a new {@link PhoneNumberUtil} instance to carry out international phone number
+            * formatting, parsing, or validation. The instance is loaded with all metadata by
+            * using the metadataSource specified.
+            *
+            * This method should only be used in the rare case in which you want to manage your own
+            * metadata loading. Calling this method multiple times is very expensive, as each time
+            * a new instance is created from scratch. When in doubt, use {@link #getInstance}.
+            *
+            * @param metadataSource Customized metadata source. This should not be null.
+            * @return a PhoneNumberUtil instance
+            */
+        public static PhoneNumberUtil CreateInstance(IMetadataSource metadataSource)
+        {
+            if (metadataSource == null)
+            {
+                throw new ArgumentException("metadataSource could not be null.");
+            }
+            return new PhoneNumberUtil(metadataSource,CountryCodeToRegionCodeMap.GetCountryCodeToRegionCodeMap());
+        }
+        
         /**
        * Create a new {@link PhoneNumberUtil} instance to carry out international phone number
        * formatting, parsing, or validation. The instance is loaded with all metadata by
@@ -981,7 +965,7 @@ namespace PhoneNumbers
             {
                 throw new ArgumentException("metadataLoader cannot be null","metadataLoader");
             }
-            return new PhoneNumberUtil(META_DATA_FILE_PREFIX,metadataLoader,CountryCodeToRegionCodeMap.GetCountryCodeToRegionCodeMap());
+            return CreateInstance(new MultiFileMetadataSourceImpl(metadataLoader));
         }
 
 
@@ -2124,36 +2108,13 @@ namespace PhoneNumbers
         {
             if (!IsValidRegionCode(regionCode))
                 return null;
-            lock (_regionToMetadataMap)
-            {
-                if (!_regionToMetadataMap.ContainsKey(regionCode))
-                {
-                    // The regionCode here will be valid and won't be '001', so we don't need to worry about
-                    // what to pass in for the country calling code.
-                    LoadMetadataFromFile(_currentFilePrefix, regionCode, 0,_metadataLoader);
-                }
-            }
-            return _regionToMetadataMap.ContainsKey(regionCode)
-                ? _regionToMetadataMap[regionCode]
-                : null;
+            
+            return _metadataSource.GetMetadataForRegion(regionCode);
         }
 
         public PhoneMetadata GetMetadataForNonGeographicalRegion(int countryCallingCode)
         {
-            lock (countryCodeToNonGeographicalMetadataMap)
-            {
-                if (!_countryCallingCodeToRegionCodeMap.ContainsKey(countryCallingCode))
-                {
-                    return null;
-                }
-                if (!countryCodeToNonGeographicalMetadataMap.ContainsKey(countryCallingCode))
-                {
-                    LoadMetadataFromFile(_currentFilePrefix, REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode,_metadataLoader);
-                }
-            }
-            PhoneMetadata metadata = null;
-            countryCodeToNonGeographicalMetadataMap.TryGetValue(countryCallingCode, out metadata);
-            return metadata;
+            return _metadataSource.GetMetadataForNonGeographicalRegion(countryCallingCode);
         }
 
 

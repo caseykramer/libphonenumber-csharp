@@ -81,12 +81,14 @@
     <Compile Include="CountryCodeToRegionCodeMap.cs" />
     <Compile Include="DefaultMapStorage.cs" />
     <Compile Include="FlyweightMapStorage.cs" />
+    <Compile Include="IMetaDataSource.cs" />
     <Compile Include="Internal\IMatcherApi.cs" />
     <Compile Include="Internal\RegexBasedMatcher.cs" />
     <Compile Include="LocaleData.cs" />
     <Compile Include="MappingFileProvider.cs" />
     <Compile Include="MetadataLoader.cs" />
     <Compile Include="MetadataManager.cs" />
+    <Compile Include="MultiFileMetadataSourceImpl.cs" />
     <Compile Include="NumberParseException.cs" />
     <Compile Include="Phonemetadata.cs" />
     <Compile Include="Phonenumber.cs" />

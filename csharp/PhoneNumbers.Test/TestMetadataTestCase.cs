@@ -29,7 +29,7 @@ namespace PhoneNumbers.Test
     *
     * @author Shaopeng Jia
     */
-    class TestMetadataTestCase
+    public class TestMetadataTestCase
     {
         public const String TEST_META_DATA_FILE_PREFIX = "PhoneNumberMetaDataForTesting.xml";
 
@@ -43,8 +43,8 @@ namespace PhoneNumbers.Test
 
         static PhoneNumberUtil InitializePhoneUtilForTesting()
         {
-            PhoneNumberUtil phoneUtil = new PhoneNumberUtil(TEST_META_DATA_FILE_PREFIX,PhoneNumberUtil.DEFAULT_METADATA_LOADER,                
-                CountryCodeToRegionCodeMapForTesting.GetCountryCodeToRegionCodeMap());
+            PhoneNumberUtil phoneUtil = new PhoneNumberUtil(new MultiFileMetadataSourceImpl(TEST_META_DATA_FILE_PREFIX,PhoneNumberUtil.DEFAULT_METADATA_LOADER),
+                                                            CountryCodeToRegionCodeMapForTesting.GetCountryCodeToRegionCodeMap());
             PhoneNumberUtil.SetInstance(phoneUtil);
             return phoneUtil;
         }

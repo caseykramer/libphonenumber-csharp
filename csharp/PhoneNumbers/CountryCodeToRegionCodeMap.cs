@@ -29,7 +29,7 @@ namespace PhoneNumbers
         public static Dictionary<int, List<String>> GetCountryCodeToRegionCodeMap()
         {
             return BuildMetadataFromXml.GetCountryCodeToRegionCodeMap(
-                PhoneNumberUtil.META_DATA_FILE_PREFIX);
+                MultiFileMetadataSourceImpl.META_DATA_FILE_PREFIX);
         }
     }
 }

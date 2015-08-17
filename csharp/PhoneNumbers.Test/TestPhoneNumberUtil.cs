@@ -164,17 +164,6 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
-        public void TestMissingMetadataFileThrowsRuntimeException()
-        {
-            // In normal usage we should never get a state where we are asking to load metadata that doesn't
-            // exist. However if the library is packaged incorrectly in the jar, this could happen and the
-            // best we can do is make sure the exception has the file name in it.
-            Assert.Throws<NullReferenceException>(() => phoneUtil.LoadMetadataFromFile("no/such/file", "XX", -1,PhoneNumberUtil.DEFAULT_METADATA_LOADER));
-            Assert.Throws<NullReferenceException>(() => phoneUtil.LoadMetadataFromFile("no/such/file", PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, 123,PhoneNumberUtil.DEFAULT_METADATA_LOADER));
-        }
-
-
-        [Test]
         public void TestGetInstanceLoadUSMetadata()
         {
             PhoneMetadata metadata = phoneUtil.GetMetadataForRegion(RegionCode.US);

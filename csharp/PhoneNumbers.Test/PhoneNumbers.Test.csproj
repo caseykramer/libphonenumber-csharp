@@ -67,6 +67,7 @@
     <Compile Include="TestExampleNumbers.cs" />
     <Compile Include="TestMedataManager.cs" />
     <Compile Include="TestMetadataTestCase.cs" />
+    <Compile Include="TestMultiFileMetadataSource.cs" />
     <Compile Include="TestPhonenumber.cs" />
     <Compile Include="TestPhoneNumberMatch.cs" />
     <Compile Include="TestPhoneNumberMatcher.cs" />
