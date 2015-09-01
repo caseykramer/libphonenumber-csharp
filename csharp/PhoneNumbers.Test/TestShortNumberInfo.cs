@@ -369,6 +369,15 @@ namespace PhoneNumbers.Test
                 shortInfo.GetExpectedCostForRegion(Parse("211",RegionCode.CA), RegionCode.CA));
         }
 
+        [Test]
+        public void TestCountryCallingCodeIsNotIgnored()
+        {
+            // +46 is the country calling code for Sweden (SE), and 40404 is a valid short number in the US.
+            Assert.False(shortInfo.IsPossibleShortNumberForRegion(Parse("+4640404", RegionCode.SE), RegionCode.US));
+            Assert.False(shortInfo.IsValidShortNumberForRegion(Parse("+4640404", RegionCode.SE), RegionCode.US));
+            Assert.AreEqual(ShortNumberInfo.ShortNumberCost.UNKNOWN_COST,shortInfo.GetExpectedCostForRegion(Parse("+4640404", RegionCode.SE), RegionCode.US));
+        }
+
         private PhoneNumber Parse(string number, string regionCode)
         {
             try

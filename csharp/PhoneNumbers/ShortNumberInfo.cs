@@ -92,8 +92,17 @@ namespace PhoneNumbers
             List<String> regionCodes = _countryCallingCodeToRegionCodeMap[countryCallingCode];
             return new List<string>(regionCodes == null ? new List<string>(0): regionCodes).AsReadOnly();
         }
-
-
+        
+        /**
+         * Helper method to check that the country calling code of the number matches the region it's
+         * being dialed from.
+         */
+        private bool RegionDialingFromMatchesNumber(PhoneNumber number,String regionDialingFrom)
+        {
+            ReadOnlyCollection<String> regionCodes = GetRegionCodesForCountryCode(number.CountryCode);
+            return regionCodes.Contains(regionDialingFrom);
+        }
+         
         /**
          * Check whether a short number is a possible number when dialled from a region, given the number
          * in the form of a string, and the region where the number is dialed from. This provides a more
@@ -128,6 +137,8 @@ namespace PhoneNumbers
          */
         public bool IsPossibleShortNumberForRegion(PhoneNumber number, String regionDialingFrom)
         {
+            if (!RegionDialingFromMatchesNumber(number, regionDialingFrom))
+                return false;
             PhoneMetadata phoneMetadata = MetadataManager.GetShortNumberMetadataForRegion(regionDialingFrom);
             if (phoneMetadata == null)
             {
@@ -177,7 +188,7 @@ namespace PhoneNumbers
          *             removed in the next release.
          */
         [Obsolete]
-        public bool IsValidShortNumberForRegion(String shortNumber, String regionDialingFrom)
+        public bool IsValidShortNumberForRegion(string shortNumber, String regionDialingFrom)
         {
             PhoneMetadata phoneMetadata = MetadataManager.GetShortNumberMetadataForRegion(regionDialingFrom);
             if (phoneMetadata == null)
@@ -207,6 +218,9 @@ namespace PhoneNumbers
          */
         public bool IsValidShortNumberForRegion(PhoneNumber number, string regionDialingFrom)
         {
+            if (!RegionDialingFromMatchesNumber(number, regionDialingFrom))
+                return false;            
+
             PhoneMetadata phoneMetadata = MetadataManager.GetShortNumberMetadataForRegion(regionDialingFrom);
             if (phoneMetadata == null)
             {
@@ -273,7 +287,7 @@ namespace PhoneNumbers
          *             removed in the next release.
          */
         [Obsolete] 
-        public ShortNumberCost GetExpectedCostForRegion(String shortNumber, String regionDialingFrom)
+        public ShortNumberCost GetExpectedCostForRegion(string shortNumber, String regionDialingFrom)
         {
             // Note that regionDialingFrom may be null, in which case phoneMetadata will also be null.
             PhoneMetadata phoneMetadata = MetadataManager.GetShortNumberMetadataForRegion(regionDialingFrom);
@@ -325,6 +339,9 @@ namespace PhoneNumbers
          */
         public ShortNumberCost GetExpectedCostForRegion(PhoneNumber number, string regionDialingFrom)
         {
+            if (!RegionDialingFromMatchesNumber(number, regionDialingFrom))
+                return ShortNumberCost.UNKNOWN_COST;
+            
             // Note that regionDialingFrom may be null, in which case phoneMetadata will also be null.
             PhoneMetadata phoneMetadata = MetadataManager.GetShortNumberMetadataForRegion(regionDialingFrom);
             if (phoneMetadata == null)
