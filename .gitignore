@@ -195,3 +195,8 @@ FakesAssemblies/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+.paket/paket.exe
+.fake/*
+paket-files/*
+test/*
