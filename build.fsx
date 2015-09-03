@@ -51,6 +51,7 @@ Target "Test" (fun _ ->
         |> NUnit (fun p -> 
             { p with 
                 ToolPath = nunitPath; 
+                TimeOut = System.TimeSpan.FromMinutes(60.)
                 OutputFile = testDir + @"TestResults.xml" })
 )
 
