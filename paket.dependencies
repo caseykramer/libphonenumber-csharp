@@ -8,3 +8,4 @@ nuget NUnit
 github googlei18n/libphonenumber /resources/PhoneNumberMetadata.xml
 github googlei18n/libphonenumber /resources/PhoneNumberMetadataForTesting.xml
 github googlei18n/libphonenumber /resources/ShortNumberMetadata.xml
+github googlei18n/libphonenumber /resources/PhoneNumberAlternateFormats.xml

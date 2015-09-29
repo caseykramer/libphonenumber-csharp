@@ -1,7 +1,7 @@
 NUGET
   remote: https://nuget.org/api/v2
   specs:
-    FAKE (4.3.4)
+    FAKE (4.4.4)
     FSharp.Data (2.2.5)
       Zlib.Portable (>= 1.10.0) - framework: portable-net40+sl50+wp80+win80
     NUnit (2.6.4)
@@ -10,6 +10,7 @@ NUGET
 GITHUB
   remote: googlei18n/libphonenumber
   specs:
-    resources/PhoneNumberMetadata.xml (7294829bbd1214d55064eb6b0846b22b2db7ce0e)
-    resources/PhoneNumberMetadataForTesting.xml (7294829bbd1214d55064eb6b0846b22b2db7ce0e)
-    resources/ShortNumberMetadata.xml (7294829bbd1214d55064eb6b0846b22b2db7ce0e)
+    resources/PhoneNumberAlternateFormats.xml (8f1a853647e2e99acbd1ea5ce8f7217b8c02b409)
+    resources/PhoneNumberMetadata.xml (8f1a853647e2e99acbd1ea5ce8f7217b8c02b409)
+    resources/PhoneNumberMetadataForTesting.xml (8f1a853647e2e99acbd1ea5ce8f7217b8c02b409)
+    resources/ShortNumberMetadata.xml (8f1a853647e2e99acbd1ea5ce8f7217b8c02b409)
