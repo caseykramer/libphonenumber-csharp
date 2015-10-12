@@ -21,7 +21,7 @@ using System.Collections.Generic;
 namespace PhoneNumbers
 {
     ///<summary>
-    /// A source for phone metadata from resources.
+    /// A source for phone metadata for all regions.
     ///</summary>
     public interface IMetadataSource
     {

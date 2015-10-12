@@ -40,15 +40,15 @@ namespace PhoneNumbers
         private readonly Dictionary<int, PhoneMetadata> _countryCodeToNonGeographicalMetadataMap = new Dictionary<int, PhoneMetadata>();
 
         // The prefix of the metadata files from which region data is loaded.
-        private string _currentFilePrefix;
+        private string _filePrefix;
 
         // The metadata loader used to inject alternative metadata sources.
         private MetadataLoader _metadataLoader;
 
         // It is assumed that metadataLoader is not null.
-        public MultiFileMetadataSourceImpl(string currentFilePrefix, MetadataLoader metadataLoader)
+        public MultiFileMetadataSourceImpl(string filePrefix, MetadataLoader metadataLoader)
         {
-            _currentFilePrefix = currentFilePrefix;
+            _filePrefix = filePrefix;
             _metadataLoader = metadataLoader;
         }
 
@@ -63,7 +63,7 @@ namespace PhoneNumbers
             {
                 // The regionCode here will be valid and won't be '001', so we don't need to worry about
                 // what to pass in for the country calling code.
-                LoadMetadataFromFile(_currentFilePrefix, regionCode, 0, _metadataLoader);
+                LoadMetadataFromFile(regionCode, 0);
             }
 
 
@@ -74,7 +74,7 @@ namespace PhoneNumbers
         {
             if (!_countryCodeToNonGeographicalMetadataMap.ContainsKey(countryCallingCode))
             {
-                LoadMetadataFromFile(_currentFilePrefix, PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode,_metadataLoader);
+                LoadMetadataFromFile(PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode);
             }
             
             PhoneMetadata metadata = null;
@@ -82,12 +82,12 @@ namespace PhoneNumbers
             return metadata;
         }
 
-        internal void LoadMetadataFromFile(String filePrefix, String regionCode, int countryCallingCode, MetadataLoader metadataLoader)
+        internal void LoadMetadataFromFile(String regionCode, int countryCallingCode)
         {
             var asm = Assembly.GetExecutingAssembly();
             bool isNonGeoRegion = PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCode);
-            var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(filePrefix)).FirstOrDefault() ?? "missing";
-            using (var stream = metadataLoader.LoadMetadata(name))
+            var name = asm.GetManifestResourceNames().Where(n => n.EndsWith(_filePrefix)).FirstOrDefault() ?? "missing";
+            using (var stream = _metadataLoader.LoadMetadata(name))
             {
                 var meta = BuildMetadataFromXml.BuildPhoneMetadataCollection(stream, false);
                 foreach (var m in meta.MetadataList)
