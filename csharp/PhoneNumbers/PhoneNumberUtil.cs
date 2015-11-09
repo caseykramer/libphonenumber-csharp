@@ -1754,10 +1754,12 @@ namespace PhoneNumbers
             {
                 // Invalid region entered as country-calling-from (so no metadata was found for it) or the
                 // region chosen has multiple international dialling prefixes.
+                // if(!IsValidRegionCode(regionCallingFrom)) {
                 // logger.log(Level.WARNING,
                 // "Trying to format number from invalid region "
                 // + regionCallingFrom
-                // + ". International formatting applied.");
+                // + ". International formatting applied.");  
+                // }
                 PrefixNumberWithCountryCallingCode(countryCode, PhoneNumberFormat.INTERNATIONAL,
                     formattedNumber);
             }
