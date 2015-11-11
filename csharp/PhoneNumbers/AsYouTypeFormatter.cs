@@ -58,8 +58,7 @@ namespace PhoneNumbers
         // Character used when appropriate to separate a prefix, such as a long NDD or a country calling
         // code, from the national number.
         private static readonly char SEPARATOR_BEFORE_NATIONAL_NUMBER = ' ';
-        private static readonly PhoneMetadata EMPTY_METADATA =
-            new PhoneMetadata.Builder().SetInternationalPrefix("NA").BuildPartial();
+        private static readonly PhoneMetadata EMPTY_METADATA = new PhoneMetadata { InternationalPrefix = "NA" };
         private PhoneMetadata defaultMetadata;
         private PhoneMetadata currentMetadata;
 
@@ -178,12 +177,12 @@ namespace PhoneNumbers
 
         private void GetAvailableFormats(String leadingDigits)
         {
-            IList<NumberFormat> formatList =
+            IList<NumberFormat> numberFormats =
                 (isCompleteNumber && currentMetadata.IntlNumberFormatCount > 0)
                 ? currentMetadata.IntlNumberFormatList
                 : currentMetadata.NumberFormatList;
-            bool nationalPrefixIsUsedByCountry = currentMetadata.HasNationalPrefix;
-            foreach (NumberFormat format in formatList)
+            bool nationalPrefixIsUsedByCountry = (!(currentMetadata.NationalPrefix == ""));
+            foreach (NumberFormat format in numberFormats)
             {
                 if (!nationalPrefixIsUsedByCountry || isCompleteNumber || 
                      format.NationalPrefixOptionalWhenFormatting || 
@@ -205,36 +204,18 @@ namespace PhoneNumbers
         {
 
             int indexOfLeadingDigitsPattern = leadingDigits.Length - MIN_LEADING_DIGITS_LENGTH;
-            /*
-            var formats = possibleFormats.ToList();
-            foreach(var format in formats)
-            {
-                if(format.LeadingDigitsPatternCount == 0)
-                {
-                    // Keep everything that isn't restricted by leading digits
-                    continue;
-                }
-                var lastLeadingDigitsPattern = Math.Min(indexOfLeadingDigitsPattern, format.LeadingDigitsPatternCount - 1);
-                var leadingDigitsPattern = regexCache.GetPatternForRegex(format.GetLeadingDigitsPattern(lastLeadingDigitsPattern));
-                var m = leadingDigitsPattern.MatchBeginning(leadingDigits);
-                if (!m.Success)
-                {
-                    possibleFormats.Remove(format);
-                }
-            }            
-            */
             
             possibleFormats = possibleFormats.Where(format =>
                 {
-                    if (format.LeadingDigitsPatternCount == 0)
+                    if (format.LeadingDigitsPattern.Count == 0)
                     {
                         return true;
                     }
                     else
                     {
                       
-                        var lastLeadingDigitsPattern = Math.Min(indexOfLeadingDigitsPattern, format.LeadingDigitsPatternCount - 1);
-                        var leadingDigitsPattern = regexCache.GetPatternForRegex(format.GetLeadingDigitsPattern(lastLeadingDigitsPattern));
+                        var lastLeadingDigitsPattern = Math.Min(indexOfLeadingDigitsPattern, format.LeadingDigitsPattern.Count - 1);
+                        var leadingDigitsPattern = regexCache.GetPatternForRegex(format.LeadingDigitsPattern[lastLeadingDigitsPattern]);
                         return leadingDigitsPattern.MatchBeginning(leadingDigits).Success;                            
                     }
                 }).ToList();           
@@ -621,7 +602,7 @@ namespace PhoneNumbers
                 prefixBeforeNationalNumber.Append("1").Append(SEPARATOR_BEFORE_NATIONAL_NUMBER);
                 isCompleteNumber = true;
             }
-            else if (currentMetadata.HasNationalPrefixForParsing)
+            else if (!currentMetadata.NationalPrefixForParsing.Equals(""))
             {
                 var m =
                   regexCache.GetPatternForRegex(currentMetadata.NationalPrefixForParsing).MatchBeginning(nationalNumber.ToString());

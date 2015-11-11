@@ -561,7 +561,27 @@ namespace PhoneNumbers
         // The set of county calling codes that map to the non-geo entity region ("001"). This set
         // currently contains < 12 elements so the default capacity of 16 (load factor=0.75) is fine.
         private readonly HashSet<int> countryCodesForNonGeographicalRegion = new HashSet<int>();
-                
+
+
+        /**
+         * Returns a copy of the given NumberFormat object.
+         */
+        private static NumberFormat CopyNumberFormat(NumberFormat other)
+        {
+            NumberFormat copy = new NumberFormat();
+            copy.Pattern = other.Pattern;
+            copy.Format = other.Format;
+            int leadingDigitsPatternSize = other.LeadingDigitsPattern.Count;
+            copy.LeadingDigitsPattern = new List<String>(leadingDigitsPatternSize);
+            for (int i = 0; i < leadingDigitsPatternSize; i++)
+            {
+                copy.LeadingDigitsPattern.Add(other.LeadingDigitsPattern[i]);
+            }
+            copy.NationalPrefixFormattingRule = other.NationalPrefixFormattingRule;
+            copy.DomesticCarrierCodeFormattingRule = other.DomesticCarrierCodeFormattingRule;
+            copy.NationalPrefixOptionalWhenFormatting = other.NationalPrefixOptionalWhenFormatting;
+            return copy;
+        }
 
         // This class implements a singleton, so the only constructor is private.
         public PhoneNumberUtil(IMetadataSource metadataSource, Dictionary<int, List<String>> countryCallingCodeToRegionCodeMap)
@@ -770,7 +790,7 @@ namespace PhoneNumbers
             
             // If a country doesn't use a national prefix, and this number doesn't have an Italian leading
             // zero, we assume it is a closed dialling plan with no area codes.
-            if (!metadata.HasNationalPrefix && !number.ItalianLeadingZero)
+            if (metadata.NationalPrefix.Equals("") && !number.ItalianLeadingZero)
                 return 0;
 
             if(!IsNumberGeographical(number))
@@ -1168,12 +1188,11 @@ namespace PhoneNumbers
                 formattedNumber.Append(nationalSignificantNumber);
             }
             else
-            {
-                var numFormatCopy = new NumberFormat.Builder();
+            {   
                 // Before we do a replacement of the national prefix pattern $NP with the national prefix, we
                 // need to copy the rule so that subsequent replacements for different numbers have the
                 // appropriate national prefix.
-                numFormatCopy.MergeFrom(formattingPattern);
+                var numFormatCopy = CopyNumberFormat(formattingPattern);
                 String nationalPrefixFormattingRule = formattingPattern.NationalPrefixFormattingRule;
                 if (nationalPrefixFormattingRule.Length > 0)
                 {
@@ -1183,16 +1202,16 @@ namespace PhoneNumbers
                         // Replace $NP with national prefix and $FG with the first group ($1).
                         nationalPrefixFormattingRule = NP_PATTERN.Replace(nationalPrefixFormattingRule, nationalPrefix, 1);
                         nationalPrefixFormattingRule = FG_PATTERN.Replace(nationalPrefixFormattingRule, "$$1", 1);
-                        numFormatCopy.SetNationalPrefixFormattingRule(nationalPrefixFormattingRule);
+                        numFormatCopy.NationalPrefixFormattingRule = nationalPrefixFormattingRule;
                     }
                     else
                     {
                         // We don't want to have a rule for how to format the national prefix if there isn't one.
-                        numFormatCopy.ClearNationalPrefixFormattingRule();
+                        numFormatCopy.NationalPrefixFormattingRule = "";
                     }
                 }
                 formattedNumber.Append(
-                    FormatNsnUsingPattern(nationalSignificantNumber, numFormatCopy.Build(), numberFormat));
+                    FormatNsnUsingPattern(nationalSignificantNumber, numFormatCopy, numberFormat));
             }
             MaybeAppendFormattedExtension(number, metadata, numberFormat, formattedNumber);
             PrefixNumberWithCountryCallingCode(countryCallingCode, numberFormat, formattedNumber);
@@ -1445,7 +1464,7 @@ namespace PhoneNumbers
             {
                 internationalPrefixForFormatting = internationalPrefix;
             }
-            else if (metadataForRegionCallingFrom.HasPreferredInternationalPrefix)
+            else if (!metadataForRegionCallingFrom.PreferredInternationalPrefix.Equals(""))
             {
                 internationalPrefixForFormatting =
                     metadataForRegionCallingFrom.PreferredInternationalPrefix;
@@ -1714,18 +1733,17 @@ namespace PhoneNumbers
                     // If no pattern above is matched, we format the original input.
                     return rawInput;
 
-                var newFormat = new NumberFormat.Builder();
-                newFormat.MergeFrom(formattingPattern);
+                var newFormat = CopyNumberFormat(formattingPattern);
                 // The first group is the first group of digits that the user wrote together.
-                newFormat.SetPattern("(\\d+)(.*)");
+                newFormat.Pattern = "(\\d+)(.*)";
                 // Here we just concatenate them back together after the national prefix has been fixed.
-                newFormat.SetFormat("$1$2");
+                newFormat.Format = "$1$2";
                 // Now we format using this pattern instead of the default pattern, but with the national
                 // prefix prefixed if necessary.
                 // This will not work in the cases where the pattern (and not the leading digits) decide
                 // whether a national prefix needs to be used, since we have overridden the pattern to match
                 // anything, but that is not the case in the metadata to date.
-                return FormatNsnUsingPattern(rawInput, newFormat.Build(), PhoneNumberFormat.NATIONAL);
+                return FormatNsnUsingPattern(rawInput, newFormat, PhoneNumberFormat.NATIONAL);
             }
             String internationalPrefixForFormatting = "";
             // If an unsupported region-calling-from is entered, or a country with multiple international
@@ -1842,7 +1860,7 @@ namespace PhoneNumbers
         {
             foreach (NumberFormat numFormat in availableFormats)
             {
-                int size = numFormat.LeadingDigitsPatternCount;
+                int size = numFormat.LeadingDigitsPattern.Count;
                 if (size == 0 || regexCache.GetPatternForRegex(
                     // We always use the last leading_digits_pattern, as it is the most detailed.
                     numFormat.LeadingDigitsPatternList[size - 1]).MatchBeginning(nationalNumber).Success)
@@ -1944,7 +1962,7 @@ namespace PhoneNumbers
             var desc = GetNumberDescByType(GetMetadataForRegion(regionCode), type);
             try
             {
-                if (desc.HasExampleNumber)
+                if (!desc.ExampleNumber.Equals(""))
                     return Parse(desc.ExampleNumber, regionCode);
             }
             catch (NumberParseException)
@@ -1969,7 +1987,7 @@ namespace PhoneNumbers
                 PhoneNumberDesc desc = metadata.GeneralDesc;
                 try
                 {
-                    if (desc.HasExampleNumber)
+                    if (!desc.ExampleNumber.Equals(""))
                     {
                         return Parse("+" + countryCallingCode + desc.ExampleNumber, "ZZ");
                     }
@@ -2002,7 +2020,7 @@ namespace PhoneNumbers
                 }
                 else
                 {
-                    if (metadata.HasPreferredExtnPrefix)
+                    if (!metadata.PreferredExtnPrefix.Equals(""))
                         formattedNumber.Append(metadata.PreferredExtnPrefix).Append(number.Extension);
                     else
                         formattedNumber.Append(DEFAULT_EXTN_PREFIX).Append(number.Extension);
@@ -2214,7 +2232,7 @@ namespace PhoneNumbers
                 // If leadingDigits is present, use this. Otherwise, do full validation.
                 // Metadata cannot be null because the region codes come from the country calling code map.
                 PhoneMetadata metadata = GetMetadataForRegion(regionCode);
-                if (metadata.HasLeadingDigits)
+                if (!metadata.LeadingDigits.Equals(""))
                 {
                     if (regexCache.GetPatternForRegex(metadata.LeadingDigits)
                         .MatchBeginning(nationalNumber).Success)

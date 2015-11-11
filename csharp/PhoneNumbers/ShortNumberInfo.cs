@@ -577,7 +577,7 @@ namespace PhoneNumbers
                 return false;
             }
             PhoneMetadata metadata = MetadataManager.GetShortNumberMetadataForRegion(regionCode);
-            if (metadata == null || !metadata.HasEmergency)
+            if (metadata == null || metadata.Emergency == null)
             {
                 return false;
             }

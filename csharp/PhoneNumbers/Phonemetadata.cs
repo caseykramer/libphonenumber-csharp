@@ -45,6 +45,7 @@ namespace PhoneNumbers {
     }
     public string Pattern {
       get { return pattern_; }
+      set { pattern_ = value; }
     }
     
     public const int FormatFieldNumber = 2;
@@ -55,12 +56,18 @@ namespace PhoneNumbers {
     }
     public string Format {
       get { return format_; }
+      set { format_ = value; }
     }
     
     public const int LeadingDigitsPatternFieldNumber = 3;
     private scg::List<string> leadingDigitsPattern_ = new scg::List<string>();
     public scg::IList<string> LeadingDigitsPatternList {
       get { return leadingDigitsPattern_; }
+    }
+    public scg::List<string> LeadingDigitsPattern
+    {
+        get { return leadingDigitsPattern_; }
+        set { leadingDigitsPattern_ = value; }
     }
     public int LeadingDigitsPatternCount {
       get { return leadingDigitsPattern_.Count; }
@@ -77,6 +84,7 @@ namespace PhoneNumbers {
     }
     public string NationalPrefixFormattingRule {
       get { return nationalPrefixFormattingRule_; }
+        set { nationalPrefixFormattingRule_ = value; }
     }
     
     public const int NationalPrefixOptionalWhenFormattingFieldNumber = 6;
@@ -87,6 +95,7 @@ namespace PhoneNumbers {
     }
     public bool NationalPrefixOptionalWhenFormatting {
       get { return nationalPrefixOptionalWhenFormatting_; }
+        set { nationalPrefixOptionalWhenFormatting_ = value; }
     }
     
     public const int DomesticCarrierCodeFormattingRuleFieldNumber = 5;
@@ -97,6 +106,7 @@ namespace PhoneNumbers {
     }
     public string DomesticCarrierCodeFormattingRule {
       get { return domesticCarrierCodeFormattingRule_; }
+      set { domesticCarrierCodeFormattingRule_ = value; }
     }
     
     public bool IsInitialized {
@@ -747,6 +757,7 @@ namespace PhoneNumbers {
     }
     public string InternationalPrefix {
       get { return internationalPrefix_; }
+      set { internationalPrefix_ = value; }
     }
     
     public const int PreferredInternationalPrefixFieldNumber = 17;

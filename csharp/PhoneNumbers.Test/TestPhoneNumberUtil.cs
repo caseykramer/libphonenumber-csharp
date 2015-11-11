@@ -163,6 +163,13 @@ namespace PhoneNumbers.Test
             Assert.Null(phoneUtil.GetMetadataForNonGeographicalRegion(-1));
         }
 
+        private bool ExactlySame(PhoneNumberDesc first, PhoneNumberDesc second)
+        {
+            return first.NationalNumberPattern == second.NationalNumberPattern &&
+                    first.PossibleNumberPattern == second.PossibleNumberPattern &&
+                    first.ExampleNumber == second.ExampleNumber;
+        }
+
         [Test]
         public void TestGetInstanceLoadUSMetadata()
         {
