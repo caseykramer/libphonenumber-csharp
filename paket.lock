@@ -1,5 +1,5 @@
 NUGET
-  remote: https://nuget.org/api/v2
+  remote: https://www.nuget.org/api/v2
   specs:
     FAKE (4.4.4)
     FSharp.Data (2.2.5)
@@ -10,7 +10,7 @@ NUGET
 GITHUB
   remote: googlei18n/libphonenumber
   specs:
-    resources/PhoneNumberAlternateFormats.xml (bfb2f2b4d896184fa17b3b89ceecb7d0f4d9ca8d)
-    resources/PhoneNumberMetadata.xml (bfb2f2b4d896184fa17b3b89ceecb7d0f4d9ca8d)
-    resources/PhoneNumberMetadataForTesting.xml (bfb2f2b4d896184fa17b3b89ceecb7d0f4d9ca8d)
-    resources/ShortNumberMetadata.xml (bfb2f2b4d896184fa17b3b89ceecb7d0f4d9ca8d)
+    resources/PhoneNumberAlternateFormats.xml (93f25ed6d93da75f3699e22a85ed4a429ce5ed06)
+    resources/PhoneNumberMetadata.xml (93f25ed6d93da75f3699e22a85ed4a429ce5ed06)
+    resources/PhoneNumberMetadataForTesting.xml (93f25ed6d93da75f3699e22a85ed4a429ce5ed06)
+    resources/ShortNumberMetadata.xml (93f25ed6d93da75f3699e22a85ed4a429ce5ed06)
