@@ -1,3 +1,51 @@
+Feb 25, 2016: libphonenumber-7.2.6
+Metadata changes:
+ - Updated phone metadata for region code(s): DJ, MA, NA, US
+ - Updated short number metadata for region code(s): KR
+ - New geocoding data for country calling code(s): 1380 (en)
+ - Updated geocoding data for country calling code(s): 212 (en)
+
+Feb 10, 2016: libphonenumber-7.2.5
+Code changes:
+ - Fix two places in demo where NPEs can occur on bad input.
+ - Fix an IllegalStateException when getMetadataForNonGeographicalRegion is
+   called with a country calling code which isn't a non-geographic entity.
+Metadata changes:
+ - Updated phone metadata for region code(s):
+   AG, AI, AS, BB, BM, BS, CA, DM, DO, ET, GD, GU, JM, KN, KY, LC, MP, MS, PR,
+   SE, SK, SX, TC, TT, US, VC, VG, VI
+ - Updated geocoding data for country calling code(s): 46 (en)
+ - Updated carrier data for country calling code(s): 251 (en)
+
+Jan 28, 2016: libphonenumber-7.2.4
+ - First release to automatically remove obsolete geocoding files
+Metadata changes:
+ - Updated phone metadata for region code(s):
+   BW, CA, CI, CK, GM, IN, NA, NG, PG, TD, TM
+ - Updated short number metadata for region code(s): PT
+ - New geocoding data for country calling code(s): 1825 (en)
+ - Removed geocoding data for country calling code(s):
+   1726 (en), 1730 (en), 1838 (en), 1851 (en), 1888 (en), 225 (fr), 242 (fr),
+   269 (fr), 238(pt), 55 (pt)
+ - Updated carrier data for country calling code(s):
+   91 (en), 225 (en), 234 (en), 235 (en), 675 (en), 993 (en)
+
+Jan 08, 2016: libphonenumber-7.2.3
+Backwards-incompatible code changes:
+ - Removed deprecated ShortNumberUtil.java
+Other code changes:
+ - Updated the demo:
+   added short number support;
+   added permalink;
+   added direct link to file an issue
+Metadata changes:
+ - Updated phone metadata for region code(s):
+   AU, BR, CC, CR, CW, CX, ET, HN, KR, SI, TV, WF
+ - Updated short number metadata for region code(s): FR, HR, HU, IT, KR, LV, TV
+ - New geocoding data for country calling code(s): 688 (en)
+ - Updated carrier data for country calling code(s):
+   61 (en), 251 (en), 506 (en), 599 (en)
+
 Dec 15, 2015: libphonenumber-7.2.2
 Metadata changes:
  - Updated phone metadata for region code(s):
@@ -10,10 +58,13 @@ Metadata changes:
    216 (en), 354 (en), 357 (en), 686 (en)
 
 Nov 11, 2015: libphonenumber-7.2.1
+ - Fix to libphonenumber-7.2.0
 Metadata changes: None
-Fix to 7.2.0
 
 Nov 10, 2015: libphonenumber-7.2.0
+* Broken, do not use *
+Code changes:
+ - Phonemetadata now generated as nanoproto
 Metadata changes:
  - Updated phone metadata for region code(s):
    BI, BT, IL, MN, MO, NP, RU, SK, VG
@@ -23,7 +74,6 @@ Metadata changes:
  - Updated carrier data for country calling code(s):
    45 (en), 257 (en), 421 (en), 964 (en), 972 (en), 975 (en), 976 (en)
  - Updated / refreshed time zone meta data.
- - Phonemetadata now generated as nanoproto
 
 Oct 29, 2015: libphonenumber-7.1.1
 Metadata changes:
