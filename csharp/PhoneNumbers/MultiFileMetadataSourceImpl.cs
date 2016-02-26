@@ -74,7 +74,16 @@ namespace PhoneNumbers
         {
             if (!_countryCodeToNonGeographicalMetadataMap.ContainsKey(countryCallingCode))
             {
-                LoadMetadataFromFile(PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode);
+                if (CountryCodeToRegionCodeMap.GetCountryCodeToRegionCodeMap().ContainsKey(countryCallingCode))
+                {
+                    var regionCodes = CountryCodeToRegionCodeMap.GetCountryCodeToRegionCodeMap()[countryCallingCode];
+                    // We can assume that if the country calling code maps to the non-geo entity region code
+                    // then that's the only region code it maps to.
+                    if (regionCodes.Count == 1 && PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY.Equals(regionCodes[0]))
+                    {
+                        LoadMetadataFromFile(PhoneNumberUtil.REGION_CODE_FOR_NON_GEO_ENTITY, countryCallingCode);
+                    }
+                }
             }
             
             PhoneMetadata metadata = null;
