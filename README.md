@@ -24,7 +24,7 @@ If you want to report an issue, or to contribute to the project, please read the
   * ` PhoneNumberOfflineGeocoder ` - provides geographical information related to a phone number.
   * ` PhoneNumberToCarrierMapper ` - provides carrier information related to a phone number.
 
-# Demo (v7.2.6)
+# Demo (v7.2.7)
 [Java](http://libphonenumber.appspot.com/)
 
 [JavaScript](https://rawgit.com/googlei18n/libphonenumber/master/javascript/i18n/phonenumbers/demo-compiled.html)
@@ -38,7 +38,7 @@ http://repo1.maven.org/maven2/com/googlecode/libphonenumber/libphonenumber/
 Let's say you have a string representing a phone number from Switzerland. This is how you parse/normalize it into a ` PhoneNumber ` object:
 
 ```java
-String swissNumberStr = "044 668 18 00"
+String swissNumberStr = "044 668 18 00";
 PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 try {
   PhoneNumber swissNumberProto = phoneUtil.parse(swissNumberStr, "CH");
