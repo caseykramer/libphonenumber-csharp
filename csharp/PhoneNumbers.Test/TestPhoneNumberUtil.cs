@@ -252,6 +252,10 @@ namespace PhoneNumbers.Test
             Assert.True(phoneUtil.IsNumberGeographical(AU_NUMBER));  // Australian fixed line number.
             Assert.False(phoneUtil.IsNumberGeographical(INTERNATIONAL_TOLL_FREE));  // International toll
             // free number.
+            // We test that mobile phone numbers in relevant regions are indeed considered geographical.
+            Assert.True(phoneUtil.IsNumberGeographical(AR_MOBILE));  // Argentina, mobile phone number.
+            Assert.True(phoneUtil.IsNumberGeographical(MX_MOBILE1));  // Mexico, mobile phone number.
+            Assert.True(phoneUtil.IsNumberGeographical(MX_MOBILE2));  // Mexico, another mobile phone number.
         }
 
         [Test]
@@ -380,7 +384,19 @@ namespace PhoneNumbers.Test
                 PhoneNumberType.MOBILE));
             // RegionCode 001 is reserved for supporting non-geographical country calling code. We don't
             // support getting an example number for it with this method.
-            Assert.AreEqual(null, phoneUtil.GetExampleNumber(RegionCode.UN001));
+            Assert.IsNull(phoneUtil.GetExampleNumber(RegionCode.UN001));
+        }
+
+        [Test]
+        public void TestGetInvalidExampleNumber()
+        {
+            // RegionCode 001 is reserved for supporting non-geographical country calling codes. We don't
+            // support getting an invalid example number for it with getInvalidExampleNumber.
+            Assert.IsNull(phoneUtil.GetInvalidExampleNumber(RegionCode.UN001));
+            Assert.IsNull(phoneUtil.GetInvalidExampleNumber(RegionCode.CS));
+            PhoneNumber usInvalidNumber = phoneUtil.GetInvalidExampleNumber(RegionCode.US);
+            Assert.AreEqual(1, usInvalidNumber.CountryCode);
+            Assert.IsFalse(usInvalidNumber.NationalNumber == 0);
         }
 
         [Test]
@@ -388,6 +404,15 @@ namespace PhoneNumbers.Test
         {
             Assert.AreEqual(INTERNATIONAL_TOLL_FREE, phoneUtil.GetExampleNumberForNonGeoEntity(800));
             Assert.AreEqual(UNIVERSAL_PREMIUM_RATE, phoneUtil.GetExampleNumberForNonGeoEntity(979));
+        }
+
+        [Test]
+        public void TestGetExampleNumberWithoutRegion()
+        {
+            // In our test metadata we don't cover all types: in our real metadata, we do.
+            Assert.IsNotNull(phoneUtil.GetExampleNumberForType(PhoneNumberType.FIXED_LINE));
+            Assert.IsNotNull(phoneUtil.GetExampleNumberForType(PhoneNumberType.MOBILE));
+            Assert.IsNotNull(phoneUtil.GetExampleNumberForType(PhoneNumberType.PREMIUM_RATE));
         }
 
         [Test]

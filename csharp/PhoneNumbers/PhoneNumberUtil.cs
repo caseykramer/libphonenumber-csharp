@@ -121,6 +121,10 @@ namespace PhoneNumbers
         // be the length of the area code plus the length of the mobile token.
         private static readonly Dictionary<int, String> MOBILE_TOKEN_MAPPINGS = new Dictionary<int,String>();
 
+        // Set of country calling codes that have geographically assigned mobile numbers. This may not be
+        // complete; we add calling codes case by case, as we find geographical mobile numbers or hear
+        // from user reports.
+        private static readonly HashSet<int> GEO_MOBILE_COUNTRIES;
 
         // The PLUS_SIGN signifies the international prefix.
         internal const char PLUS_SIGN = '+';
@@ -295,6 +299,12 @@ namespace PhoneNumbers
             MOBILE_TOKEN_MAPPINGS = mobileTokenMap;
 
             thisLock = new Object();
+
+            HashSet<int> geoMobileCountries = new HashSet<int>();
+            geoMobileCountries.Add(52);     // Mexico
+            geoMobileCountries.Add(54);     // Argentina
+            geoMobileCountries.Add(55);     // Brazil
+            GEO_MOBILE_COUNTRIES = geoMobileCountries;
 
             // Simple ASCII digits map used to populate ALPHA_PHONE_MAPPINGS and
             // ALL_PLUS_NUMBER_GROUPING_SYMBOLS.
@@ -1052,10 +1062,11 @@ namespace PhoneNumbers
         public bool IsNumberGeographical(PhoneNumber phoneNumber)
         {
             PhoneNumberType numberType = GetNumberType(phoneNumber);
-            // TODO: Include mobile phone numbers from countries like Indonesia, which has some
-            // mobile numbers that are geographical.
-            return numberType == PhoneNumberType.FIXED_LINE ||
-                numberType == PhoneNumberType.FIXED_LINE_OR_MOBILE;
+            
+            return numberType == PhoneNumberType.FIXED_LINE 
+                || numberType == PhoneNumberType.FIXED_LINE_OR_MOBILE
+                || (GEO_MOBILE_COUNTRIES.Contains(phoneNumber.CountryCode)
+                    && numberType == PhoneNumberType.MOBILE);
         }
 
         /**
@@ -1945,6 +1956,69 @@ namespace PhoneNumbers
         }
 
         /**
+         * Gets an invalid number for the specified region. This is useful for unit-testing purposes,
+         * where you want to test what will happen with an invalid number. Note that the number that is
+         * returned will always be able to be parsed and will have the correct country code. It may also
+         * be a valid *short* number/code for this region. Validity checking such numbers is handled with
+         * {@link com.google.i18n.phonenumbers.ShortNumberInfo}.
+         *
+         * @param regionCode  the region for which an example number is needed
+         * @return  an invalid number for the specified region. Returns null when an unsupported region or
+         *     the region 001 (Earth) is passed in.
+         */
+        public PhoneNumber GetInvalidExampleNumber(String regionCode)
+        {
+            if (!IsValidRegionCode(regionCode))
+            {
+                return null;
+            }
+            // We start off with a valid fixed-line number since every country supports this. Alternatively
+            // we could start with a different number type, since fixed-line numbers typically have a wide
+            // breadth of valid number lengths and we may have to make it very short before we get an
+            // invalid number.
+            PhoneNumberDesc desc = GetNumberDescByType(GetMetadataForRegion(regionCode),
+                PhoneNumberType.FIXED_LINE);
+            if (desc.ExampleNumber.Equals(""))
+            {
+                // This shouldn't happen; we have a test for this.
+                return null;
+            }
+            String exampleNumber = desc.ExampleNumber;
+            // Try and make the number invalid. We do this by changing the length. We try reducing the
+            // length of the number, since currently no region has a number that is the same length as
+            // MIN_LENGTH_FOR_NSN. This is probably quicker than making the number longer, which is another
+            // alternative. We could also use the possible number pattern to extract the possible lengths of
+            // the number to make this faster, but this method is only for unit-testing so simplicity is
+            // preferred to performance.  We don't want to return a number that can't be parsed, so we check
+            // the number is long enough. We try all possible lengths because phone number plans often have
+            // overlapping prefixes so the number 123456 might be valid as a fixed-line number, and 12345 as
+            // a mobile number. It would be faster to loop in a different order, but we prefer numbers that
+            // look closer to real numbers (and it gives us a variety of different lengths for the resulting
+            // phone numbers - otherwise they would all be MIN_LENGTH_FOR_NSN digits long.)
+            for (int phoneNumberLength = exampleNumber.Length - 1;
+                 phoneNumberLength >= MIN_LENGTH_FOR_NSN;
+                 phoneNumberLength--)
+            {
+                String numberToTry = exampleNumber.Substring(0, phoneNumberLength);
+                try
+                {
+                    PhoneNumber possiblyValidNumber = Parse(numberToTry, regionCode);
+                    if (!IsValidNumber(possiblyValidNumber))
+                    {
+                        return possiblyValidNumber;
+                    }
+                }
+                catch (NumberParseException e)
+                {
+                    // Shouldn't happen: we have already checked the length, we know example numbers have
+                    // only valid digits, and we know the region code is fine.
+                }
+            }
+            // We have a test to check that this doesn't happen for any of our supported regions.
+            return null;
+        }
+
+        /**
         * Gets a valid number for the specified region and number type.
         *
         * @param regionCode  region for which an example number is needed
@@ -1972,6 +2046,46 @@ namespace PhoneNumbers
         }
 
         /**
+         * Gets a valid number for the specified number type (it may belong to any country).
+         *
+         * @param type  the type of number that is needed
+         * @return  a valid number for the specified type. Returns null when the metadata
+         *     does not contain such information. This should only happen when no numbers of this type are
+         *     allocated anywhere in the world anymore.
+         */
+        public PhoneNumber GetExampleNumberForType(PhoneNumberType type) 
+        {
+            foreach (String regionCode in GetSupportedRegions())
+            {
+                PhoneNumber exampleNumber = GetExampleNumberForType(regionCode, type);
+                if (exampleNumber != null) 
+                {
+                  return exampleNumber;
+                }
+            }
+            // If there wasn't an example number for a region, try the non-geographical entities.
+            foreach (int countryCallingCode in GetSupportedGlobalNetworkCallingCodes()) 
+            {
+                PhoneNumberDesc desc = GetNumberDescByType(
+                    GetMetadataForNonGeographicalRegion(countryCallingCode), type);
+                try 
+                {
+                    if (!desc.ExampleNumber.Equals("")) 
+                    {
+                        return Parse("+" + countryCallingCode + desc.ExampleNumber, UNKNOWN_REGION);
+                    }
+                } 
+                catch (NumberParseException e) 
+                {
+                    // logger.log(Level.SEVERE, e.toString());
+                }
+            }
+          
+            // There are no example numbers of this type for any country in the library.
+            return null;
+        }
+
+        /**
         * Gets a valid number for the specified country calling code for a non-geographical entity.
         *
         * @param countryCallingCode  the country calling code for a non-geographical entity
@@ -1989,7 +2103,7 @@ namespace PhoneNumbers
                 {
                     if (!desc.ExampleNumber.Equals(""))
                     {
-                        return Parse("+" + countryCallingCode + desc.ExampleNumber, "ZZ");
+                        return Parse("+" + countryCallingCode + desc.ExampleNumber, UNKNOWN_REGION);
                     }
                 }
                 catch (NumberParseException)
@@ -2849,10 +2963,18 @@ namespace PhoneNumbers
         }
 
         /**
-        * Parses a string and returns it in proto buffer format. This method will throw a
-        * {@link com.google.i18n.phonenumbers.NumberParseException} if the number is not considered to be
-        * a possible number. Note that validation of whether the number is actually a valid number for a
-        * particular region is not performed. This can be done separately with {@link #isValidNumber}.
+        * Parses a string and returns it as a phone number in proto buffer format. The method is quite
+        * lenient and looks for a number in the input text (raw input) and does not check whether the
+        * string is definitely only a phone number. To do this, it ignores punctuation and white-space,
+        * as well as any text before the number (e.g. a leading “Tel: ”) and trims the non-number bits.
+        * It will accept a number in any format (E164, national, international etc), assuming it can be
+        * interpreted with the defaultRegion supplied. It also attempts to convert any alpha characters
+        * into digits if it thinks this is a vanity number of the type "1800 MICROSOFT".
+        *
+        * <p> This method will throw a {@link com.google.i18n.phonenumbers.NumberParseException} if the
+        * number is not considered to be a possible number. Note that validation of whether the number
+        * is actually a valid number for a particular region is not performed. This can be done
+        * separately with {@link #isValidNumber}.
         *
         * @param numberToParse     number that we are attempting to parse. This can contain formatting
         *                          such as +, ( and -, as well as a phone number extension. It can also
@@ -2864,9 +2986,10 @@ namespace PhoneNumbers
         *                          start with a '+' followed by the country calling code, then "ZZ" or
         *                          null can be supplied.
         * @return                  a phone number proto buffer filled with the parsed number
-        * @throws NumberParseException  if the string is not considered to be a viable phone number or if
-        *                               no default region was supplied and the number is not in
-        *                               international format (does not start with +)
+        * @throws NumberParseException  if the string is not considered to be a viable phone number (e.g.
+        *                               too few or too many digits) or if no default region was supplied
+        *                               and the number is not in international format (does not start
+        *                               with +)
         */
         public PhoneNumber Parse(String numberToParse, String defaultRegion)
         {

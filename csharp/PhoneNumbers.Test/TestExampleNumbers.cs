@@ -217,6 +217,26 @@ namespace PhoneNumbers.Test
         }
 
         [Test]
+        public void TestEveryRegionHasAnInvalidExampleNumber()
+        {
+            foreach(var regionCode in phoneNumberUtil.GetSupportedRegions())
+            {
+                PhoneNumber exampleNumber = phoneNumberUtil.GetInvalidExampleNumber(regionCode);
+                Assert.IsNotNull(exampleNumber, "None found for region " + regionCode);
+            }
+        }
+
+        [Test]
+        public void TestEveryTypeHasAnExampleNumber()
+        {
+            foreach(var type in Enum.GetValues(typeof(PhoneNumberType)))
+            {
+                PhoneNumber exampleNumber = phoneNumberUtil.GetExampleNumberForType((PhoneNumberType)type);
+                Assert.IsNotNull(exampleNumber, "None found for type " + type);
+            }
+        }
+
+        [Test]
         public void TestShortNumbersValidAndCorrectCost()
         {
             List<String> invalidStringCases = new List<String>();
@@ -241,7 +261,10 @@ namespace PhoneNumbers.Test
                     exampleShortNumber = shortNumberInfo.GetExampleShortNumberForCost(regionCode, cost);
                     if (!exampleShortNumber.Equals(""))
                     {
-                        if (cost != shortNumberInfo.GetExpectedCostForRegion(phoneNumberUtil.Parse(exampleShortNumber, regionCode),regionCode))
+                        phoneNumber = phoneNumberUtil.Parse(exampleShortNumber,regionCode);
+                        ShortNumberInfo.ShortNumberCost exampleShortNumberCost =
+                                shortNumberInfo.GetExpectedCostForRegion(phoneNumber,regionCode);
+                        if (cost != exampleShortNumberCost)
                         {
                             wrongTypeCases.Add(phoneNumber);
                         }
