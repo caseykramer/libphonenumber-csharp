@@ -5,16 +5,25 @@
 Given how ubiquitous phone numbers are and how long they've been around, it's
 surprising how many false assumptions programmers continue to make about them.
 
+1.  **An individual has a phone number**
+
+    Some people do not own phones, or do not wish to provide you with their
+    telephone number when asked. Do not require a user to provide a phone number
+    unless it is essential, and whenever possible try and provide a fallback
+    to accommodate these users.
+
+1.  **An individual has only one phone number**
+
+    Obviously, this isn't necessarily true.
+
 1.  **A phone number uniquely identifies an individual**
 
     It wasn't even that long ago that mobile phones didn't exist, and it was
     common for an entire household to share one fixed-line telephone number. In
     some parts of the world, this is still true, and relatives (or even friends)
-    share a single phone number.
-
-1.  **An individual has only one phone number**
-
-    Obviously, this isn't necessarily true.
+    share a single phone number. Many phone services (especially for businesses)
+    allow multiple inbound calls to or outbound calls from the same phone
+    number.
 
 1.  **Phone numbers cannot be re-used**
 
@@ -53,6 +62,22 @@ surprising how many false assumptions programmers continue to make about them.
     from within a subset of countries, such as the international 00800 numbers.
     Some may be dialable only if the caller is a subscriber to a particular
     telecom company.
+
+1.  **You can send a text message to any phone number**
+
+    A lot of people still only have a fixed-line telephone, which typically cannot
+    send or receive text messages.
+
+    **Tip:** Whenever possible, try and accommodate these users by calling them
+    with a voice message or voice prompts. Alternatively, if your service
+    requires sending text messages, verify that the number can receive text
+    messages after the user provides it.
+
+1.  **Only mobile phones can receive text messages**
+
+    Some service providers support sending and receiving text messages to fixed-line
+    numbers. There are also online services like Skype that can send and receive
+    text messages.
 
 1.  **There are only two ways to dial a phone number: domestically and from
     overseas**
@@ -112,9 +137,85 @@ surprising how many false assumptions programmers continue to make about them.
 
 1.  **Phone numbers contain only digits**
 
-    In Israel, certain advertising numbers start with a `*`.
+    In Israel, certain advertising numbers start with a `*`. In New Zealand,
+    non-urgent traffic incidents can be reported by calling `*555` from a mobile
+    phone.
 
 1.  **Phone numbers are always written in ASCII**
 
     In Egypt, it is common for phone numbers to be written in native digits.
 
+1.  **Phone numbers have only one prefix (area code or national destination
+    code) at a given time**
+
+    In the mid-90s in Iceland, phone numbers changed from 5 and 6 digits to 7
+    digits. The old system had regional prefixes, but the new one doesn't.
+    During the transition period, phone numbers could be reached by the old area
+    code or the new 7 digit number (a different prefix).  For example, a
+    Reykjavik phone number could be dialed with `nnnnn` and `55nnnnn` inside the
+    region, and `91-nnnnn` and `55nnnnn` from outside.
+
+    **Tip:** During transition periods, make sure that both forms of a number
+    are supported for look-up by phone number. If sending messages/dialling
+    affected numbers, both the new and old prefix may need to be tried.
+    Depending on the type of transition, you may need to contact affected
+    customers and ask them to update their number.
+
+1.  **A leading zero in numbers formatted for domestic usage can always be
+    discarded when dialing from abroad**
+
+    In some countries, people write the national prefix in brackets (typically
+    `(0)`) after the country calling code to indicate that it should be
+    discarded when dialing internationally. In Italy, since 1988, the prefix was
+    "fixed" to the phone numbers, so that `(01) 2345` became `012345` and should
+    be dialed (internationally) as `+39012345` (including the leading zero).
+
+    **Tip:** Use the library to parse and format numbers to handle this
+    correctly for every country.
+
+1.  **The country or area code of a phone number indicates the user's location,
+    place of residence, time-zone, or preferred language**
+
+    There are many reasons for someone to have a phone number issued in a state
+    or region other than where they reside or hold citizenship.
+
+    These include, but are not limited to:
+    *   *Moving within a country*: In countries with phone number portability,
+        you may retain your number when moving, even in some cases if it is a
+        fixed-line number and even if it has an area code. (See
+        [xkcd](https://xkcd.com/1129/) for a US example.)
+    *   *Moving to another country*: Some people keep their mobile phones when
+        they move to another country.
+    *   *Geopolitical turmoil*: Sometimes countries change their borders, cease
+        to exist, or come into existence.
+    *   *Business, family, and friends*: A business may have many customers in a
+        neighbouring country, or a person may have many family and friends
+        there.
+    *   *Wanting cheaper rates*: VoIP is often cheaper than regular calls.
+        People traveling around Europe may get a SIM card from one country and
+        have a roaming plan.
+
+    Note that geographical area codes are assigned in some countries to mobile phones.
+
+    **Tip:** Programmers should not disallow users from signing up with a phone
+    number merely because it belongs to another country. Care should be taken
+    when calling methods such as `isValidNumberForRegion` that this is what's
+    actually intended. If you have a phone input widget, make sure you allow
+    numbers to be entered in international format (i.e., allow the `+` sign) so
+    people can sign up with an international contact number.
+
+1.  **The plus sign in front of phone numbers in international format is
+    optional, or can always be replaced by `00`**
+
+    The plus sign is part of the [E.164
+    format](https://en.wikipedia.org/wiki/E.164) for international telephone
+    numbers. It can be replaced with the [international call
+    prefix](https://en.wikipedia.org/wiki/List_of_international_call_prefixes)
+    when dialing internationally. Note that while `00` is a common international
+    call prefix, this actually varies by country.
+
+    In North America, which has a country calling code of `+1`, it is a common
+    error to drop the `+` in front of the number and write it like
+    `1-555-123-4567`. This is technically incorrect. To call this number from
+    Japan, where the international call prefix is `010`, one may dial either `+1
+    555 123 4567` or `010 1 555 123 4567`.
