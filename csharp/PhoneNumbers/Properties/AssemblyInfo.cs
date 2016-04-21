@@ -5,11 +5,11 @@ using System.Reflection;
 [assembly: AssemblyDescriptionAttribute("Google's libphonenumber")]
 [assembly: AssemblyProductAttribute("PhoneNumbers")]
 [assembly: AssemblyCopyrightAttribute("Copyright © Google 2015")]
-[assembly: AssemblyVersionAttribute("7.2.9")]
-[assembly: AssemblyFileVersionAttribute("7.2.9")]
+[assembly: AssemblyVersionAttribute("7.3.1")]
+[assembly: AssemblyFileVersionAttribute("7.3.1")]
 [assembly: AssemblyKeyFileAttribute("key.snk")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "7.2.9";
+        internal const string Version = "7.3.1";
     }
 }
