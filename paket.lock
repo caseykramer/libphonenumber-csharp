@@ -10,7 +10,7 @@ NUGET
 GITHUB
   remote: googlei18n/libphonenumber
   specs:
-    resources/PhoneNumberAlternateFormats.xml (6a8813f737cceda7c1e3f21f98f149a9c836b7ff)
-    resources/PhoneNumberMetadata.xml (6a8813f737cceda7c1e3f21f98f149a9c836b7ff)
-    resources/PhoneNumberMetadataForTesting.xml (6a8813f737cceda7c1e3f21f98f149a9c836b7ff)
-    resources/ShortNumberMetadata.xml (6a8813f737cceda7c1e3f21f98f149a9c836b7ff)
+    resources/PhoneNumberAlternateFormats.xml (2a6458bc2489d88b09c25d58acc4ec5f6133362b)
+    resources/PhoneNumberMetadata.xml (2a6458bc2489d88b09c25d58acc4ec5f6133362b)
+    resources/PhoneNumberMetadataForTesting.xml (2a6458bc2489d88b09c25d58acc4ec5f6133362b)
+    resources/ShortNumberMetadata.xml (2a6458bc2489d88b09c25d58acc4ec5f6133362b)

@@ -365,7 +365,7 @@ namespace PhoneNumbers.Test
             Assert.AreEqual(ShortNumberInfo.ShortNumberCost.UNKNOWN_COST,
                 shortInfo.GetExpectedCostForRegion(Parse("211",RegionCode.US), RegionCode.US));
             Assert.False(shortInfo.IsEmergencyNumber("211", RegionCode.CA));
-            Assert.AreEqual(ShortNumberInfo.ShortNumberCost.UNKNOWN_COST,
+            Assert.AreEqual(ShortNumberInfo.ShortNumberCost.TOLL_FREE,
                 shortInfo.GetExpectedCostForRegion(Parse("211",RegionCode.CA), RegionCode.CA));
         }
 
