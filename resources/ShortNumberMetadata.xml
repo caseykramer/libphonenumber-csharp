@@ -341,7 +341,7 @@
     <!-- http://en.wikipedia.org/wiki/Telephone_numbers_in_Argentina#Public_utility_numbers -->
     <territory id="AR">
       <generalDesc>
-        <nationalNumberPattern>[0189]\d{1,4}</nationalNumberPattern>
+        <nationalNumberPattern>[01389]\d{1,4}</nationalNumberPattern>
         <possibleNumberPattern>\d{2,5}</possibleNumberPattern>
       </generalDesc>
       <shortCode>
@@ -353,6 +353,7 @@
             2[15]|
             9
           )|
+          3372|
           89338|
           911
         </nationalNumberPattern>
@@ -371,10 +372,15 @@
         <possibleNumberPattern>\d{2,3}</possibleNumberPattern>
         <exampleNumber>111</exampleNumber>
       </tollFree>
+      <!-- 911 is only available in select cities. Since it's not available everywhere
+           and is location specific adding this number here. -->
       <carrierSpecific>
         <!-- https://support.twitter.com/articles/20170024 -->
-        <nationalNumberPattern>89338</nationalNumberPattern>
-        <possibleNumberPattern>\d{5}</possibleNumberPattern>
+        <nationalNumberPattern>
+          89338|
+          911
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,5}</possibleNumberPattern>
       </carrierSpecific>
       <emergency>
         <!-- http://en.wikipedia.org/wiki/Telephone_numbers_in_Argentina#Public_utility_numbers -->
@@ -393,8 +399,11 @@
       </expandedEmergency>
       <smsServices>
         <!-- https://support.twitter.com/articles/20170024 -->
-        <nationalNumberPattern>89338</nationalNumberPattern>
-        <possibleNumberPattern>\d{5}</possibleNumberPattern>
+        <nationalNumberPattern>
+          3372|
+          89338
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{4,5}</possibleNumberPattern>
       </smsServices>
     </territory>
 
@@ -1819,6 +1828,70 @@
     <!-- http://csi.sunrise.ch/smartzone/_privat -->
     <territory id="CH">
       <generalDesc>
+        <nationalNumberPattern>1\d{2,3}</nationalNumberPattern>
+        <possibleNumberPattern>\d{3,4}</possibleNumberPattern>
+      </generalDesc>
+      <shortCode>
+         <nationalNumberPattern>
+          1(?:
+            1[478]|
+            220
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,4}</possibleNumberPattern>
+        <exampleNumber>117</exampleNumber>
+      </shortCode>
+      <emergency>
+        <nationalNumberPattern>
+          1(?:
+            1[78]|
+            220
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,4}</possibleNumberPattern>
+        <exampleNumber>1220</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>114</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>114</exampleNumber>
+      </expandedEmergency>
+    </territory>
+
+    <!-- Congo (Rep. of the) (Brazzaville) -->
+    <territory id="CG">
+      <generalDesc>
+        <nationalNumberPattern>11\d</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+      </generalDesc>
+      <shortCode>
+        <nationalNumberPattern>11[12678]</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>117</exampleNumber>
+      </shortCode>
+      <tollFree>
+        <nationalNumberPattern>111</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>111</exampleNumber>
+      </tollFree>
+      <emergency>
+        <nationalNumberPattern>11[78]</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>117</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>11[26]</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>112</exampleNumber>
+      </expandedEmergency>
+    </territory>
+
+    <!-- Switzerland -->
+    <!-- http://www.bakom.admin.ch/themen/telekom/00479/00604/index.html?lang=en -->
+    <!-- http://en.wikipedia.org/wiki/Telephone_numbers_in_Switzerland#Short_numbers -->
+    <!-- http://csi.sunrise.ch/smartzone/_privat -->
+    <territory id="CH">
+      <generalDesc>
         <nationalNumberPattern>[1-9]\d{2,5}</nationalNumberPattern>
         <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
       </generalDesc>
@@ -3113,72 +3186,6 @@
 
     <!-- Eritrea -->
     <territory id="ER">
-      <generalDesc>
-        <nationalNumberPattern>[12]\d{2,5}</nationalNumberPattern>
-        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
-      </generalDesc>
-      <shortCode>
-        <nationalNumberPattern>
-          1(?:
-            1[2-6]|
-            2(?:
-              4422|
-              7799
-             )
-           )|
-          2(?:
-            0(?:
-              1(?:
-                606|
-                917
-               )|
-              2(?:
-                099|
-                914
-               )
-             )
-           )
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
-        <exampleNumber>114</exampleNumber>
-      </shortCode>
-      <emergency>
-        <nationalNumberPattern>
-          1(?:
-            1[2-46]|
-            2(?:
-              4422|
-              7799
-             )
-           )|
-          2(?:
-            0(?:
-              1(?:
-                606|
-                917
-               )|
-              2(?:
-                099|
-                914
-               )
-             )
-           )
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
-        <exampleNumber>113</exampleNumber>
-      </emergency>
-      <expandedEmergency>
-        <nationalNumberPattern>115</nationalNumberPattern>
-        <possibleNumberPattern>\d{3}</possibleNumberPattern>
-        <exampleNumber>115</exampleNumber>
-      </expandedEmergency>
-    </territory>
-
-    <!-- Spain -->
-    <!-- http://www.minetur.gob.es/telecomunicaciones/es-ES/Servicios/Numeracion/Documents/2012_09_10_Presentation_E164_Numbering_plan_Spain.pdf -->
-    <!-- http://www.minetur.gob.es/telecomunicaciones/es-ES/Servicios/Numeracion/Documents/Descripcion_plan_20101216.pdf -->
-    <!-- http://www.minetur.gob.es/telecomunicaciones/es-ES/Servicios/Numeracion/Documents/13-01-11_Gu%C3%ADa_Numeracion.pdf -->
-    <territory id="ES">
       <generalDesc>
         <nationalNumberPattern>[12]\d{2,5}</nationalNumberPattern>
         <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
@@ -7500,6 +7507,26 @@
             123
           )
         </nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>112</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>
+          116(?:
+            00[06]|
+            123
+          )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{6}</possibleNumberPattern>
+        <exampleNumber>116000</exampleNumber>
+      </expandedEmergency>
+      <tollFree>
+        <nationalNumberPattern>
+          116(?:
+            00[06]|
+            123
+          )
+        </nationalNumberPattern>
         <possibleNumberPattern>\d{6}</possibleNumberPattern>
         <exampleNumber>116000</exampleNumber>
       </tollFree>
@@ -7508,17 +7535,29 @@
     <!-- Norway -->
     <!-- Country calling code shared with Svalbard. -->
     <!-- http://www.npt.no/npt/numsys/E.164.pdf -->
+    <!-- http://www.nkom.no/npt/numsys/E.1643sifret_en.pdf -->
     <territory id="NO">
       <generalDesc>
         <nationalNumberPattern>1\d{2,5}</nationalNumberPattern>
         <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
       </generalDesc>
       <shortCode>
+        <!-- 143 is assigned but not visible to end users, no other online evidence
+             found, hence not included -->
         <nationalNumberPattern>
-          11(?:
-             [023]|
-             6117
-            )
+          1(?:
+            1(?:
+              [0239]|
+              6117
+            )|
+            2[048]|
+            4(?:
+              12|
+              [59]
+            )|
+            7[57]|
+            90
+          )
         </nationalNumberPattern>
         <exampleNumber>112</exampleNumber>
       </shortCode>
@@ -7533,7 +7572,12 @@
         <exampleNumber>112</exampleNumber>
       </emergency>
       <expandedEmergency>
-        <nationalNumberPattern>116117</nationalNumberPattern>
+        <nationalNumberPattern>
+          1(?:
+            16117|
+            412
+          )
+        </nationalNumberPattern>
         <possibleNumberPattern>\d{6}</possibleNumberPattern>
         <exampleNumber>116117</exampleNumber>
       </expandedEmergency>
