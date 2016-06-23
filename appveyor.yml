@@ -1,0 +1,14 @@
+version: 7.4.4.5
+branches:
+  only:
+  - csharp
+build_script:
+- cmd: .\build.bat
+test: off
+artifacts:
+- path: ./build/PhoneNumbers.dll
+  name: PhoneNumbers (unsigned)
+- path: ./build/signed/PhoneNumbers.dll
+  name: PhoneNumbers (signed)
+- path: /version.txt
+  name: Version

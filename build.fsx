@@ -36,6 +36,7 @@ let incrementedVersion =
       | _ -> newVer
     else newVer
   File.WriteAllText("version.txt",currentVer)
+  printfn "Building version: %s" currentVer
   currentVer
 
 let baseAssemblyInfo = 
@@ -83,6 +84,23 @@ Target "BuildSigned" (fun _ ->
         |> Log "AppBuild-Output:"   
 )
 
+Target "GenerateAppveyor" (fun _ ->
+    let appveyorVersion = sprintf "version: %s" incrementedVersion
+    let remainingYaml = "branches:
+  only:
+  - csharp
+build_script:
+- cmd: .\\build.bat
+test: off
+artifacts:
+- path: ./build/PhoneNumbers.dll
+  name: PhoneNumbers (unsigned)
+- path: ./build/signed/PhoneNumbers.dll
+  name: PhoneNumbers (signed)
+- path: /version.txt
+  name: Version" 
+    File.WriteAllText("appveyor.yml",sprintf "%s\r\n%s" appveyorVersion remainingYaml)
+)
   
 Target "All" DoNothing
 
@@ -92,6 +110,7 @@ Target "All" DoNothing
     ==> "BuildTest"
     ==> "Test"
     ==> "BuildSigned"
+    ==> "GenerateAppveyor"
     ==> "All"
 
 Run <| getBuildParamOrDefault "target" "All"
