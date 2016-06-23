@@ -24,6 +24,12 @@ let appReferences  = !! @"csharp\PhoneNumbers\PhoneNumbers.csproj"
 let testReferences = !! @"csharp\PhoneNumbers.Test\*.csproj"     
 let metadataFiles = !! @"paket-files\**\*.xml"
 
+let referenceVersion = 
+  let pomVer = PomUtil.getPomProjectVersion()
+  let verFile = if File.Exists "version.txt" then File.ReadAllText "version.txt" else ""
+  let newVer = sprintf "%s.0" pomVer
+  if verFile = "" then newVer else verFile
+
 let incrementedVersion = 
   let pomVer = PomUtil.getPomProjectVersion()
   let verFile = if File.Exists "version.txt" then File.ReadAllText "version.txt" else ""
@@ -85,7 +91,7 @@ Target "BuildSigned" (fun _ ->
 )
 
 Target "GenerateAppveyor" (fun _ ->
-    let appveyorVersion = sprintf "version: %s" incrementedVersion
+    let appveyorVersion = sprintf "version: %s" referenceVersion
     let remainingYaml = "branches:
   only:
   - csharp
