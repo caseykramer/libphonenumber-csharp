@@ -30,7 +30,7 @@ let referenceVersion =
   let newVer = sprintf "%s.0" pomVer
   if verFile = "" then newVer else verFile
 
-let incrementedVersion = 
+let incrementedVersion() = 
   let pomVer = PomUtil.getPomProjectVersion()
   let verFile = if File.Exists "version.txt" then File.ReadAllText "version.txt" else ""
   let newVer = sprintf "%s.0" pomVer
@@ -46,12 +46,13 @@ let incrementedVersion =
   currentVer
 
 let baseAssemblyInfo = 
+  let ver = incrementedVersion()
   [ Attribute.Title "PhoneNumbers"
     Attribute.Description "Google's libphonenumber"
     Attribute.Product "PhoneNumbers"
-    Attribute.Copyright "Copyright © Google 2015-2016"
-    Attribute.Version incrementedVersion
-    Attribute.FileVersion incrementedVersion ]
+    Attribute.Copyright "Copyright © 2015-2016 Google"
+    Attribute.Version ver
+    Attribute.FileVersion ver ]
 
 Target "Clean" (fun _ ->
     CleanDirs [buildDir; testDir]
