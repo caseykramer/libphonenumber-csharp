@@ -92,7 +92,8 @@ Target "BuildSigned" (fun _ ->
 )
 
 Target "GenerateAppveyor" (fun _ ->
-    let appveyorVersion = sprintf "version: %s" referenceVersion
+    let pomVer = PomUtil.getPomProjectVersion()
+    let appveyorVersion = sprintf "version: %s.{Build}" pomVer
     let remainingYaml = "branches:
   only:
   - csharp
