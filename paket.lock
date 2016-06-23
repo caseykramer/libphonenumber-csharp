@@ -8,7 +8,7 @@ NUGET
     Zlib.Portable (1.11) - framework: >= net40, portable-net40+sl50+wp80+win80
 GITHUB
   remote: googlei18n/libphonenumber
-    resources/PhoneNumberAlternateFormats.xml (21f342dbe8d3fc933616988e67eb571a618b367e)
-    resources/PhoneNumberMetadata.xml (21f342dbe8d3fc933616988e67eb571a618b367e)
-    resources/PhoneNumberMetadataForTesting.xml (21f342dbe8d3fc933616988e67eb571a618b367e)
-    resources/ShortNumberMetadata.xml (21f342dbe8d3fc933616988e67eb571a618b367e)
+    resources/PhoneNumberAlternateFormats.xml (865d56800403530d9d2582bb81c667ac578f01eb)
+    resources/PhoneNumberMetadata.xml (865d56800403530d9d2582bb81c667ac578f01eb)
+    resources/PhoneNumberMetadataForTesting.xml (865d56800403530d9d2582bb81c667ac578f01eb)
+    resources/ShortNumberMetadata.xml (865d56800403530d9d2582bb81c667ac578f01eb)

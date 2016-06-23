@@ -4,12 +4,12 @@ using System.Reflection;
 [assembly: AssemblyTitleAttribute("PhoneNumbers")]
 [assembly: AssemblyDescriptionAttribute("Google's libphonenumber")]
 [assembly: AssemblyProductAttribute("PhoneNumbers")]
-[assembly: AssemblyCopyrightAttribute("Copyright © Google 2015")]
-[assembly: AssemblyVersionAttribute("7.4.4")]
-[assembly: AssemblyFileVersionAttribute("7.4.4")]
+[assembly: AssemblyCopyrightAttribute("Copyright © Google 2015-2016")]
+[assembly: AssemblyVersionAttribute("7.4.4.2")]
+[assembly: AssemblyFileVersionAttribute("7.4.4.2")]
 [assembly: AssemblyKeyFileAttribute("key.snk")]
 namespace System {
     internal static class AssemblyVersionInformation {
-        internal const string Version = "7.4.4";
+        internal const string Version = "7.4.4.2";
     }
 }
