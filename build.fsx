@@ -20,21 +20,21 @@ let pomPath = @".\java\pom.xml"
 
 let nunitPath = @".\packages\NUnit.Runners\tools"
 
-let appReferences  = !! @"csharp\PhoneNumbers\PhoneNumbers.csproj"     
-let testReferences = !! @"csharp\PhoneNumbers.Test\*.csproj"     
+let appReferences  = !! @"csharp\PhoneNumbers\PhoneNumbers.csproj"
+let testReferences = !! @"csharp\PhoneNumbers.Test\*.csproj"
 let metadataFiles = !! @"paket-files\**\*.xml"
 
-let referenceVersion = 
+let referenceVersion =
   let pomVer = PomUtil.getPomProjectVersion()
   let verFile = if File.Exists "version.txt" then File.ReadAllText "version.txt" else ""
   let newVer = sprintf "%s.0" pomVer
   if verFile = "" then newVer else verFile
 
-let incrementedVersion() = 
+let incrementedVersion() =
   let pomVer = PomUtil.getPomProjectVersion()
   let verFile = if File.Exists "version.txt" then File.ReadAllText "version.txt" else ""
   let newVer = sprintf "%s.0" pomVer
-  let currentVer = 
+  let currentVer =
     if verFile = "" then newVer
     elif verFile.StartsWith(pomVer) then
       match verFile.Split([|'.'|]) with
@@ -42,17 +42,18 @@ let incrementedVersion() =
       | _ -> newVer
     else newVer
   File.WriteAllText("version.txt",currentVer)
-  printfn "Building version: %s" currentVer
-  currentVer
+  printfn "Building version: %s" currentVer  
 
-let baseAssemblyInfo = 
-  let ver = incrementedVersion()
+let baseAssemblyInfo =
+  let ver = referenceVersion
   [ Attribute.Title "PhoneNumbers"
     Attribute.Description "Google's libphonenumber"
     Attribute.Product "PhoneNumbers"
     Attribute.Copyright "Copyright © 2015-2016 Google"
     Attribute.Version ver
     Attribute.FileVersion ver ]
+
+Target "UpdateVersion" incrementedVersion
 
 Target "Clean" (fun _ ->
     CleanDirs [buildDir; testDir]
@@ -75,10 +76,10 @@ Target "BuildTest" (fun _ ->
 )
 
 Target "Test" (fun _ ->
- !! (testDir + @"\*Test.dll") 
-        |> NUnit (fun p -> 
-            { p with 
-                ToolPath = nunitPath; 
+ !! (testDir + @"\*Test.dll")
+        |> NUnit (fun p ->
+            { p with
+                ToolPath = nunitPath;
                 TimeOut = System.TimeSpan.FromMinutes(60.)
                 OutputFile = testDir + @"TestResults.xml" })
 )
@@ -87,8 +88,8 @@ Target "BuildSigned" (fun _ ->
     let pomVer = sprintf "%s.*" <| PomUtil.getPomProjectVersion()
     CreateCSharpAssemblyInfo @".\csharp\PhoneNumbers\Properties\AssemblyInfo.cs" <| baseAssemblyInfo @ [ Attribute.KeyFile "key.snk" ]
 
-    MSBuildRelease signedDir "Build"  appReferences 
-        |> Log "AppBuild-Output:"   
+    MSBuildRelease signedDir "Build"  appReferences
+        |> Log "AppBuild-Output:"
 )
 
 Target "GenerateAppveyor" (fun _ ->
@@ -106,10 +107,10 @@ artifacts:
 - path: ./build/signed/PhoneNumbers.dll
   name: PhoneNumbers (signed)
 - path: /version.txt
-  name: Version" 
+  name: Version"
     File.WriteAllText("appveyor.yml",sprintf "%s\r\n%s" appveyorVersion remainingYaml)
 )
-  
+
 Target "All" DoNothing
 
 "Clean"
