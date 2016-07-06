@@ -12524,202 +12524,27 @@
                 0\d{4,9}|
                 3\d{9}
               )|
-              6(?:
-                0\d{7}|
-                [12]\d{9}
-              )
-            )
-          )
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{8,13}</possibleNumberPattern>
-        <exampleNumber>1800123456</exampleNumber>
-      </noInternationalDialling>
-      <fixedLine>
-        <!-- This is a list of the 2 and 3 digit area codes and the first 3 digits of 4 digit area
-             codes, so we can check the following digit belongs to one of the operator-codes (2-7).
-             Operator codes are from wikipedia, with the addition of 5 (HFCL Infotel in some areas).
-             Not all operator codes are available in all areas, but we don't maintain that
-             distinction here.
-             Area codes starting with a 7 are listed separately, since the prefixes need to be more
-             detailed so they clash less with mobile phone prefixes. -->
-        <nationalNumberPattern>
-          (?:
-            11|
-            2[02]|
-            33|
-            4[04]|
-            79|
-            80[2-46]
-          </leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <!-- 3 digit area codes that don't clash with mobile patterns. -->
-        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
-          <leadingDigits>
-            1(?:
-              2[0-249]|
-              3[0-25]|
-              4[145]|
-              [569][14]|
-              7[1257]|
-              8[1346]|
-              [68][1-9]
-            )|
-            2(?:
-              1[257]|
-              3[013]|
-              4[01]|
-              5[0137]|
-              6[0158]|
-              78|
-              8[1568]|
-              9[14]
-            )|
-            3(?:
-              26|
-              4[1-3]|
-              5[34]|
-              6[01489]|
-              7[02-46]|
-              8[159]
-            )|
-            4(?:
-              1[36]|
-              2[1-47]|
-              3[15]|
-              5[12]|
-              6[0-26-9]|
-              7[0-24-9]|
-              8[013-57]|
-              9[014-7]
-            )|
-            5(?:
-              1[025]|
-              [36][25]|
-              22|
-              4[28]|
-              5[12]|
-              [78]1|
-              9[15]
-            )|
-            6(?:
-              12|
-              [2345]1|
-              57|
-              6[13]|
-              7[14]|
-              80
-            )
-          </leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <!-- Three-digit area codes that potentially overlap with mobile. -->
-        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
-          <leadingDigits>
-            7(?:
-              12|
-              2[14]|
-              3[134]|
-              4[47]|
-              5[15]|
-              [67]1|
-              88
-            )
-          </leadingDigits>
-          <leadingDigits>
-            7(?:
-              12|
-              2[14]|
-              3[134]|
-              4[47]|
-              5(?:
-                1|
-                5[2-6]
+              3(?:
+                [05-8]|
+                1[07-9]|
+                2[015-8]|
+                3[17-9]|
+                4[017-9]|
+                9[015689]
               )|
-              [67]1|
-              88
-            )
-          </leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
-          <leadingDigits>
-            8(?:
-              16|
-              2[014]|
-              3[126]|
-              6[136]|
-              7[078]|
-              8[34]|
-              91
-            )
-          </leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <!-- 4 digits area code -->
-        <!-- Fallback for fixed-line numbers. -->
-        <numberFormat pattern="(\d{4})(\d{3})(\d{3})">
-          <leadingDigits>
-            1(?:
-              [23579]|
-              [468][1-9]
-            )|
-            [2-8]
-          </leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <numberFormat nationalPrefixFormattingRule="$FG"
-          pattern="(1600)(\d{2})(\d{4})">
-          <leadingDigits>160</leadingDigits>
-          <leadingDigits>1600</leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <numberFormat nationalPrefixFormattingRule="$FG"
-          pattern="(1800)(\d{4,5})">
-          <leadingDigits>180</leadingDigits>
-          <leadingDigits>1800</leadingDigits>
-          <format>$1 $2</format>
-        </numberFormat>
-        <numberFormat nationalPrefixFormattingRule="$FG"
-          pattern="(18[06]0)(\d{2,4})(\d{4})">
-          <leadingDigits>18[06]</leadingDigits>
-          <leadingDigits>18[06]0</leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <numberFormat nationalPrefixFormattingRule="$FG"
-          pattern="(140)(\d{3})(\d{4})">
-          <leadingDigits>140</leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <!-- Televoting numbers. Formatting information is from
-             http://www.bsnl.co.in/service/telev.htm -->
-        <numberFormat nationalPrefixFormattingRule="$FG"
-          pattern="(\d{4})(\d{3})(\d{3})(\d{3})">
-          <leadingDigits>18[06]</leadingDigits>
-          <leadingDigits>
-            18(?:
-              0[03]|
-              6[12]
-            )
-          </leadingDigits>
-          <format>$1 $2 $3 $4</format>
-        </numberFormat>
-      </availableFormats>
-      <generalDesc>
-        <nationalNumberPattern>
-          1\d{7,12}|
-          [2-9]\d{9,10}
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{6,13}</possibleNumberPattern>
-      </generalDesc>
-      <noInternationalDialling>
-        <nationalNumberPattern>
-          1(?:
-            600\d{6}|
-            8(?:
-              0(?:
-                0\d{4,9}|
-                3\d{9}
+              4(?:
+                0[1-9]|
+                1[014-9]|
+                2[589]|
+                39|
+                7[017-9]|
+                [89]
+              )|
+              5(?:
+                [034678]|
+                2[03-9]|
+                5[017-9]|
+                9[7-9]
               )|
               6(?:
                 0[0-47]|
@@ -12734,7 +12559,124 @@
                 [1-79]|
                 8[1-9]
               )|
-              8[0-79]|
+              99[4-9]
+            )|
+            8(?:
+              0(?:
+                [01589]|
+                6[67]
+              )|
+              1(?:
+                [02-57-9]|
+                1[0135-9]
+              )|
+              2(?:
+                [236-9]|
+                5[1-9]
+              )|
+              3(?:
+                [0357-9]|
+                4[1-9]
+              )|
+              [45]|
+              6[02457-9]|
+              7(?:
+                07|
+                [1-69]
+              )|
+              8(?:
+                [0-26-9]|
+                44|
+                5[2-9]
+              )|
+              9(?:
+                [035-9]|
+                2[2-9]|
+                4[0-8]
+              )
+            )|
+            9
+          </leadingDigits>
+          <!-- For 5 digit prefix mobile numbers. -->
+          <leadingDigits>
+            7(?:
+              0|
+              2(?:
+                [0235679]|
+                [14][017-9]|
+                8[0-569]|
+                9[389]
+              )|
+              3(?:
+                [05-8]|
+                1(?:
+                  [089]|
+                  7[5-9]
+                )|
+                2(?:
+                  [5-8]|
+                  [01][089]
+                )|
+                3[17-9]|
+                4(?:
+                  [07-9]|
+                  11
+                )|
+                9(?:
+                  [01689]|
+                  59
+                )
+              )|
+              4(?:
+                0[1-9]|
+                1(?:
+                  [015-9]|
+                  4[08]
+                )|
+                2(?:
+                  58|
+                  [89]
+                )|
+                39|
+                7(?:
+                  0[3-9]|
+                  11|
+                  7[02-8]|
+                  [89]
+                )|
+                8(?:
+                  [0-24-7][089]|
+                  [389]
+                )|
+                9(?:
+                  [0-6][089]|
+                  7[08]|
+                  [89]
+                )
+              )|
+              5(?:
+                [034678]|
+                2[03-9]|
+                5[017-9]|
+                9[7-9]
+              )|
+              6(?:
+                0[0-47]|
+                1[0-257-9]|
+                2[0-4]|
+                3[19]|
+                5[4589]|
+                [6-9]
+              )|
+              7(?:
+                0[2-9]|
+                [1-79]|
+                8[1-9]
+              )|
+              8(?:
+                [0-79]|
+                880
+              )|
               99[4-9]
             )|
             8(?:
@@ -13021,6 +12963,114 @@
                   [89]\d
                 )
               )|
+              6(?:
+                0\d{7}|
+                [12]\d{9}
+              )
+            )
+          )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{8,13}</possibleNumberPattern>
+        <exampleNumber>1800123456</exampleNumber>
+      </noInternationalDialling>
+      <fixedLine>
+        <!-- This is a list of the 2 and 3 digit area codes and the first 3 digits of 4 digit area
+             codes, so we can check the following digit belongs to one of the operator-codes (2-7).
+             Operator codes are from wikipedia, with the addition of 5 (HFCL Infotel in some areas).
+             Not all operator codes are available in all areas, but we don't maintain that
+             distinction here.
+             Area codes starting with a 7 are listed separately, since the prefixes need to be more
+             detailed so they clash less with mobile phone prefixes. -->
+        <nationalNumberPattern>
+          (?:
+            11|
+            2[02]|
+            33|
+            4[04]|
+            79|
+            80[2-46]
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- 3 digit area codes that don't clash with mobile patterns. -->
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            1(?:
+              2[0-249]|
+              3[0-25]|
+              4[145]|
+              [569][14]|
+              7[1257]|
+              8[1346]|
+              [68][1-9]
+            )|
+            2(?:
+              1[257]|
+              3[013]|
+              4[01]|
+              5[0137]|
+              6[0158]|
+              78|
+              8[1568]|
+              9[14]
+            )|
+            3(?:
+              26|
+              4[1-3]|
+              5[34]|
+              6[01489]|
+              7[02-46]|
+              8[159]
+            )|
+            4(?:
+              1[36]|
+              2[1-47]|
+              3[15]|
+              5[12]|
+              6[0-26-9]|
+              7[0-24-9]|
+              8[013-57]|
+              9[014-7]
+            )|
+            5(?:
+              1[025]|
+              [36][25]|
+              22|
+              4[28]|
+              5[12]|
+              [78]1|
+              9[15]
+            )|
+            6(?:
+              12|
+              [2345]1|
+              57|
+              6[13]|
+              7[14]|
+              80
+            )
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- Three-digit area codes that potentially overlap with mobile. -->
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            7(?:
+              12|
+              2[14]|
+              3[134]|
+              4[47]|
+              5[15]|
+              [67]1|
+              88
+            )
+          </leadingDigits>
+          <leadingDigits>
+            7(?:
+              12|
+              2[14]|
+              3[134]|
+              4[47]|
               5(?:
                 [034678]\d|
                 2[03-9]|
@@ -13161,6 +13211,499 @@
       <availableFormats>
         <numberFormat pattern="(1)(\d{3})(\d{4})">
           <leadingDigits>1</leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- 3 digit area codes that don't clash with mobile patterns. -->
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            1(?:
+              2[0-249]|
+              3[0-25]|
+              4[145]|
+              [569][14]|
+              7[1257]|
+              8[1346]|
+              [68][1-9]
+            )|
+            2(?:
+              1[257]|
+              3[013]|
+              4[01]|
+              5[0137]|
+              6[0158]|
+              78|
+              8[1568]|
+              9[14]
+            )|
+            3(?:
+              26|
+              4[1-3]|
+              5[34]|
+              6[01489]|
+              7[02-46]|
+              8[159]
+            )|
+            4(?:
+              1[36]|
+              2[1-47]|
+              3[15]|
+              5[12]|
+              6[0-26-9]|
+              7[0-24-9]|
+              8[013-57]|
+              9[014-7]
+            )|
+            5(?:
+              1[025]|
+              [36][25]|
+              22|
+              4[28]|
+              5[12]|
+              [78]1|
+              9[15]
+            )|
+            6(?:
+              12|
+              [2345]1|
+              57|
+              6[13]|
+              7[14]|
+              80
+            )
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- Three-digit area codes that potentially overlap with mobile. -->
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            7(?:
+              12|
+              2[14]|
+              3[134]|
+              4[47]|
+              5[15]|
+              [67]1|
+              88
+            )
+          </leadingDigits>
+          <leadingDigits>
+            7(?:
+              12|
+              2[14]|
+              3[134]|
+              4[47]|
+              5(?:
+                1|
+                5[2-6]
+              )|
+              [67]1|
+              88
+            )
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            8(?:
+              16|
+              2[014]|
+              3[126]|
+              6[136]|
+              7[078]|
+              8[34]|
+              91
+            )
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- 4 digits area code -->
+        <!-- Fallback for fixed-line numbers. -->
+        <numberFormat pattern="(\d{4})(\d{3})(\d{3})">
+          <leadingDigits>
+            1(?:
+              [23579]|
+              [468][1-9]
+            )|
+            [2-8]
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <numberFormat nationalPrefixFormattingRule="$FG"
+          pattern="(1600)(\d{2})(\d{4})">
+          <leadingDigits>160</leadingDigits>
+          <leadingDigits>1600</leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <numberFormat nationalPrefixFormattingRule="$FG"
+          pattern="(1800)(\d{4,5})">
+          <leadingDigits>180</leadingDigits>
+          <leadingDigits>1800</leadingDigits>
+          <format>$1 $2</format>
+        </numberFormat>
+        <numberFormat nationalPrefixFormattingRule="$FG"
+          pattern="(18[06]0)(\d{2,4})(\d{4})">
+          <leadingDigits>18[06]</leadingDigits>
+          <leadingDigits>18[06]0</leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <numberFormat nationalPrefixFormattingRule="$FG"
+          pattern="(140)(\d{3})(\d{4})">
+          <leadingDigits>140</leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- Televoting numbers. Formatting information is from
+             http://www.bsnl.co.in/service/telev.htm -->
+        <numberFormat nationalPrefixFormattingRule="$FG"
+          pattern="(\d{4})(\d{3})(\d{3})(\d{3})">
+          <leadingDigits>18[06]</leadingDigits>
+          <leadingDigits>
+            18(?:
+              0[03]|
+              6[12]
+            )
+          </leadingDigits>
+          <format>$1 $2 $3 $4</format>
+        </numberFormat>
+      </availableFormats>
+      <generalDesc>
+        <nationalNumberPattern>
+          1\d{7,12}|
+          [2-9]\d{9,10}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{6,10}</possibleNumberPattern>
+        <exampleNumber>1123456789</exampleNumber>
+      </fixedLine>
+      <!-- http://en.wikipedia.org/wiki/Mobile_telephone_numbering_in_India -->
+      <!-- The document titled "List of MSC codes" linked off
+           http://www.dot.gov.in/access-services/national-numbering-plan-2003 was helpful but last
+           updated 2012 - more updates at http://www.dot.gov.in/access-services/allotment-msc-codes.
+           -->
+      <mobile>
+        <nationalNumberPattern>
+          9(?:
+            0[1-3]|
+            [13]\d|
+            2[0-2]|
+            90
+          )\d{7}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9123456789</exampleNumber>
+      </mobile>
+      <pager>
+        <nationalNumberPattern>943\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9432123456</exampleNumber>
+      </pager>
+      <!-- No tollFree or premiumRate information can be found. -->
+      <voip>
+        <!-- Includes VSAT and Boomehen Satellite numbers. -->
+        <nationalNumberPattern>
+          (?:
+            7(?:
+              0\d{3}|
+              2(?:
+                [0235679]\d{2}|
+                [14][017-9]\d|
+                8(?:
+                  [0-59]\d|
+                  6[089]
+                )|
+                9[389]\d
+              )|
+              3(?:
+                [05-8]\d{2}|
+                1(?:
+                  [089]\d|
+                  7[5-8]
+                )|
+                2(?:
+                  [5-8]\d|
+                  [01][089]
+                )|
+                3[17-9]\d|
+                4(?:
+                  [07-9]\d|
+                  11
+                )|
+                9(?:
+                  [01689]\d|
+                  59
+                )
+              )|
+              4(?:
+                0[1-9]\d|
+                1(?:
+                  [015-9]\d|
+                  4[08]
+                )|
+                2(?:
+                  58|
+                  [89]\d
+                )|
+                39\d|
+                7(?:
+                  0[3-9]|
+                  11|
+                  7[02-8]|
+                  [89]\d
+                )|
+                8(?:
+                  [0-24-7][089]|
+                  [389]\d
+                )|
+                9(?:
+                  [0-6][089]|
+                  7[08]|
+                  [89]\d
+                )
+              )|
+              5(?:
+                [034678]\d|
+                2[03-9]|
+                5[017-9]|
+                9[7-9]
+              )\d|
+              6(?:
+                0[0-47]|
+                1[0-257-9]|
+                2[0-4]|
+                3[19]|
+                5[4589]|
+                [6-9]\d
+              )\d|
+              7(?:
+                0[2-9]|
+                [1-79]|
+                8[1-9]
+              )\d|
+              8(?:
+                [0-79]\d{2}|
+                880
+              )|
+              99[4-9]\d
+            )|
+            8(?:
+              0(?:
+                [01589]|
+                6[67]
+              )|
+              1(?:
+                [02-57-9]\d|
+                1[0135-9]
+              )|
+              2(?:
+                [236-9]|
+                5[1-9]
+              )|
+              3(?:
+                [0357-9]|
+                4[1-9]
+              )|
+              [45]\d{2}|
+              6[02457-9]\d|
+              7(?:
+                07|
+                [1-69]\d
+              )|
+              8(?:
+                [0-26-9]|
+                44|
+                5[2-9]
+              )|
+              9(?:
+                [035-9]|
+                2[2-9]|
+                4[0-8]
+              )
+            )\d|
+            9\d{4}
+          )\d{5}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9987654321</exampleNumber>
+      </mobile>
+      <tollFree>
+        <!-- Information gathered from sites such as
+             http://www.surfindia.com/india-facts/toll-free-no.html and
+             http://indmusings.blogspot.com/2008/09/free-help-line-numbersindia.html
+             http://www.bsnl.co.in/service/telev.htm -->
+        <nationalNumberPattern>
+          1(?:
+            600\d{6}|
+            80(?:
+              0\d{4,9}|
+              3\d{9}
+            )
+          )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{8,13}</possibleNumberPattern>
+        <exampleNumber>1800123456</exampleNumber>
+      </tollFree>
+      <premiumRate>
+        <!-- Only televoting numbers are covered here for now. The 900 numbers are not covered
+             because they overlap with mobile, and we haven't found any real numbers online. -->
+        <nationalNumberPattern>186[12]\d{9}</nationalNumberPattern>
+        <possibleNumberPattern>\d{13}</possibleNumberPattern>
+        <exampleNumber>1861123456789</exampleNumber>
+      </premiumRate>
+      <sharedCost>
+        <!-- While described as "universal numbers" in the numbering plan, evidence suggests
+             that 1860 number are best described as shared cost. See "Call Local Service" in:
+             http://www.tatadocomo.com/corporates/toll-free.aspx -->
+        <nationalNumberPattern>1860\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{11}</possibleNumberPattern>
+        <exampleNumber>18603451234</exampleNumber>
+      </sharedCost>
+      <uan>
+        <!-- Telemarketing numbers: http://en.wikipedia.org/wiki/Telephone_numbers_in_India -->
+        <nationalNumberPattern>140\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>1409305260</exampleNumber>
+      </uan>
+    </territory>
+
+    <!-- Iceland -->
+    <!-- As per new update from Iceland added carrier selection codes as international
+         prefixes. -->
+    <territory id="IS" countryCode="354" internationalPrefix="1(?:0(?:01|10|20)|100)|00"
+               preferredInternationalPrefix="00" mobileNumberPortableRegion="true">
+      <references>
+        <sourceUrl>http://www.pta.is/default.aspx?cat_id=85</sourceUrl>
+        <sourceUrl>http://www.pfs.is/default.aspx?cat_id=14&amp;module_id=210&amp;element_id=4</sourceUrl>
+        <sourceUrl>http://www.pfs.is/english/telecom-affairs/numbering/</sourceUrl>
+      </references>
+      <availableFormats>
+        <numberFormat pattern="(\d{3})(\d{4})">
+          <format>$1 $2</format>
+        </numberFormat>
+      </availableFormats>
+      <generalDesc>
+        <nationalNumberPattern>3\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
+        <!-- Including 87[23] XXXX here as it is listed as a fax number. -->
+        <nationalNumberPattern>
+          (?:
+            4(?:
+              1[0-24-6]|
+              2[0-7]|
+              [37][0-8]|
+              4[0-245]|
+              5[0-68]|
+              6\d|
+              8[0-36-8]
+            )|
+            5(?:
+              05|
+              [156]\d|
+              2[02578]|
+              3[013-79]|
+              4[03-7]|
+              7[0-2578]|
+              8[0-35-9]|
+              9[013-689]
+            )|
+            87[23]
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>4101234</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <!-- TETRA = TErrestrial Trunked RAdio is included under mobile. -->
+        <nationalNumberPattern>
+          38[589]\d{6}|
+          (?:
+            6(?:
+              1[1-8]|
+              2[056]|
+              3[089]|
+              4[0167]|
+              5[0159]|
+              [67][0-69]|
+              9\d
+            )|
+            7(?:
+              5[057]|
+              6[0-2]|
+              [78]\d
+            )|
+            8(?:
+              2[0-59]|
+              3[0-4]|
+              [469]\d|
+              5[1-9]
+            )
+          )\d{4}
+        </nationalNumberPattern>
+        <exampleNumber>6111234</exampleNumber>
+      </mobile>
+      <tollFree>
+        <!-- The UIFN numbers mentioned in the Excel document are not yet included since no real
+             numbers can be found online, and it is not clear what these are; the standard
+             definition would have them under the +800 country code instead of Iceland. -->
+        <nationalNumberPattern>800\d{4}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>8001234</exampleNumber>
+      </tollFree>
+      <premiumRate>
+        <nationalNumberPattern>90\d{5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>9011234</exampleNumber>
+      </premiumRate>
+      <voip>
+        <nationalNumberPattern>49\d{5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>4921234</exampleNumber>
+      </voip>
+      <voicemail>
+        <nationalNumberPattern>
+          (?:
+            6(?:
+              2[1-478]|
+              49|
+              8\d
+            )|
+            8(?:
+              7[0189]|
+              80
+            )|
+            95[48]
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>6211234</exampleNumber>
+      </voicemail>
+      <uan>
+        <nationalNumberPattern>809\d{4}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>8091234</exampleNumber>
+      </uan>
+    </territory>
+
+    <!-- Italy -->
+    <!-- Metadata shared with Vatican City (VA) -->
+    <territory id="IT" countryCode="39" internationalPrefix="00" leadingZeroPossible="true"
+               mobileNumberPortableRegion="true" mainCountryForCode="true">
+      <references>
+        <sourceUrl>https://www.itu.int/oth/T0202000067/en</sourceUrl>
+        <sourceUrl>http://en.wikipedia.org/wiki/%2B964</sourceUrl>
+        <sourceUrl>http://wtng.info/wtng-964-ik.html</sourceUrl>
+      </references>
+      <availableFormats>
+        <!-- The leading zero for fixed numbers will be prepended before the matching of these
+             regular expressions.-->
+        <numberFormat pattern="(\d{2})(\d{3,4})(\d{4})">
+          <leadingDigits>
+            0[26]|
+            55
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <numberFormat pattern="(0[26])(\d{4})(\d{5})">
+          <leadingDigits>0[26]</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
         <!-- 3 digit area codes that don't clash with mobile patterns. -->
@@ -13602,14 +14145,33 @@
               8[013-57]|
               9[014-7]
             )|
+            9(?:
+              0[1-8]|
+              1[02378]|
+              [2-8]\d|
+              9[2-468]
+            )
+          )\d{4}
+        </nationalNumberPattern>
+        <exampleNumber>8765123456</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <!-- Adding 27, 28, 299, 31, 508, 527 and 566 as extra prefixes, as they have been found to
+             be valid by sending SMSs and looking at online number lookup sites. Also added 50[3-79]
+             as we have found information online that the 50[3-9] range has been assigned to Digicel.
+
+             Numbers have been found online for the following ranges 26x, 29x, 53x, 54x, 55x, 56x.
+             Most have mobile numbers online so we have put them under mobile but is possible
+             they are a mixture of fixed line and mobile. -->
+        <nationalNumberPattern>
+          876(?:
+            2[16-9]\d|
+            [348]\d{2}|
             5(?:
-              1[025]|
-              [36][25]|
-              22|
-              4[28]|
-              5[12]|
-              [78]1|
-              9[15]
+              0[3-9]|
+              27|
+              6[0-24-9]|
+              [3-578]\d
             )|
             6(?:
               12|
@@ -13634,7 +14196,59 @@
               [67]1|
               88
             )
-          </leadingDigits>
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>8762101234</exampleNumber>
+      </mobile>
+      <tollFree>
+        <nationalNumberPattern>
+          8(?:
+            00|
+            44|
+            55|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>8002123456</exampleNumber>
+      </tollFree>
+      <premiumRate>
+        <nationalNumberPattern>900[2-9]\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9002123456</exampleNumber>
+      </premiumRate>
+      <personalNumber>
+        <!-- http://www.nanpa.com/pdf/PL_466.pdf -->
+        <nationalNumberPattern>
+          5(?:
+            00|
+            33|
+            44|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>5002345678</exampleNumber>
+      </personalNumber>
+    </territory>
+
+    <!-- Jordan -->
+    <territory id="JO" countryCode="962" internationalPrefix="00"
+               nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
+               mobileNumberPortableRegion="true">
+      <references>
+        <sourceUrl>http://www.trc.gov.jo/images/stories/pdf/NNP_ver200[1].pdf?lang=english</sourceUrl>
+        <sourceUrl>http://www.itu.int/oth/T020200006E/en</sourceUrl>
+        <sourceUrl>http://en.wikipedia.org/wiki/%2B962</sourceUrl>
+      </references>
+      <availableFormats>
+        <numberFormat nationalPrefixFormattingRule="($NP$FG)"
+          pattern="(\d)(\d{3})(\d{4})">
           <leadingDigits>
             7(?:
               12|
@@ -13715,56 +14329,55 @@
         </numberFormat>
       </availableFormats>
       <generalDesc>
-        <nationalNumberPattern>
-          1\d{7,12}|
-          [2-9]\d{9,10}
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{6,10}</possibleNumberPattern>
-        <exampleNumber>1123456789</exampleNumber>
-      </fixedLine>
-      <!-- http://en.wikipedia.org/wiki/Mobile_telephone_numbering_in_India -->
-      <!-- The document titled "List of MSC codes" linked off
-           http://www.dot.gov.in/access-services/national-numbering-plan-2003 was helpful but last
-           updated 2012 - more updates at http://www.dot.gov.in/access-services/allotment-msc-codes.
-           -->
-      <mobile>
-        <!-- A couple of additional prefixes found neither on the wikipedia page nor in the MSC
-             codes list, are added because SMS messages have been successfully sent to these
-             numbers. It seems almost impossible to know for some of these numbers whether they are
-             land-line or mobile, since the ranges overlap. We go to a maximum depth of five where
-             necessary to distinguish between mobile and fixed-line numbers. Extra prefixes added:
-             7601, 768[56], 7695, 8299, 8309. New prefixes were also added based on the document
-             provided from mobile carriers: https://github.com/googlei18n/libphonenumber/issues/260
-             and https://github.com/googlei18n/libphonenumber/pull/692/ -->
+        <nationalNumberPattern>[235-9]\d{7,8}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8,9}</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
         <nationalNumberPattern>
           (?:
-            7(?:
-              0\d{3}|
-              2(?:
-                [0235679]\d{2}|
-                [14][017-9]\d|
-                8(?:
-                  [0-59]\d|
-                  6[089]
-                )|
-                9[389]\d
+            2(?:
+              6(?:
+                2[0-35-9]|
+                3[0-57-8]|
+                4[24-7]|
+                5[0-24-8]|
+                [6-8][023]|
+                9[0-3]
               )|
+              7(?:
+                0[1-79]|
+                10|
+                2[014-7]|
+                3[0-689]|
+                4[019]|
+                5[0-3578]
+              )
+            )|
+            32(?:
+              0[1-69]|
+              1[1-35-7]|
+              2[024-7]|
+              3\d|
+              4[0-3]|
+              [57][023]|
+              6[03]
+            )|
+            53(?:
+              0[0-3]|
+              [13][023]|
+              2[0-59]|
+              49|
+              5[0-35-9]|
+              6[15]|
+              7[45]|
+              8[1-6]|
+              9[0-36-9]
+            )|
+            6(?:
+              2[50]0|
               3(?:
-                [05-8]\d{2}|
-                1(?:
-                  [089]\d|
-                  7[5-8]
-                )|
-                2(?:
-                  [5-8]\d|
-                  [01][089]
-                )|
-                3[17-9]\d|
-                4(?:
-                  [07-9]\d|
-                  11
-                )|
-                9[01689]\d
+                 00|
+                 33
               )|
               4(?:
                 0[1-9]\d|
@@ -13815,42 +14428,24 @@
               8[0-79]\d{2}|
               99[4-9]\d
             )|
-            8(?:
-              0(?:
-                [01589]|
-                6[67]
-              )|
-              1(?:
-                [02-57-9]\d|
-                1[0135-9]
-              )|
-              2(?:
-                [236-9]|
-                5[1-9]
-              )|
-              3(?:
-                [0357-9]|
-                4[1-9]
-              )|
-              [45]\d{2}|
-              6[02457-9]\d|
-              7(?:
-                07|
-                [1-69]\d
-              )|
-              8(?:
-                [0-26-9]\d|
-                44|
-                5[2-9]
-              )|
-              9(?:
-                [035-9]|
-                2[2-9]|
-                4[0-8]
-              )
-            )\d|
-            9\d{4}
-          )\d{5}
+            87(?:
+              [02]0|
+              7[08]|
+              90
+            )
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>62001234</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <nationalNumberPattern>
+          7(?:
+            55|
+            7[025-9]|
+            8[015-9]|
+            9[0-25-9]
+          )\d{6}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{10}</possibleNumberPattern>
         <exampleNumber>9123456789</exampleNumber>
@@ -25239,9 +25834,9 @@
         <exampleNumber>6702345678</exampleNumber>
       </fixedLine>
       <mobile>
-        <!-- Numbers found online with prefix 35. -->
-        <nationalNumberPattern>3[58]\d{4}</nationalNumberPattern>
-        <exampleNumber>381234</exampleNumber>
+        <nationalNumberPattern>[7-9]0[1-9]\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9012345678</exampleNumber>
       </mobile>
       <tollFree>
         <nationalNumberPattern>
@@ -25286,11 +25881,13 @@
            too. -->
     </territory>
 
-    <!-- Mauritania -->
-    <territory id="MR" countryCode="222" internationalPrefix="00" >
+    <!-- Kenya -->
+    <territory id="KE" countryCode="254" internationalPrefix="000"
+               nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
+               mobileNumberPortableRegion="true" nationalPrefixForParsing="005|0">
       <references>
-        <sourceUrl>http://www.llv.li/#/11193</sourceUrl>
-        <sourceUrl>https://www.itu.int/oth/T020200007B/en</sourceUrl>
+        <sourceUrl>http://www.ca.go.ke/images/downloads/NUMBERING/Telecommunication%20Numbering%20Plan%20For%20Kenya%20Feb%202016.Pdf</sourceUrl>
+        <sourceUrl>http://en.wikipedia.org/wiki/+254</sourceUrl>
       </references>
       <availableFormats>
         <!-- Some different patterns for tollfree and shared cost numbers may be found by searching
@@ -25300,10 +25897,9 @@
           <leadingDigits>[23789]</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <!-- Number format for International mobile services -->
-        <numberFormat pattern="(\d{3})(\d{3})(\d{3})">
-          <leadingDigits>6[56]</leadingDigits>
-          <format>$1 $2 $3</format>
+        <numberFormat pattern="(\d{3})(\d{6})">
+          <leadingDigits>7</leadingDigits>
+          <format>$1 $2</format>
         </numberFormat>
         <!-- Number format for Voicemail services -->
         <numberFormat pattern="(69)(7\d{2})(\d{4})">
@@ -25358,10 +25954,11 @@
             )
           )\d{5}|
           7(?:
-            [37-9]\d|
-            42|
-            56
-          )\d{4}
+            [0-36]\d|
+            5[0-6]|
+            [79][0-7]|
+            8[0-25-9]
+          )\d{6}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
         <exampleNumber>660234567</exampleNumber>
@@ -25495,11 +26092,76 @@
         </numberFormat>
       </availableFormats>
       <generalDesc>
+        <nationalNumberPattern>[1-9]\d{7,9}</nationalNumberPattern>
+        <possibleNumberPattern>\d{6,10}</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
+        <!-- Allowing subscriber numbers beginning with 5 since Mobitel have informed us they have
+             started issuing fixed-line numbers like this. Apparently, mobile-company-issued
+             fixed-line numbers are one digit longer than government-issued numbers. Moreover, the
+             range beginning with 6 seems to include some numbers that are one digit longer as well.
+             Allowing 238\d{6} and 234[234]\d{4} based on information from Cambodia Yellow Pages.
+             Note that numbers beginning with 234 are split across two patterns. -->
         <nationalNumberPattern>
-          2\d{7,8}|
-          [37-9]\d{8}|
-          4\d{6}|
-          5\d{6,8}
+          (?:
+            2[3-6]|
+            3[2-6]|
+            4[2-4]|
+            [5-7][2-5]
+          )(?:
+            [237-9]|
+            4[56]|
+            5\d|
+            6\d?
+          )\d{5}|
+          23(?:
+            4[234]|
+            8\d{2}
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{6,9}</possibleNumberPattern>
+        <exampleNumber>23756789</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <!-- SMART uses prefixes 01[056], 070, 08[167] and 09[368].
+             Beeline uses 060.
+             Mobitel uses 01[1247].
+             Cellcard uses 0857 and 061.
+             Extra prefixes found online: 088, 097.
+             Allowing 9-digit 1[28], 31, 38 and 76 numbers based on information from Cambodia Yellow
+             Pages and online search. Allowing 71 based on open-source report and online search. -->
+        <nationalNumberPattern>
+          (?:
+            1(?:
+              [013-79]\d|
+              [28]\d{1,2}
+            )|
+            2[3-6]48|
+            3(?:
+              [18]\d{2}|
+              [2-6]48
+            )|
+            4[2-4]48|
+            5[2-5]48|
+            6(?:
+              [016-9]\d|
+              [2-5]48
+            )|
+            7(?:
+              [07-9]\d|
+              [16]\d{2}|
+              [2-5]48
+            )|
+            8(?:
+              [013-79]\d|
+              8\d{2}
+            )|
+            9(?:
+              6\d{2}|
+              7\d{1,2}|
+              [0-589]\d
+            )
+          )\d{5}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
       </generalDesc>
@@ -25611,15 +26273,9 @@
         <exampleNumber>21001234</exampleNumber>
       </fixedLine>
       <mobile>
-        <!-- 7210 and 92XX come from the allocations listed on http://www.mca.org.mt, but they are
-             not listed in the latest ITU document. -->
-        <nationalNumberPattern>
-          7(?:
-            [0-8]\d{2}|
-            99\d
-          )\d{5}
-        </nationalNumberPattern>
-        <exampleNumber>96961234</exampleNumber>
+        <nationalNumberPattern>7\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>72012345</exampleNumber>
       </mobile>
       <pager>
         <nationalNumberPattern>7117\d{4}</nationalNumberPattern>
@@ -25744,9 +26400,20 @@
       </fixedLine>
       <!-- Added prefix 580 and 581 as per information from the carrier. -->
       <mobile>
-        <nationalNumberPattern>6[2679][18]\d{6}</nationalNumberPattern>
-        <possibleNumberPattern>\d{9}</possibleNumberPattern>
-        <exampleNumber>628123456</exampleNumber>
+        <!-- Added some more prefixes in the 66 and 76 range from online numbers. -->
+        <nationalNumberPattern>
+          869(?:
+            5(?:
+              5[6-8]|
+              6[5-7]
+            )|
+            66\d|
+            76[02-7]
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <!-- Example number from the ITU document. -->
+        <exampleNumber>8697652917</exampleNumber>
       </mobile>
       <tollFree>
         <nationalNumberPattern>800\d{5}</nationalNumberPattern>
@@ -25777,10 +26444,14 @@
              numbers will be issued that begin with 200, numbers beginning with 201 will be issued
              one at a time, and 202-209 in blocks. -->
         <nationalNumberPattern>
-          20(?:
-            1\d{5}|
-            [2-689]\d{1,7}
-          )
+          5(?:
+            00|
+            33|
+            44|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{4,10}</possibleNumberPattern>
         <exampleNumber>20201234</exampleNumber>
@@ -25838,40 +26509,128 @@
         <exampleNumber>3011234567</exampleNumber>
       </fixedLine>
       <mobile>
-        <nationalNumberPattern>9\d{9}</nationalNumberPattern>
-        <exampleNumber>9123456789</exampleNumber>
+        <nationalNumberPattern>19[123]\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>1921234567</exampleNumber>
       </mobile>
-      <tollFree>
-        <nationalNumberPattern>80[012]\d{4}</nationalNumberPattern>
-        <possibleNumberPattern>\d{7}</possibleNumberPattern>
-        <exampleNumber>8001234</exampleNumber>
-      </tollFree>
-      <premiumRate>
-        <nationalNumberPattern>30\d{5}</nationalNumberPattern>
-        <possibleNumberPattern>\d{7}</possibleNumberPattern>
-        <exampleNumber>3012345</exampleNumber>
-      </premiumRate>
-      <voip>
-        <nationalNumberPattern>
-          3(?:
-            20|
-            9\d
-          )\d{4}
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{7}</possibleNumberPattern>
-        <exampleNumber>3201234</exampleNumber>
-      </voip>
     </territory>
 
-    <!-- Maldives -->
-    <territory id="MV" countryCode="960" internationalPrefix="0(?:0|19)"
-               preferredInternationalPrefix="00">
+    <!-- Korea (Rep. of) -->
+    <!-- Exceptions :
+        internationalPrefix
+            0031, 0033, 0071, 0073 - Special services of KT and DACOM, ignorable
+        nationalPrefix
+            1[4-6]XX-YYYY - Country-wide common number services, display as it is without hyphens.
+        00798 is an ITFS range. So it doesn't appear here as internationalPrefix. -->
+    <territory id="KR" countryCode="82"
+               internationalPrefix="00(?:[124-68]|3\d{2}|7(?:[0-8]\d|9[0-79]))"
+               nationalPrefix="0" nationalPrefixForParsing="0(8[1-46-8]|85\d{2})?"
+               nationalPrefixFormattingRule="$NP$FG" carrierCodeFormattingRule="$NP$CC-$FG"
+               mobileNumberPortableRegion="true">
       <references>
-        <sourceUrl>http://www.itu.int/oth/T0202000082/en</sourceUrl>
-        <sourceUrl>http://www.dhiraagu.com.mv</sourceUrl>
+        <sourceUrl>http://www.itu.int/oth/T0202000072/en</sourceUrl>
+        <sourceUrl>http://en.wikipedia.org/wiki/%2B82</sourceUrl>
+        <sourceUrl>http://www.kcc.go.kr/user.do?mode=view&amp;page=P02030300&amp;dc=K02030300&amp;boardId=1074&amp;boardSeq=2349</sourceUrl>
+        <sourceUrl>http://www.kcc.go.kr/user.do?mode=view&amp;page=P02030300&amp;dc=K02030300&amp;boardId=1074&amp;boardSeq=2240</sourceUrl>
+        <sourceUrl>http://www.telecentro.co.kr/sub/index.php?job=detail&amp;ebcf_id=faq&amp;page=1&amp;mid=0503&amp;eb_seq=36</sourceUrl>
       </references>
       <availableFormats>
-        <numberFormat pattern="(\d{3})(\d{4})">
+        <numberFormat pattern="(\d{5})(\d{3,4})(\d{4})"
+          nationalPrefixFormattingRule="$FG" leadingZeroPossible="true">
+          <leadingDigits>00798</leadingDigits>
+          <format>$1 $2 $3</format>
+          <intlFormat>NA</intlFormat>
+        </numberFormat>
+        <numberFormat pattern="(\d{5})(\d{2})(\d{3})(\d{4})"
+          nationalPrefixFormattingRule="$FG" leadingZeroPossible="true">
+          <leadingDigits>00798</leadingDigits>
+          <format>$1 $2 $3 $4</format>
+          <intlFormat>NA</intlFormat>
+        </numberFormat>
+        <numberFormat pattern="(\d{2})(\d{4})(\d{4})">
+          <leadingDigits>
+            1(?:
+              0|
+              1[19]|
+              [69]9|
+              5[458]
+            )|
+            [57]0
+          </leadingDigits>
+          <leadingDigits>
+            1(?:
+              0|
+              1[19]|
+              [69]9|
+              5(?:
+                44|
+                59|
+                8
+              )
+            )|
+            [57]0
+          </leadingDigits>
+          <format>$1-$2-$3</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{2})(\d{3,4})(\d{4})">
+          <leadingDigits>
+            1(?:
+              [01]|
+              5[1-4]|
+              6[2-8]|
+              [7-9]
+            )|
+            [68]0|
+            [3-6][1-9][1-9]
+          </leadingDigits>
+          <leadingDigits>
+            1(?:
+              [01]|
+              5(?:
+                [1-3]|
+                4[56]
+              )|
+              6[2-8]|
+              [7-9]
+            )|
+            [68]0|
+            [3-6][1-9][1-9]
+          </leadingDigits>
+          <format>$1-$2-$3</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{3})(\d)(\d{4})">
+          <leadingDigits>131</leadingDigits>
+          <leadingDigits>1312</leadingDigits>
+          <format>$1-$2-$3</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{3})(\d{2})(\d{4})">
+          <leadingDigits>131</leadingDigits>
+          <leadingDigits>131[13-9]</leadingDigits>
+          <format>$1-$2-$3</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>13[2-9]</leadingDigits>
+          <format>$1-$2-$3</format>
+        </numberFormat>
+        <!-- 030 numbers are used for Unified Messaging Services, according to the plan. There is a
+             limit of what digits may follow the 030, but we ignore that here. These numbers are
+             actually not supported for validation purposes by the library at the moment as no
+             online examples can be found, but we leave theme here so formatting continues to work
+             if they are entered. -->
+        <numberFormat pattern="(\d{2})(\d{2})(\d{3})(\d{4})">
+          <leadingDigits>30</leadingDigits>
+          <format>$1-$2-$3-$4</format>
+        </numberFormat>
+        <numberFormat pattern="(\d)(\d{3,4})(\d{4})">
+          <leadingDigits>2[1-9]</leadingDigits>
+          <format>$1-$2-$3</format>
+        </numberFormat>
+        <numberFormat pattern="(\d)(\d{3,4})">
+          <leadingDigits>21[0-46-9]</leadingDigits>
+          <format>$1-$2</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{2})(\d{3,4})">
+          <leadingDigits>[3-6][1-9]1</leadingDigits>
           <leadingDigits>
             [3467]|
             9(?:
@@ -25881,12 +26640,39 @@
           </leadingDigits>
           <format>$1-$2</format>
         </numberFormat>
-        <numberFormat pattern="(9\d{2})(\d{7})" nationalPrefixFormattingRule="$FG">
+        <!-- Company numbers. -->
+        <numberFormat pattern="(\d{4})(\d{4})"
+          nationalPrefixFormattingRule="$FG">
           <leadingDigits>
-            9(?:
-              6[013]|
-              7[245]|
-              8
+            1(?:
+              5[46-9]|
+              6[04678]|
+              8[03579]
+            )
+          </leadingDigits>
+          <leadingDigits>
+            1(?:
+              5(?:
+                44|
+                66|
+                77|
+                88|
+                99
+              )|
+              6(?:
+                00|
+                44|
+                6[16]|
+                70|
+                88
+              )|
+              8(?:
+                00|
+                33|
+                55|
+                77|
+                99
+              )
             )
             </leadingDigits>
           <format>$1-$2</format>
@@ -25894,14 +26680,18 @@
       </availableFormats>
       <generalDesc>
         <nationalNumberPattern>
-          [3467]\d{6}|
-          9(?:
-            00\d{7}|
-            \d{6}
-          )
+          007\d{9,11}|
+          [1-7]\d{3,9}|
+          8\d{8}
         </nationalNumberPattern>
-        <possibleNumberPattern>\d{7,10}</possibleNumberPattern>
+        <possibleNumberPattern>\d{4,14}</possibleNumberPattern>
       </generalDesc>
+      <noInternationalDialling>
+        <!-- 00798 ITFS numbers can't be dialled internationally. -->
+        <nationalNumberPattern>00798\d{7,9}</nationalNumberPattern>
+        <possibleNumberPattern>\d{12,14}</possibleNumberPattern>
+        <exampleNumber>007981234567</exampleNumber>
+      </noInternationalDialling>
       <fixedLine>
         <!-- 300 has been added as prefixes from online searches, since the numbers seemed to be
              diallable. -->
@@ -25936,24 +26726,26 @@
       </fixedLine>
       <!-- Added prefix 982 per IR21 from the carrier. -->
       <mobile>
-        <!-- http://www.anrt.ma/sites/default/files/Blocs_de_numeros_par_operateur.pdf
-             Prefixes 69[0136] added based on numbers found online. -->
-        <!-- Added prefix 982 as per IR21 from the carrier. -->
-        <nationalNumberPattern>
-          6(?:
-            0[0-8]|
-            [12-79]\d|
-            8[017]
-          )\d{6}
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{7}</possibleNumberPattern>
-        <exampleNumber>7712345</exampleNumber>
+        <nationalNumberPattern>1[0-26-9]\d{7,8}</nationalNumberPattern>
+        <possibleNumberPattern>\d{9,10}</possibleNumberPattern>
+        <exampleNumber>1000000000</exampleNumber>
       </mobile>
       <pager>
         <nationalNumberPattern>781\d{4}</nationalNumberPattern>
         <possibleNumberPattern>\d{7}</possibleNumberPattern>
         <exampleNumber>7812345</exampleNumber>
       </pager>
+      <tollFree>
+        <nationalNumberPattern>
+          (?:
+            00798\d{0,2}|
+            80
+          )\d{7}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{9,14}</possibleNumberPattern>
+        <exampleNumber>801234567</exampleNumber>
+      </tollFree>
+      <!-- The information below is provided by a Korean person. -->
       <premiumRate>
         <nationalNumberPattern>900\d{7}</nationalNumberPattern>
         <possibleNumberPattern>\d{10}</possibleNumberPattern>
@@ -25986,12 +26778,29 @@
       </availableFormats>
       <generalDesc>
         <nationalNumberPattern>
-          (?:
-            1(?:
-              \d{2}
-            )?|
-            [2789]\d{2}
-          )\d{6}
+          1(?:
+            5(?:
+              44|
+              66|
+              77|
+              88|
+              99
+            )|
+            6(?:
+              00|
+              44|
+              6[16]|
+              70|
+              88
+            )|
+            8(?:
+              00|
+              33|
+              55|
+              77|
+              99
+            )
+          )\d{4}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
       </generalDesc>
@@ -26040,13 +26849,25 @@
            numbers, regardless of whether they are written in international format (leading 1) or
            national format (leading 044/045), will be parsed into the same form. -->
       <availableFormats>
-        <numberFormat pattern="([358]\d)(\d{4})(\d{4})">
+        <!-- Format is from ITU. -->
+        <numberFormat pattern="(\d{4})(\d{3,4})">
           <leadingDigits>
-            [346]|
-            7[2-57-9]|
-            9[1-9]
+            [16]|
+            2(?:
+              [0-35-9]|
+              4[0-35-9]
+            )|
+            9[024-9]|
+            52[25]
           </leadingDigits>
-          <format>$1 $2 $3</format>
+          <format>$1 $2</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{3})(\d{5})">
+          <leadingDigits>
+            244|
+            5[015]
+          </leadingDigits>
+          <format>$1 $2</format>
         </numberFormat>
       </availableFormats>
       <generalDesc>
@@ -26072,23 +26893,32 @@
         <!-- The 795 prefix is not in the ITU plan (5.XII.2014), but was added because such a number
              was dialed successfully. -->
         <nationalNumberPattern>
-          48\d{3}|
-          7(?:
-            30|
-            [46-8]\d|
-            5[025-9]|
-            9[0-5]
-          )\d{4}|
-          8[4-9]\d{5}|
-          9(?:
-            1[2-9]|
-            2[013-9]|
-            3[0-2]|
-            [46]\d|
-            5[0-46-9]|
-            7[0-689]|
-            8[0-79]|
-            9[0-8]
+          (?:
+            5(?:
+              [05]\d{2}|
+              1[0-7]\d|
+              2(?:
+                22|
+                5[25]
+              )
+            )|
+            6(?:
+              0[034679]\d|
+              222|
+              5[015-9]\d|
+              6\d{2}|
+              7[067]\d|
+              9[0369]\d
+            )|
+            9(?:
+              0[09]\d|
+              22\d|
+              4[01479]\d|
+              55\d|
+              6[0679]\d|
+              [79]\d{2}|
+              8[057-9]\d
+            )
           )\d{4}
         </nationalNumberPattern>
         <exampleNumber>7421234</exampleNumber>
@@ -26202,11 +27032,20 @@
              Prefixes 69[0136] added based on numbers found online. -->
         <!-- Added prefix 982 as per IR21 from the carrier. -->
         <nationalNumberPattern>
-          6(?:
-            0[0-8]|
-            [12-79]\d|
-            8[017]
-          )\d{6}
+          345(?:
+            32[1-9]|
+            5(?:
+              1[67]|
+              2[5-7]|
+              4[6-8]|
+              76
+            )|
+            9(?:
+              1[67]|
+              2[2-9]|
+              3[689]
+            )
+          )\d{4}
         </nationalNumberPattern>
         <exampleNumber>650123456</exampleNumber>
       </mobile>
@@ -26215,11 +27054,29 @@
         <possibleNumberPattern>\d{6}</possibleNumberPattern>
         <exampleNumber>800000</exampleNumber>
       </tollFree>
-      <voip>
-        <nationalNumberPattern>64\d{5}</nationalNumberPattern>
-        <possibleNumberPattern>\d{7}</possibleNumberPattern>
-        <exampleNumber>6412345</exampleNumber>
-      </voip>
+      <premiumRate>
+        <nationalNumberPattern>
+          900[2-9]\d{6}|
+          345976\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9002345678</exampleNumber>
+      </premiumRate>
+      <personalNumber>
+        <!-- http://www.nanpa.com/pdf/PL_466.pdf -->
+        <nationalNumberPattern>
+          5(?:
+            00|
+            33|
+            44|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>5002345678</exampleNumber>
+      </personalNumber>
     </territory>
 
     <!-- Sudan -->
@@ -26228,11 +27085,7 @@
       <references>
         <sourceUrl>http://www.itu.int/oth/T02020000C4/en</sourceUrl>
       </references>
-      <availableFormats>
-        <numberFormat pattern="(\d{2})(\d{3})(\d{4})">
-          <format>$1 $2 $3</format>
-        </numberFormat>
-      </availableFormats>
+      <!-- Formatting rules obtained from Russia. -->
       <generalDesc>
         <nationalNumberPattern>[19]\d{8}</nationalNumberPattern>
         <possibleNumberPattern>\d{9}</possibleNumberPattern>
@@ -26432,27 +27285,93 @@
         </numberFormat>
         <numberFormat pattern="(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})">
           <leadingDigits>
-            25[245]|
-            67[3-6]
-          </leadingDigits>
-          <format>$1-$2 $3 $4 $5</format>
-          <intlFormat>$1 $2 $3 $4 $5</intlFormat>
+            [13-6]|
+            7(?:
+              [2-57]|
+              62|
+              8[0-7]|
+              9[04-9]
+            )|
+            8[02-9]|
+            9
+            </leadingDigits>
+          <format>$1 $2 $3</format>
         </numberFormat>
         <numberFormat pattern="(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})">
           <leadingDigits>
-            25[245]|
-            67[3-6]
+            [89][01]|
+            7(?:
+              [01]|
+              6[013-9]|
+              8[89]|
+              9[1-3]
+            )
           </leadingDigits>
           <format>$1-$2 $3 $4 $5</format>
           <intlFormat>$1 $2 $3 $4 $5</intlFormat>
         </numberFormat>
       </availableFormats>
       <generalDesc>
+        <nationalNumberPattern>[13-9]\d{6,7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7,8}</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
         <nationalNumberPattern>
-          [1-35-9]\d{5,11}|
-          4\d{6,8}
+          (?:
+            [14-6]\d{2}|
+            7(?:
+              [2-57]\d|
+              62|
+              8[0-7]|
+              9[04-9]
+            )|
+            8[02-9]\d|
+            9\d{2}
+          )\d{4}
         </nationalNumberPattern>
-        <possibleNumberPattern>\d{6,12}</possibleNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>1123456</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <!-- We only validate the first three digits here, since the ranges are growing rapidly.
+             The 79[02-9] prefixes were added from bug reports and numbers found online. -->
+        <nationalNumberPattern>
+          (?:
+            3\d|
+            7(?:
+              [01]\d|
+              6[013-9]|
+              8[89]|
+              9[1-3]
+            )|
+            81\d
+          )\d{5}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7,8}</possibleNumberPattern>
+        <exampleNumber>71123456</exampleNumber>
+      </mobile>
+      <premiumRate>
+        <nationalNumberPattern>9[01]\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>90123456</exampleNumber>
+      </premiumRate>
+      <sharedCost>
+        <nationalNumberPattern>80\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>80123456</exampleNumber>
+      </sharedCost>
+    </territory>
+
+    <!-- Saint Lucia -->
+    <territory id="LC" countryCode="1" leadingDigits="758" nationalPrefix="1"
+               internationalPrefix="011">
+      <references>
+        <sourceUrl>http://www.itu.int/oth/T02020000B1/en</sourceUrl>
+      </references>
+      <generalDesc>
+        <!-- NANPA country - uses US formatting rules -->
+        <nationalNumberPattern>[5789]\d{9}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}(?:\d{3})?</possibleNumberPattern>
       </generalDesc>
       <!-- Note that numbers starting with 101, 106, 131, 151, 156 and 168 have not been assigned to
            any rule below since we are not sure what the "servicios 102/103" refer to here. -->
@@ -26604,10 +27523,14 @@
       </premiumRate>
       <sharedCost>
         <nationalNumberPattern>
-          77(?:
-            0\d{3}(?:\d{3})?|
-            [1-7]\d{6}
-          )
+          5(?:
+            00|
+            33|
+            44|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{6}(?:\d{3})?</possibleNumberPattern>
         <exampleNumber>771234567</exampleNumber>
@@ -26622,25 +27545,25 @@
     <territory id="ME" countryCode="382" internationalPrefix="00" nationalPrefix="0"
                nationalPrefixFormattingRule="$NP$FG">
       <references>
-        <sourceUrl>http://www.itu.int/oth/T0202000091/en</sourceUrl>
+        <sourceUrl>http://www.llv.li/#/11193</sourceUrl>
+        <sourceUrl>https://www.itu.int/oth/T020200007B/en</sourceUrl>
       </references>
       <availableFormats>
-        <numberFormat pattern="(\d{2})(\d{3})(\d{3})">
-          <leadingDigits>[2-57-9]|6[036-9]</leadingDigits>
-          <leadingDigits>
-            [2-57-9]|
-            6(?:
-              [03689]|
-              7(?:
-                [0-8]|
-                9[3-9]
-              )
-            )
-          </leadingDigits>
+        <!-- Some different patterns for tollfree and shared cost numbers may be found by searching
+             for "Mehrwertnummer" at http://www.telecom.li. -->
+        <!-- Number format for National mobile services ,  Fixed line , Toll Free , uan and Premium rate services -->
+        <numberFormat pattern="(\d{3})(\d{2})(\d{2})">
+          <leadingDigits>[23789]</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <numberFormat pattern="(80\d)(\d{3})(\d{3})">
-          <leadingDigits>80</leadingDigits>
+        <!-- Number format for International mobile services -->
+        <numberFormat pattern="(\d{3})(\d{3})(\d{3})">
+          <leadingDigits>6[56]</leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- Number format for Voicemail services -->
+        <numberFormat pattern="(69)(7\d{2})(\d{4})">
+          <leadingDigits>697</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
       </availableFormats>
@@ -26678,40 +27601,43 @@
         <!-- Mobile numbers start with 600, 632, 661, 67, 68 or 69. -->
         <nationalNumberPattern>
           6(?:
-            00\d|
-            32\d|
-            [89]\d{2}|
-            61\d|
-            7(?:
-              [0-8]\d|
-              9(?:
-                [3-9]|
-                [0-2]\d
-              )
+            51[01]|
+            6(?:
+              0[0-6]|
+              2[016-9]|
+              39
             )
+          )\d{5}|
+          7(?:
+            [37-9]\d|
+            42|
+            56
           )\d{4}
         </nationalNumberPattern>
-        <!-- According to ITU it is possible for the numbers to be between length 4-12
-             (http://www.itu.int/oth/T02020000DA/en). However, in reality they seem to be 8 or 9
-             digits long, based on the Montenegro document. -->
-        <possibleNumberPattern>\d{8,9}</possibleNumberPattern>
-        <exampleNumber>67622901</exampleNumber>
+        <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
+        <exampleNumber>660234567</exampleNumber>
       </mobile>
       <tollFree>
-        <!-- All toll free numbers have prefix 80. -->
-        <nationalNumberPattern>80\d{6}</nationalNumberPattern>
-        <possibleNumberPattern>\d{8}</possibleNumberPattern>
-        <exampleNumber>80080002</exampleNumber>
+        <nationalNumberPattern>
+          80(?:
+            02[28]|
+            9\d{2}
+          )\d{2}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>8002222</exampleNumber>
       </tollFree>
       <premiumRate>
         <!-- Numbers with prefix 94 or 95 are services with additional charges. -->
         <nationalNumberPattern>
-          (?:
-            9(?:
-              4[1568]|
-              5[178]
-            )
-          )\d{5}
+          90(?:
+            02[258]|
+            1(?:
+              23|
+              3[14]
+            )|
+            66[136]
+          )\d{2}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{8}</possibleNumberPattern>
         <exampleNumber>81234567</exampleNumber>
@@ -26732,13 +27658,26 @@
         <exampleNumber>31234567</exampleNumber>
       </voip>
       <uan>
-        <!-- Although not detailed in the plan beyond mentioning their existence, it seems 7000
-             numbers are used for companies. Most of the online examples are in fact alpha-numbers.
-             -->
-        <nationalNumberPattern>7000\d{7}</nationalNumberPattern>
-        <possibleNumberPattern>\d{11}</possibleNumberPattern>
-        <exampleNumber>70001234567</exampleNumber>
+        <nationalNumberPattern>
+          870(?:
+            28|
+            87
+          )\d{2}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>8702812</exampleNumber>
       </uan>
+      <voicemail>
+        <nationalNumberPattern>
+          697(?:
+            42|
+            56|
+            [7-9]\d
+          )\d{4}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{9}</possibleNumberPattern>
+        <exampleNumber>697861234</exampleNumber>
+      </voicemail>
     </territory>
 
     <!-- Saint Helena -->
@@ -26766,9 +27705,12 @@
         <exampleNumber>22158</exampleNumber>
       </fixedLine>
       <mobile>
-        <!-- Effective 1st August 2015 -->
-        <nationalNumberPattern>[56]\d{4}</nationalNumberPattern>
-        <possibleNumberPattern>\d{5}</possibleNumberPattern>
+        <!-- Adding the prefix 76 for Dialog, based on information from open-source users. -->
+        <!-- Adding Prefix 702 and 703 based on update from Mobitel which has verified these
+             prefixes to be correct. -->
+        <nationalNumberPattern>7[0125-8]\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{9}</possibleNumberPattern>
+        <exampleNumber>712345678</exampleNumber>
       </mobile>
       <!-- The ITU doc reserves prefixes 260 and 261 for Information Service and prefix 263 for
            Flexible access. We do not support these prefixes as we do not have any information
@@ -26806,22 +27748,29 @@
           </leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <numberFormat pattern="(6\d)(\d{3})(\d{3,4})">
-          <leadingDigits>6</leadingDigits>
+        <!-- This format captures prefixes 2,5,7,9 of the new 9 digit numbering plan -->
+        <numberFormat pattern="(\d{3})(\d{3})(\d{3})">
+          <leadingDigits>[2579]</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
         <numberFormat pattern="(88)(\d{3})(\d{3})">
           <leadingDigits>88</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <numberFormat pattern="(870)(\d{3})(\d{3})">
-          <leadingDigits>870</leadingDigits>
+         <!-- This format captures prefixes 3,8 of the new 9 digit numbering plan -->
+        <numberFormat pattern="(\d{2})(\d{3})(\d{4})">
+          <leadingDigits>[38]</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
       </availableFormats>
       <generalDesc>
-        <nationalNumberPattern>[68]\d{7,8}</nationalNumberPattern>
-        <possibleNumberPattern>\d{8,9}</possibleNumberPattern>
+        <nationalNumberPattern>
+          2\d{7,8}|
+          [37-9]\d{8}|
+          4\d{6}|
+          5\d{6,8}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
       </generalDesc>
       <fixedLine>
         <!-- Prefix 32 added after a user report.-->
@@ -26838,16 +27787,36 @@
         <exampleNumber>11234567</exampleNumber>
       </fixedLine>
       <mobile>
-        <!-- We include 043 and 049 here - it is VoIP in the plan, but is actually used to provide
-             mobile coverage to Kosovo. Also added 068, which is used by the mobile operator bob.si
-         -->
+        <!-- West Africa Telecom seems to be a mobile company from their website. Adding Atlantic
+             Wireless from the document, even though from online news reports it is not clear they
+             are still operating. -->
+        <!-- This second regex supports the new 9 digit numbering plan that is available in parallel
+             with the old numbering plan. Prefixes 33202 and 3325 (WASSCOM and Atlantic Realty &
+             Investment Corporation) have been added here as there is no evidence of them being
+             not mobile numbers. They also exist in VOIP section.-->
         <nationalNumberPattern>
           (?:
-            [37][01]|
-            4[0139]|
-            51|
-            6[48]
-          )\d{6}
+            330\d|
+            4[67]|
+            5\d|
+            77\d{2}|
+            88\d{2}|
+            994\d
+          )\d{5}|
+          (?:
+            20\d{3}|
+            33(?:
+                0\d{2}|
+                2(?:
+                   02|
+                   5\d
+                )
+            )|
+            555\d{2}|
+            77[0567]\d{2}|
+            88[068]\d{2}|
+            994\d{2}
+          )\d{4}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{8}</possibleNumberPattern>
         <exampleNumber>31234567</exampleNumber>
@@ -26978,12 +27947,34 @@
           <leadingDigits>2</leadingDigits>
           <format>$1/$2 $3 $4</format>
         </numberFormat>
-        <numberFormat pattern="([3-5]\d)(\d{3})(\d{2})(\d{2})">
-          <leadingDigits>[3-5]</leadingDigits>
-          <format>$1/$2 $3 $4</format>
+        <!-- We consider numbers starting with 240 and 249 valid, but we do not format them, as we
+             found no examples of such numbers online.
+        -->
+        <numberFormat pattern="(\d{2})(\d{2})(\d{2})(\d{1,4})">
+          <leadingDigits>
+            2(?:
+              [12589]|
+              4[12]
+            )|
+            [3-5]|
+            7[1-9]|
+            8(?:
+              [1-9]|
+              0[2-9]
+            )|
+            9(?:
+              [1-9]|
+              0[2-46-9]
+            )
+          </leadingDigits>
+          <format>$1 $2 $3 $4</format>
         </numberFormat>
-        <numberFormat pattern="(08)(\d{3})(\d{3})">
-          <leadingDigits>08</leadingDigits>
+        <numberFormat pattern="(\d{3})(\d{2})(\d{3})">
+          <leadingDigits>
+            70|
+            80[01]|
+            90[015]
+          </leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
         <numberFormat pattern="(9090)(\d{3})">
@@ -27001,23 +27992,26 @@
         <possibleNumberPattern>\d{6,9}</possibleNumberPattern>
       </generalDesc>
       <fixedLine>
-        <!-- Adding 20 61 from online numbers. -->
+        <!-- Even though 20 is listed in the fixed-line plan, other documentation clarify that it is
+             for VOIP. Furthermore, even though the plan says that numbers beginning with 2[346-8]
+             by default are 8 digits, from information found online it seems that they can actually
+             be 4 up to 11 digits long. -->
         <nationalNumberPattern>
           (?:
-            602|
-            8(?:
-              00|
-              [5-9]\d
-            )|
-            1(?:
-              4[145]|
-              5[14]|
-              6[14-68]|
-              7[169]|
-              88
-            )
-          )\d{6}|
-          9090\d{3}
+            2[2-9]\d{2,9}
+            |
+            (?:
+              [3457]\d{2}|
+              8(?:
+                0[2-9]|
+                [13-9]\d
+              )|
+              9(?:
+                0[89]|
+                [2-579]\d
+              )
+            )\d{1,8}
+          )
         </nationalNumberPattern>
         <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
         <exampleNumber>800123456</exampleNumber>
@@ -27038,16 +28032,7 @@
         <exampleNumber>212345678</exampleNumber>
       </fixedLine>
       <mobile>
-        <!-- 948 isn't in the number pattern, but many examples using this have been found, so
-             deeming it valid for now. -->
-        <nationalNumberPattern>
-          9(?:
-            0[1-8]|
-            1[0-24-9]|
-            4[0489]|
-            50
-          )\d{6}
-        </nationalNumberPattern>
+        <nationalNumberPattern>6[2679][18]\d{6}</nationalNumberPattern>
         <possibleNumberPattern>\d{9}</possibleNumberPattern>
         <exampleNumber>912123456</exampleNumber>
       </mobile>
@@ -27062,14 +28047,9 @@
         <exampleNumber>800123456</exampleNumber>
       </tollFree>
       <premiumRate>
-        <nationalNumberPattern>
-          9(?:
-            [78]\d{7}|
-            00\d{6}
-          )
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{9}</possibleNumberPattern>
-        <exampleNumber>900123456</exampleNumber>
+        <nationalNumberPattern>90[015]\d{5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>90012345</exampleNumber>
       </premiumRate>
       <sharedCost>
         <nationalNumberPattern>8[5-9]\d{7}</nationalNumberPattern>
@@ -27423,8 +28403,17 @@
           [12](?:
             1\d|
             2(?:
-              [1-3]\d?|
-              7\d
+              (?:
+                [015-7]\d|
+                2[02-9]|
+                3[2-57]|
+                4[2-8]|
+                8[235-7]
+              )\d|
+              9(?:
+                0\d|
+                [89]0
+              )
             )|
             3[2-8]\d{1,2}|
             4[2-68]\d{1,2}|
@@ -27435,14 +28424,15 @@
         <exampleNumber>50123456</exampleNumber>
       </fixedLine>
       <mobile>
+        <!-- http://www.anrt.ma/sites/default/files/Blocs_de_numeros_par_operateur.pdf
+             Prefixes 69[0136] added based on numbers found online. -->
+        <!-- Added prefix 982 as per IR21 from the carrier. -->
         <nationalNumberPattern>
-          (?:
-            8(?:
-              [05689]\d|
-              3[01]
-            )|
-            9[013-9]\d
-          )\d{5}
+          6(?:
+            0[0-8]|
+            [12-79]\d|
+            8[017]
+          )\d{6}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{8}</possibleNumberPattern>
         <exampleNumber>88123456</exampleNumber>
@@ -27481,9 +28471,10 @@
         <!-- The 6[23] prefixes are added as SMS messages have been successfully delivered to these
              numbers, and they are also widely present on the Internet. -->
         <nationalNumberPattern>
-          6(?:
-            [2356]\d|
-            8[158]
+          6\d{8}|
+          4(?:
+            4\d|
+            5[1-9]
           )\d{5}
         </nationalNumberPattern>
         <exampleNumber>66123456</exampleNumber>
@@ -27545,15 +28536,19 @@
              316 and 348 based on information found online. -->
         <nationalNumberPattern>
           (?:
-            8(?:
-              [05689]\d|
-              3[01]
+            562\d|
+            6(?:
+              [089]\d{2}|
+              [12][01]\d|
+              7(?:
+                [1-6]\d|
+                7[0-4]
+              )
             )|
             9[013-9]\d
           )\d{5}
         </nationalNumberPattern>
-        <possibleNumberPattern>\d{10}</possibleNumberPattern>
-        <exampleNumber>3012345678</exampleNumber>
+        <exampleNumber>62112345</exampleNumber>
       </mobile>
       <pager>
         <nationalNumberPattern>66\d{7}</nationalNumberPattern>
@@ -27593,25 +28588,29 @@
       </uan>
     </territory>
 
-    <!-- Norway -->
-    <!-- Metadata (excluding fixed-line) shared with Svalbard. -->
-    <territory id="NO" countryCode="47" internationalPrefix="00" leadingZeroPossible="true"
-               mainCountryForCode="true" mobileNumberPortableRegion="true">
+    <!-- Montenegro -->
+    <!-- According to EKIP, the detailed phone number assignments are published on their
+         website (regulation:
+         http://www.ekip.me/download/Law%20on%20Electronic%20Communications%20(updated)%204.9.2013%20(1)nova%20verzija.pdf
+         ). Thus ITU updates always need to be combined with the information at the below ekip.me source URL. -->
+    <territory id="ME" countryCode="382" internationalPrefix="00" nationalPrefix="0"
+               nationalPrefixFormattingRule="$NP$FG">
       <references>
         <sourceUrl>http://www.itu.int/oth/T020200007E/en</sourceUrl>
         <sourceUrl>http://www.dsrt.gov.mo/web/en/generalinfo/allocatednum</sourceUrl>
       </references>
       <availableFormats>
-        <numberFormat pattern="(\d{2})(\d{3})(\d{2})(\d{2})">
+        <numberFormat pattern="(\d{2})(\d{3})(\d{3})">
+          <leadingDigits>[2-57-9]|6[036-9]</leadingDigits>
           <leadingDigits>
-            [14]|
-            2[0-57-9]|
-            3[2-4]|
-            5[24-689]|
-            6[1-3578]|
-            7[14-7]|
-            8[1-79]|
-            9[145]
+            [2-57-9]|
+            6(?:
+              [03689]|
+              7(?:
+                [0-8]|
+                9[3-9]
+              )
+            )
           </leadingDigits>
           <format>$1 $2 $3 $4</format>
         </numberFormat>
@@ -27643,28 +28642,85 @@
         <possibleNumberPattern>\d{8,9}</possibleNumberPattern>
       </generalDesc>
       <fixedLine>
-        <nationalNumberPattern>2[2-5]\d{6}</nationalNumberPattern>
-        <exampleNumber>22171234</exampleNumber>
+        <!-- Fixed line numbers have prefix 20,30,31,32,33,40,41,50,51,52 followed by 6 digits.
+             The valid options for the third digit were from
+             http://www.ekip.me/numeracija/dodijeljena.php -->
+        <nationalNumberPattern>
+          (?:
+            20[2-8]|
+            3(?:
+              0[2-7]|
+              [12][35-7]|
+              3[4-7]
+            )|
+            4(?:
+              0[2367]|
+              1[267]
+            )|
+            5(?:
+              0[467]|
+              1[267]|
+              2[367]
+            )
+          )\d{5}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{6,8}</possibleNumberPattern>
+        <exampleNumber>30234567</exampleNumber>
       </fixedLine>
       <!-- Added "49\d" in response to https://github.com/googlei18n/libphonenumber/issues/529
            which might be overly permissive, but we don't have an official documentation for this
            and only a small number of numbers were found online. At least 492 and 495 are valid.
            -->
       <mobile>
-        <!-- The 6[23] prefixes are added as SMS messages have been successfully delivered to these
-             numbers, and they are also widely present on the Internet. -->
+        <!-- Mobile numbers start with 600, 632, 661, 67, 68 or 69. -->
         <nationalNumberPattern>
           6(?:
-            [2356]\d|
-            8[158]
-          )\d{5}
+            00\d|
+            32\d|
+            [89]\d{2}|
+            61\d|
+            7(?:
+              [0-8]\d|
+              9(?:
+                [3-9]|
+                [0-2]\d
+              )
+            )
+          )\d{4}
         </nationalNumberPattern>
         <exampleNumber>66123456</exampleNumber>
       </mobile>
       <tollFree>
-        <nationalNumberPattern>800\d{5}</nationalNumberPattern>
-        <exampleNumber>80012345</exampleNumber>
+        <!-- All toll free numbers have prefix 80. -->
+        <nationalNumberPattern>80\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>80080002</exampleNumber>
       </tollFree>
+      <premiumRate>
+        <!-- Numbers with prefix 94 or 95 are services with additional charges. -->
+        <nationalNumberPattern>
+          (?:
+            9(?:
+              4[1568]|
+              5[178]
+            )
+          )\d{5}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>94515151</exampleNumber>
+      </premiumRate>
+      <voip>
+        <!-- VOIP are prefixed with 78. -->
+        <nationalNumberPattern>78[1-9]\d{5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>78108780</exampleNumber>
+      </voip>
+      <uan>
+        <!-- Corporate Telephony are prefixed with 77. -->
+        <nationalNumberPattern>77\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>77273012</exampleNumber>
+      </uan>
     </territory>
 
     <!-- Montserrat -->
@@ -27882,19 +28938,52 @@
         <nationalNumberPattern>[1-5]\d{3}</nationalNumberPattern>
         <possibleNumberPattern>\d{4}</possibleNumberPattern>
       </generalDesc>
+      <noInternationalDialling>
+        <nationalNumberPattern>80\d{6}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>80012345</exampleNumber>
+      </noInternationalDialling>
       <fixedLine>
-        <!-- Putting FWT (fixed-wireless-terminals) numbers here too. -->
-        <nationalNumberPattern>[34]\d{3}</nationalNumberPattern>
-        <exampleNumber>4002</exampleNumber>
+        <nationalNumberPattern>
+          (?:
+            2(?:
+              0(?:
+                2\d|
+                7[0-8]
+              )|
+              1(?:
+                2[5-7]|
+                [3-689]\d
+              )
+            )|
+            44[1239]\d
+          )\d{4}
+        </nationalNumberPattern>
+        <exampleNumber>20212345</exampleNumber>
       </fixedLine>
       <!-- Added "49\d" in response to https://github.com/googlei18n/libphonenumber/issues/529
            which might be overly permissive, but we don't have an official documentation for this
            and only a small number of numbers were found online. At least 492 and 495 are valid.
            -->
       <mobile>
-        <nationalNumberPattern>[234][0-46-9]\d{6}</nationalNumberPattern>
-        <exampleNumber>22123456</exampleNumber>
+        <nationalNumberPattern>
+          (?:
+            2(?:
+              079|
+              17\d
+            )|
+            [679]\d{3}|
+            8[239]\d{2}
+          )\d{4}
+        </nationalNumberPattern>
+        <exampleNumber>65012345</exampleNumber>
       </mobile>
+      <tollFree>
+        <!-- Online examples have not been found, but this seems to follow the prescriptions in the
+             plan. -->
+        <nationalNumberPattern>80\d{6}</nationalNumberPattern>
+        <exampleNumber>80012345</exampleNumber>
+      </tollFree>
     </territory>
 
     <!-- New Zealand -->
@@ -27911,9 +29000,8 @@
         <!-- Pattern for fixed-line formats. -->
         <numberFormat pattern="([34679])(\d{3})(\d{4})">
           <leadingDigits>
-            [346]|
-            7[2-57-9]|
-            9[1-9]
+            1|
+            2[245]
           </leadingDigits>
           <format>$1-$2 $3</format>
         </numberFormat>
@@ -27955,14 +29043,31 @@
         <numberFormat pattern="(\d{3})(\d{3})(\d{3,4})">
           <!-- 0274, 0210 and toll-free/premium-rate prefixes 0508/0800/0900. -->
           <leadingDigits>
-            2(?:
-              10|
-              74
-            )|
-            5|
-            [89]0
+            9(?:
+              2[0-4]|
+              [35-9]|
+              4[137-9]
+            )
           </leadingDigits>
           <format>$1 $2 $3</format>
+        </numberFormat>
+        <numberFormat pattern="(9)([34]\d{4})(\d{4})">
+          <leadingDigits>
+            9(?:
+              3[0-36]|
+              4[0-57-9]
+             )
+          </leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+        <!-- Following majority of numbers found online. -->
+        <numberFormat pattern="(9)(\d{3})(\d{3})(\d{3})">
+          <leadingDigits>92[56]</leadingDigits>
+          <format>$1 $2 $3 $4</format>
+        </numberFormat>
+        <numberFormat pattern="(9)(\d{3})(\d{3})(\d{2})">
+          <leadingDigits>93</leadingDigits>
+          <format>$1 $2 $3 $4</format>
         </numberFormat>
       </availableFormats>
       <generalDesc>
@@ -27974,23 +29079,33 @@
       </generalDesc>
       <fixedLine>
         <nationalNumberPattern>
-          (?:
-            3[2-79]|
-            [49][2-9]|
-            6[235-9]|
-            7[2-57-9]
-          )\d{6}|
-          24099\d{3}
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{7,8}</possibleNumberPattern>
-        <exampleNumber>32345678</exampleNumber>
-      </fixedLine>
-      <!-- Added prefix 580 and 581 as per information from the carrier. -->
-      <mobile>
-        <!-- 7[45] has been added as many numbers online have been found with this prefix. 46[46]
-             are new prefixes for Dhiraagu and Ooredoo, used currently for SMS-based services.
-             91 and 95 were added based on information from Ooredoo Telecom. -->
-        <nationalNumberPattern>
+          1(?:
+            2\d{1,2}|
+            [3-5]\d|
+            6\d?|
+            [89][0-6]\d
+          )\d{4}|
+          2(?:
+            2(?:
+              000\d{3}|
+              \d{4}
+            )|
+            3\d{4}|
+            4(?:
+              0\d{5}|
+              \d{4}
+            )|
+            5(?:
+              1\d{3,6}|
+              [02-9]\d{3,5}
+            )|
+            [6-9]\d{4}
+          )|
+          4(?:
+            2[245-8]|
+            [346][2-6]|
+            5[3-5]
+          )\d{4}|
           5(?:
             2[59]\d|
             4(?:
@@ -27999,13 +29114,33 @@
               7[1-9]|
               9\d
             )|
-            7\d{2}|
-            8(?:
-              [0-2568]\d|
-              7[15-8]
+            8[245]|
+            9[24]
+          )\d{4}|
+          7(?:
+            [04][24-8]|
+            [15][2-7]|
+            22|
+            3[2-4]
+          )\d{4}|
+          8(?:
+            1(?:
+              2\d{1,2}|
+              [3-689]\d
             )|
-            9[0-8]\d
-          )\d{4}
+            2(?:
+              2\d|
+              3(?:
+                \d|
+                20
+              )|
+              [4-8]\d
+            )|
+            3[24]\d|
+            4[24-7]\d|
+            5[245]\d|
+            6[23]\d
+          )\d{3}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{9}</possibleNumberPattern>
         <exampleNumber>917123456</exampleNumber>
@@ -28074,15 +29209,38 @@
            described as non-geographic service numbers, so these prefixes are
            excluded until more information is found. -->
       <mobile>
-        <!-- 7[45] has been added as many numbers online have been found with this prefix. 46[46]
-             are new prefixes for Dhiraagu and Ooredoo, used currently for SMS-based services.
-             91 and 95 were added based on information from Ooredoo Telecom. -->
+        <!-- Added 99[089] (8 digits), 961 (9 digits), 977, 978, 979, 996 and 997 (10 digits) from bug
+             reports/numbers found online. -->
         <nationalNumberPattern>
-          (?:
-            46[46]|
-            7[3-9]\d|
-            9[15-9]\d
-          )\d{4}
+          17[01]\d{4}|
+          9(?:
+            2(?:
+              [0-4]|
+              5\d{2}|
+              6[0-5]\d
+            )|
+            3[0-36]\d|
+            4(?:
+              0[0-4]\d|
+              [1379]\d|
+              2\d{2}|
+              4[0-589]\d|
+              5\d{2}|
+              88
+            )|
+            5[0-6]|
+            61?\d|
+            7(?:
+              3\d|
+              [789]\d{2}
+            )|
+            8\d|
+            9(?:
+              1\d|
+              [67]\d{2}|
+              [089]
+            )
+          )\d{5}
         </nationalNumberPattern>
         <exampleNumber>760123456</exampleNumber>
       </premiumRate>
@@ -28154,7 +29312,11 @@
       <premiumRate>
         <nationalNumberPattern>
           (?:
-            900
+            8(?:
+              [05689]\d|
+              3[01]
+            )|
+            9[013-9]\d
           )\d{5}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{8}</possibleNumberPattern>
@@ -28182,8 +29344,8 @@
                nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
                mobileNumberPortableRegion="true">
       <references>
-        <sourceUrl>http://www.itu.int/oth/T020200009C/en</sourceUrl>
-        <sourceUrl>http://www.ncc.gov.ng/index.php/index.php?option=com_content&amp;view=article&amp;id=113&amp;Itemid=102</sourceUrl>
+        <sourceUrl>http://www.itu.int/oth/T020200007E/en</sourceUrl>
+        <sourceUrl>http://www.dsrt.gov.mo/web/en/generalinfo/allocatednum</sourceUrl>
       </references>
       <!-- The first pattern which is for mobile ranges overlaps with the pattern
            below it and is ordered above it as there are more mobile numbers with
@@ -28241,15 +29403,44 @@
         <!-- Also covering fixed satellite service numbers (prefixes: 200 and 201). -->
         <nationalNumberPattern>
           (?:
-            1[16]1|
-            21[89]|
-            8(?:
-              1[01]|
-              7[23]
-            )
-          </leadingDigits>
-          <leadingDigits>
-            1|
+            28[2-57-9]|
+            8[2-57-9]\d
+          )\d{5}
+        </nationalNumberPattern>
+        <exampleNumber>28212345</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <!-- The 6[23] prefixes are added as SMS messages have been successfully delivered to these
+             numbers, and they are also widely present on the Internet. -->
+        <nationalNumberPattern>
+          6(?:
+            [2356]\d|
+            8[158]
+          )\d{5}
+        </nationalNumberPattern>
+        <exampleNumber>66123456</exampleNumber>
+      </mobile>
+      <!-- No tollFree or premiumRate information can be found. -->
+    </territory>
+
+    <!-- Northern Mariana Islands -->
+    <territory id="MP" countryCode="1" leadingDigits="670" nationalPrefix="1"
+               internationalPrefix="011">
+      <references>
+        <sourceUrl>http://www.itu.int/oth/T02020000EE/en</sourceUrl>
+        <sourceUrl>http://www.cnmiphonebook.com/</sourceUrl>
+      </references>
+      <generalDesc>
+        <!-- NANPA country - uses US formatting rules -->
+        <nationalNumberPattern>[5689]\d{9}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}(?:\d{3})?</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
+        <!-- Extra exchange codes 232, 289, 355, 472, 633, 637, 646, 647, 649, 653, 687, 734 and 828
+             were seen in the white and yellow pages, but no numbers with these exchange codes have
+             proved to be diallable so we exclude them for now.. -->
+        <nationalNumberPattern>
+          670(?:
             2(?:
               0[01]|
               2[2-9]|
@@ -28333,10 +29524,14 @@
       </premiumRate>
       <voip>
         <nationalNumberPattern>
-          3(?:
-            20|
-            9\d
-          )\d{4}
+          5(?:
+            00|
+            33|
+            44|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{7}</possibleNumberPattern>
         <exampleNumber>3201234</exampleNumber>
@@ -28391,13 +29586,40 @@
       </generalDesc>
       <fixedLine>
         <nationalNumberPattern>
-          (?:
-            2[2-4]|
-            [34]\d
-          )\d{2,5}
+          25[08]\d{5}|
+          35\d{6}|
+          45[1-7]\d{5}
         </nationalNumberPattern>
-        <!-- The example number is the contact number from the ITU document. -->
-        <exampleNumber>3101</exampleNumber>
+        <exampleNumber>35123456</exampleNumber>
+      </fixedLine>
+      <!-- Added "49\d" in response to https://github.com/googlei18n/libphonenumber/issues/529
+           which might be overly permissive, but we don't have an official documentation for this
+           and only a small number of numbers were found online. At least 492 and 495 are valid.
+           -->
+      <mobile>
+        <nationalNumberPattern>[234][0-46-9]\d{6}</nationalNumberPattern>
+        <exampleNumber>22123456</exampleNumber>
+      </mobile>
+      <tollFree>
+        <nationalNumberPattern>800\d{5}</nationalNumberPattern>
+        <exampleNumber>80012345</exampleNumber>
+      </tollFree>
+    </territory>
+
+    <!-- Montserrat -->
+    <territory id="MS" countryCode="1" leadingDigits="664" nationalPrefix="1"
+               internationalPrefix="011">
+      <references>
+        <sourceUrl>http://www.itu.int/oth/T020200008F/en</sourceUrl>
+      </references>
+      <generalDesc>
+        <!-- NANPA country - uses US formatting rules -->
+        <nationalNumberPattern>[5689]\d{9}</nationalNumberPattern>
+        <possibleNumberPattern>\d{7}(?:\d{3})?</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
+        <nationalNumberPattern>664491\d{4}</nationalNumberPattern>
+        <exampleNumber>6644912345</exampleNumber>
       </fixedLine>
       <!-- No evidence has been found for prefixes 5, 6, 8, and 9 which are
            described as non-geographic service numbers, so these prefixes are
@@ -28407,15 +29629,18 @@
              are new prefixes for Dhiraagu and Ooredoo, used currently for SMS-based services.
              91 and 95 were added based on information from Ooredoo Telecom. -->
         <nationalNumberPattern>
-          (?:
-            46[46]|
-            7[3-9]\d|
-            9[15-9]\d
-          )\d{4}
+          5(?:
+            00|
+            33|
+            44|
+            66|
+            77|
+            88
+          )[2-9]\d{6}
         </nationalNumberPattern>
-        <possibleNumberPattern>\d{7}</possibleNumberPattern>
-        <exampleNumber>7712345</exampleNumber>
-      </mobile>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>5002345678</exampleNumber>
+      </personalNumber>
     </territory>
 
     <!-- Timor-Leste (East Timor) -->
@@ -28573,76 +29798,25 @@
         <possibleNumberPattern>\d{7,10}</possibleNumberPattern>
         <exampleNumber>2221234567</exampleNumber>
       </fixedLine>
+      <!-- Added prefix 580 and 581 as per information from the carrier. -->
       <mobile>
       <!-- Also covering fixed satellite service numbers (prefixes: 200 and 201). -->
         <nationalNumberPattern>
-          1(?:
-            (?:
-              33|
-              55|
-              81
-            )\d{8}|
-            (?:
-              2(?:
-                2[2-9]|
-                3[1-35-8]|
-                4[13-9]|
-                7[1-689]|
-                8[1-578]|
-                9[467]
-              )|
-              3(?:
-                1[1-79]|
-                [2458][1-9]|
-                7[1-8]|
-                9[1-5]
-              )|
-              4(?:
-                1[1-57-9]|
-                [24-6][1-9]|
-                [37][1-8]|
-                8[1-35-9]|
-                9[2-689]
-              )|
-              5(?:
-                88|
-                9[1-79]
-              )|
-              6(?:
-                1[2-68]|
-                [2-4][1-9]|
-                5[1-3689]|
-                6[12457-9]|
-                7[1-7]|
-                8[67]|
-                9[4-8]
-              )|
-              7(?:
-                [13467][1-9]|
-                2[1-8]|
-                5[13-9]|
-                8[1-69]|
-                9[17]
-              )|
-              8(?:
-                2[13-689]|
-                3[1-6]|
-                4[124-6]|
-                6[1246-9]|
-                7[1-378]|
-                9[12479]
-              )|
-              9(?:
-                1[346-9]|
-                2[1-4]|
-                3[2-46-8]|
-                5[1348]|
-                [69][1-9]|
-                7[12]|
-                8[1-8]
-              )
-            )\d{7}
-          )
+          5(?:
+            2[59]\d|
+            4(?:
+              2[1-389]|
+              4\d|
+              7[1-9]|
+              9\d
+            )|
+            7\d{2}|
+            8(?:
+              [0-2568]\d|
+              7[15-8]
+            )|
+            9[0-8]\d
+          )\d{4}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{11}</possibleNumberPattern>
         <exampleNumber>12221234567</exampleNumber>
@@ -28703,19 +29877,15 @@
         <exampleNumber>21234567</exampleNumber>
       </fixedLine>
       <mobile>
-        <!-- Although the plan lists the prefix 159 as broadband services (data only), apparently it
-             is possible to send SMSs (and receive them) from numbers in this block, so we are
-             listing them as mobile. 11[45] was added based on numbers found online. -->
+        <!-- 7[45] has been added as many numbers online have been found with this prefix. 46[46]
+             are new prefixes for Dhiraagu and Ooredoo, used currently for SMS-based services.
+             91 and 95 were added based on information from Ooredoo Telecom. -->
         <nationalNumberPattern>
-          1(?:
-            1[1-5]\d{2}|
-            [02-4679][2-9]\d|
-            59\d{2}|
-            8(?:
-              1[23]|
-              [2-9]\d
-            )
-          )\d{5}
+          (?:
+            46[46]|
+            7[3-9]\d|
+            9[15-9]\d
+          )\d{4}
         </nationalNumberPattern>
         <possibleNumberPattern>\d{10}</possibleNumberPattern>
         <exampleNumber>9051234567</exampleNumber>
@@ -28819,8 +29989,14 @@
           <leadingDigits>2</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <numberFormat pattern="(6\d)(\d{3})(\d{3,4})">
-          <leadingDigits>6</leadingDigits>
+        <numberFormat pattern="(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            [2467]|
+            3[0-2457-9]|
+            5[089]|
+            8[02-9]|
+            9[0-35-9]
+          </leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
         <numberFormat nationalPrefixFormattingRule="$NP$FG"
@@ -28831,14 +30007,18 @@
           </leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <!-- Formatting from http://www.uniontelecard.com/calling-guides/philippines/guide1.aspx -->
-        <numberFormat pattern="(1800)(\d{3})(\d{4})">
-          <leadingDigits>1</leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-        <numberFormat pattern="(1800)(\d{1,2})(\d{3})(\d{4})">
-          <leadingDigits>1</leadingDigits>
-          <format>$1 $2 $3 $4</format>
+        <numberFormat nationalPrefixFormattingRule="$FG" pattern="(1)(\d{3})(\d{3})(\d{4})">
+          <leadingDigits>
+            1(?:
+              [2467]|
+              3[0-2457-9]|
+              5[089]|
+              8[2-9]|
+              9[1-35-9]
+            )
+          </leadingDigits>
+          <format>044 $2 $3 $4</format>
+          <intlFormat>$1 $2 $3 $4</intlFormat>
         </numberFormat>
       </availableFormats>
       <generalDesc>
@@ -28850,9 +30030,8 @@
         <possibleNumberPattern>\d{5,13}</possibleNumberPattern>
       </generalDesc>
       <fixedLine>
-        <!-- Evidence on number length is hard to come by. We have found diallable numbers in Manila
-             that have only 5 digits after the area code; plus it seems the 8822 area code is
-             followed by 6 digits, and 8842 by only 4. -->
+        <!-- http://en.wikipedia.org/wiki/Area_codes_in_Mexico_by_code -->
+        <!-- Also covering fixed satellite service numbers (prefixes: 200 and 201). -->
         <nationalNumberPattern>
           6(?:
             1(?:
@@ -28875,13 +30054,13 @@
               7[014]
             )|
             2(?:
-              17|
-              5(?:
-                [0-36-8]|
-                4\d?
-              )|
-              69|
-              70
+              0[01]|
+              2[2-9]|
+              3[1-35-8]|
+              4[13-9]|
+              7[1-689]|
+              8[1-578]|
+              9[467]
             )|
             3(?:
               17|
@@ -28932,7 +30111,44 @@
               7[01]
             )|
             7(?:
-              17|
+              [13467][1-9]|
+              2[1-8]|
+              5[13-9]|
+              8[1-69]|
+              9[17]
+            )|
+            8(?:
+              2[13-689]|
+              3[1-6]|
+              4[124-6]|
+              6[1246-9]|
+              7[1-378]|
+              9[12479]
+            )|
+            9(?:
+              1[346-9]|
+              2[1-4]|
+              3[2-46-8]|
+              5[1348]|
+              [69][1-9]|
+              7[12]|
+              8[1-8]
+            )
+          )\d{7}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{7,10}</possibleNumberPattern>
+        <exampleNumber>2221234567</exampleNumber>
+      </fixedLine>
+      <mobile>
+      <!-- Also covering fixed satellite service numbers (prefixes: 200 and 201). -->
+        <nationalNumberPattern>
+          1(?:
+            (?:
+              33|
+              55|
+              81
+            )\d{8}|
+            (?:
               2(?:
                 [569]|
                 [234]\d?
@@ -28964,12 +30180,30 @@
       </mobile>
       <!-- Information on toll-free numbers collected from searching the internet -->
       <tollFree>
-        <nationalNumberPattern>1800\d{7,9}</nationalNumberPattern>
-        <possibleNumberPattern>\d{11,13}</possibleNumberPattern>
-        <exampleNumber>180012345678</exampleNumber>
+        <nationalNumberPattern>
+          8(?:
+            00|
+            88
+          )\d{7}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>8001234567</exampleNumber>
       </tollFree>
-      <!-- No information can be found about other types of numbers (such as premium rate) in the
-           Philippines. -->
+      <sharedCost>
+        <nationalNumberPattern>300\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>3001234567</exampleNumber>
+      </sharedCost>
+      <personalNumber>
+        <nationalNumberPattern>500\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>5001234567</exampleNumber>
+      </personalNumber>
+      <premiumRate>
+        <nationalNumberPattern>900\d{7}</nationalNumberPattern>
+        <possibleNumberPattern>\d{10}</possibleNumberPattern>
+        <exampleNumber>9001234567</exampleNumber>
+      </premiumRate>
     </territory>
 
     <!-- Pakistan -->
@@ -29037,27 +30271,16 @@
       </fixedLine>
       <!-- Added prefix 982 per IR21 from the carrier. -->
       <mobile>
-        <!-- The 795 prefix is not in the ITU plan (5.XII.2014), but was added because such a number
-             was dialed successfully. -->
+        <!-- Although the plan lists the prefix 159 as broadband services (data only), apparently it
+             is possible to send SMSs (and receive them) from numbers in this block, so we are
+             listing them as mobile. 11[45] was added based on numbers found online. -->
         <nationalNumberPattern>
-          868(?:
-            2(?:
-              [789]\d
-            )|
-            3(?:
-              0[1-9]|
-              1[02-9]|
-              [2-9]\d
-            )|
-            4[6-9]\d|
-            6(?:
-              20|
-              78|
-              8\d
-            )|
-            7(?:
-              0[1-9]|
-              1[02-9]|
+          1(?:
+            1[1-5]\d{2}|
+            [02-4679][2-9]\d|
+            59\d{2}|
+            8(?:
+              1[23]|
               [2-9]\d
             )
           )\d{4}
@@ -29311,14 +30534,8 @@
           </leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
-        <numberFormat pattern="(\d)(\d{3})(\d{3,4})">
-          <leadingDigits>
-             [12]|
-             9(?:
-               0[3-9]|
-               [1-9]
-             )
-          </leadingDigits>
+        <numberFormat pattern="(6\d)(\d{3})(\d{3,4})">
+          <leadingDigits>6</leadingDigits>
           <format>$1 $2 $3</format>
         </numberFormat>
         <numberFormat pattern="(\d)(\d{3})(\d{3,4})">
@@ -29364,28 +30581,57 @@
         <nationalNumberPattern>
           (?:
             1(?:
-              7[34]\d|
-              8(?:
-                04|
-                [124579]\d|
-                8[0-3]
+              17|
+              2(?:
+                [0189]\d|
+                [2-6]|
+                7\d?
+              )|
+              3(?:
+                [01378]|
+                2\d
+              )|
+              4(?:
+                [024]|
+                10?|
+                3[15]?
+              )|
+              69|
+              7[014]
+            )|
+            2(?:
+              17|
+              5(?:
+                [0-36-8]|
+                4\d?
               )|
               95\d
             )|
             287[0-7]|
             3(?:
-              18[1-8]|
-              88[0-7]|
-              9(?:
-                8[5-9]|
-                6[1-5]
-              )
+              17|
+              2(?:
+                [0237]\d?|
+                [14-689]
+              )|
+              34|
+              6[289]|
+              7[01]|
+              81
             )|
             4(?:
-              28[0-2]|
-              6(?:
-                7[1-9]|
-                8[02-47]
+              17|
+              2(?:
+                [012]|
+                7?
+              )|
+              4(?:
+                [06]|
+                1\d?
+              )|
+              5(?:
+                [01357]|
+                [25]\d?
               )|
               88[0-2]
             )|
@@ -30990,17 +32236,83 @@
       </mobile>
       <tollFree>
         <nationalNumberPattern>
-          8(?:
-            00|
-            44|
-            55|
-            66|
-            77|
-            88
-          )[2-9]\d{6}
+          (?:
+            779|
+            8(?:
+              55|
+              60|
+              7[78]
+            )|
+            9(?:
+              00|
+              81
+            )
+          )\d{4}
         </nationalNumberPattern>
-        <possibleNumberPattern>\d{10}</possibleNumberPattern>
-        <exampleNumber>8002345678</exampleNumber>
+        <possibleNumberPattern>\d{7}</possibleNumberPattern>
+        <exampleNumber>8601234</exampleNumber>
+      </premiumRate>
+    </territory>
+
+    <!-- Peru -->
+    <territory id="PE" countryCode="51" internationalPrefix="19(?:1[124]|77|90)00"
+               nationalPrefix="0" nationalPrefixFormattingRule="($NP$FG)"
+               preferredExtnPrefix=" Anexo " mobileNumberPortableRegion="true">
+      <references>
+        <sourceUrl>http://www.itu.int/oth/T02020000A6/en</sourceUrl>
+        <sourceUrl>http://en.wikipedia.org/wiki/+51</sourceUrl>
+        <sourceUrl>http://www.assistbook.com/South%20America/Peru/widecodes</sourceUrl>
+      </references>
+      <availableFormats>
+        <numberFormat pattern="(1)(\d{7})">
+          <leadingDigits>1</leadingDigits>
+          <format>$1 $2</format>
+        </numberFormat>
+        <numberFormat pattern="([4-8]\d)(\d{6})">
+          <leadingDigits>
+            [4-7]|
+            8[2-4]
+          </leadingDigits>
+          <format>$1 $2</format>
+        </numberFormat>
+        <numberFormat pattern="(\d{3})(\d{5})">
+          <leadingDigits>80</leadingDigits>
+          <format>$1 $2</format>
+        </numberFormat>
+        <!-- Formatting from common usage found on the internet, supported by ITU doc. -->
+        <numberFormat pattern="(9\d{2})(\d{3})(\d{3})"
+                      nationalPrefixFormattingRule="$FG">
+          <leadingDigits>9</leadingDigits>
+          <format>$1 $2 $3</format>
+        </numberFormat>
+      </availableFormats>
+      <generalDesc>
+        <nationalNumberPattern>[14-9]\d{7,8}</nationalNumberPattern>
+        <possibleNumberPattern>\d{6,9}</possibleNumberPattern>
+      </generalDesc>
+      <fixedLine>
+        <nationalNumberPattern>
+          (?:
+            1\d|
+            4[1-4]|
+            5[1-46]|
+            6[1-7]|
+            7[2-46]|
+            8[2-4]
+          )\d{6}
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{6,8}</possibleNumberPattern>
+        <exampleNumber>11234567</exampleNumber>
+      </fixedLine>
+      <mobile>
+        <nationalNumberPattern>9\d{8}</nationalNumberPattern>
+        <possibleNumberPattern>\d{9}</possibleNumberPattern>
+        <exampleNumber>912345678</exampleNumber>
+      </mobile>
+      <tollFree>
+        <nationalNumberPattern>800\d{5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{8}</possibleNumberPattern>
+        <exampleNumber>80012345</exampleNumber>
       </tollFree>
       <premiumRate>
         <nationalNumberPattern>900[2-9]\d{6}</nationalNumberPattern>
@@ -33397,6 +34709,14 @@
           <format>$1-$2 $3 $4 $5</format>
           <intlFormat>$1 $2 $3 $4 $5</intlFormat>
         </numberFormat>
+        <numberFormat pattern="(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})">
+          <leadingDigits>
+            25[245]|
+            67[3-6]
+          </leadingDigits>
+          <format>$1-$2 $3 $4 $5</format>
+          <intlFormat>$1 $2 $3 $4 $5</intlFormat>
+        </numberFormat>
       </availableFormats>
       <generalDesc>
         <nationalNumberPattern>
@@ -35385,1113 +36705,6 @@
       <fixedLine>
         <nationalNumberPattern>22\d{5}</nationalNumberPattern>
         <exampleNumber>2221234</exampleNumber>
-      </fixedLine>
-      <!-- Added prefix 90 per IR21 from the carrier -->
-      <mobile>
-        <nationalNumberPattern>
-          9(?:
-            0(?:
-              0[5-9]|
-              [1-9]\d
-            )|
-            [89]\d{2}
-          )\d{3}
-        </nationalNumberPattern>
-        <exampleNumber>9812345</exampleNumber>
-      </mobile>
-    </territory>
-
-        <!-- Puerto Rico -->
-        <territory id="PR" countryCode="1" leadingDigits="787|939" nationalPrefix="1"
-                   internationalPrefix="011">
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000AA/en</sourceUrl>
-            </references>
-            <generalDesc>
-                <!-- NANPA country - uses US formatting rules -->
-                <nationalNumberPattern>[5789]\d{9}</nationalNumberPattern>
-                <possibleNumberPattern>\d{7}(?:\d{3})?</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <nationalNumberPattern>
-                    (?:
-                    787|
-                    939
-                    )[2-9]\d{6}
-                </nationalNumberPattern>
-                <exampleNumber>7872345678</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>
-                    (?:
-                    787|
-                    939
-                    )[2-9]\d{6}
-                </nationalNumberPattern>
-                <exampleNumber>7872345678</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>
-                    8(?:
-                    00|
-                    44|
-                    55|
-                    66|
-                    77|
-                    88
-                    )[2-9]\d{6}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-                <exampleNumber>8002345678</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <nationalNumberPattern>900[2-9]\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-                <exampleNumber>9002345678</exampleNumber>
-            </premiumRate>
-            <personalNumber>
-                <!-- http://www.nanpa.com/pdf/PL_466.pdf -->
-                <nationalNumberPattern>
-                    5(?:
-                    00|
-                    33|
-                    44|
-                    66|
-                    77
-                    )[2-9]\d{6}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-                <exampleNumber>5002345678</exampleNumber>
-            </personalNumber>
-        </territory>
-
-        <!-- Palestinian Authority -->
-        <!-- Palestinian phone numbers can be reached through the Israeli country code (972) in addition
-         to the Palestinian country code (970) and so Palestinian landlines and mobile lines are a
-         subset of the Israeli formats. -->
-        <territory id="PS" countryCode="970" internationalPrefix="00"
-                   nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG">
-            <references>
-                <sourceUrl>http://en.wikipedia.org/wiki/%2B970</sourceUrl>
-                <sourceUrl>http://www.wtng.info/wtng-970-ps.html</sourceUrl>
-                <sourceUrl>http://www.paltel.ps</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="([2489])(2\d{2})(\d{4})">
-                    <leadingDigits>[2489]</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(5[69]\d)(\d{3})(\d{3})">
-                    <leadingDigits>5</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat nationalPrefixFormattingRule="$FG"
-                  pattern="(1[78]00)(\d{3})(\d{3})">
-                    <leadingDigits>1[78]</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <!-- 4 and 5 digit premium numbers will be formatted as one block by default. -->
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>
-                    [24589]\d{7,8}|
-                    1(?:
-                    [78]\d{8}|
-                    [49]\d{2,3}
-                    )
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{4,10}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <nationalNumberPattern>
-                    (?:
-                    22[234789]|
-                    42[45]|
-                    82[01458]|
-                    92[369]
-                    )\d{5}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{7,8}</possibleNumberPattern>
-                <exampleNumber>22234567</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>5[69]\d{7}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>599123456</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>1800\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-                <exampleNumber>1800123456</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <!-- According to Paltel, premium numbers are 14xx and 19xxx -->
-                <nationalNumberPattern>
-                    1(?:
-                    4|
-                    9\d
-                    )\d{2}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{4,5}</possibleNumberPattern>
-                <exampleNumber>19123</exampleNumber>
-            </premiumRate>
-            <sharedCost>
-                <nationalNumberPattern>1700\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-                <exampleNumber>1700123456</exampleNumber>
-            </sharedCost>
-        </territory>
-
-        <!-- Portugal -->
-        <territory id="PT" countryCode="351" internationalPrefix="00" mobileNumberPortableRegion="true">
-            <references>
-                <sourceUrl>http://www.anacom.pt/render.jsp?categoryId=279098</sourceUrl>
-            </references>
-            <availableFormats>
-                <!-- Note: the wikipedia page suggests that mobile numbers may also be formatted with only
-             two digits in the first group; however, this doesn't seem to be majority usage based on
-             searches online. -->
-                <numberFormat pattern="(2\d)(\d{3})(\d{4})">
-                    <leadingDigits>2[12]</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="([2-46-9]\d{2})(\d{3})(\d{3})">
-                    <leadingDigits>
-                        2[3-9]|
-                        [346-9]
-                    </leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[2-46-9]\d{8}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <nationalNumberPattern>
-                    2(?:
-                    [12]\d|
-                    [35][1-689]|
-                    4[1-59]|
-                    6[1-35689]|
-                    7[1-9]|
-                    8[1-69]|
-                    9[1256]
-                    )\d{6}
-                </nationalNumberPattern>
-                <exampleNumber>212345678</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>
-                    9(?:
-                    [136]\d{2}|
-                    2[0-79]\d|
-                    480
-                    )\d{5}
-                </nationalNumberPattern>
-                <exampleNumber>912345678</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>80[02]\d{6}</nationalNumberPattern>
-                <exampleNumber>800123456</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <!-- Fixed maximum cost numbers: 761=0.60€, 761=1€, 762=2€. -->
-                <nationalNumberPattern>
-                    76(?:
-                    0[1-57]|
-                    1[2-47]|
-                    2[237]
-                    )\d{5}
-                </nationalNumberPattern>
-                <exampleNumber>760123456</exampleNumber>
-            </premiumRate>
-            <sharedCost>
-                <!-- 808 are priced as local calls, 809 are national calls. -->
-                <nationalNumberPattern>
-                    80(?:
-                    8\d|
-                    9[1579]
-                    )\d{5}
-                </nationalNumberPattern>
-                <exampleNumber>808123456</exampleNumber>
-            </sharedCost>
-            <personalNumber>
-                <nationalNumberPattern>884[128]\d{5}</nationalNumberPattern>
-                <exampleNumber>884123456</exampleNumber>
-            </personalNumber>
-            <voip>
-                <nationalNumberPattern>30\d{7}</nationalNumberPattern>
-                <exampleNumber>301234567</exampleNumber>
-            </voip>
-            <uan>
-                <nationalNumberPattern>
-                    70(?:
-                    7\d|
-                    8[17]
-                    )\d{5}
-                </nationalNumberPattern>
-                <exampleNumber>707123456</exampleNumber>
-            </uan>
-        </territory>
-
-        <!-- Palau -->
-        <territory id="PW" countryCode="680" internationalPrefix="01[12]">
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000A2/en</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="(\d{3})(\d{4})">
-                    <format>$1 $2</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[2-8]\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{7}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <nationalNumberPattern>
-                    2552255|
-                    (?:
-                    277|
-                    345|
-                    488|
-                    5(?:
-                    35|
-                    44|
-                    87
-                    )|
-                    6(?:
-                    22|
-                    54|
-                    79
-                    )|
-                    7(?:
-                    33|
-                    47
-                    )|
-                    8(?:
-                    24|
-                    55|
-                    76
-                    )
-                    )\d{4}
-                </nationalNumberPattern>
-                <exampleNumber>2771234</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>
-                    (?:
-                    6[234689]0|
-                    77[45789]
-                    )\d{4}
-                </nationalNumberPattern>
-                <exampleNumber>6201234</exampleNumber>
-            </mobile>
-        </territory>
-
-        <!-- Paraguay -->
-        <territory id="PY" countryCode="595" internationalPrefix="00" nationalPrefix="0"
-                   mobileNumberPortableRegion="true">
-            <references>
-                <sourceUrl>http://en.wikipedia.org/wiki/Telephone_numbers_in_Paraguay</sourceUrl>
-                <sourceUrl>http://www.itu.int/oth/T02020000A5/en</sourceUrl>
-                <sourceUrl>http://www.copaco.com.py/portal/index.php/component/content/article/8-empresa/74-codigos-de-area.html</sourceUrl>
-            </references>
-            <availableFormats>
-                <!-- CONATEL plan. -->
-                <numberFormat pattern="(\d{2})(\d{5,7})" nationalPrefixFormattingRule="($FG)">
-                    <leadingDigits>
-                        (?:
-                        [26]1|
-                        3[289]|
-                        4[124678]|
-                        7[123]|
-                        8[1236]
-                        )
-                    </leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(\d{3})(\d{3,6})" nationalPrefixFormattingRule="$NP$FG">
-                    <leadingDigits>[2-9]0</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(\d{3})(\d{6})" nationalPrefixFormattingRule="$NP$FG">
-                    <leadingDigits>9[1-9]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <!-- Format seen in examples found online. -->
-                <numberFormat pattern="(\d{2})(\d{3})(\d{4})">
-                    <leadingDigits>8700</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <!-- "Fall-back" rule for the rest of the fixed-line numbers that have 3-digit area codes.
-             -->
-                <numberFormat pattern="(\d{3})(\d{4,6})" nationalPrefixFormattingRule="($FG)">
-                    <leadingDigits>[2-8][1-9]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>
-                    5[0-5]\d{4,7}|
-                    [2-46-9]\d{5,8}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{5,9}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <nationalNumberPattern>
-                    (?:
-                    [26]1|
-                    3[289]|
-                    4[124678]|
-                    7[123]|
-                    8[1236]
-                    )\d{5,7}|
-                    (?:
-                    2(?:
-                    2[4568]|
-                    7[15]|
-                    9[1-5]
-                    )|
-                    3(?:
-                    18|
-                    3[167]|
-                    4[2357]|
-                    51
-                    )|
-                    4(?:
-                    18|
-                    2[45]|
-                    3[12]|
-                    5[13]|
-                    64|
-                    71|
-                    9[1-47]
-                    )|
-                    5(?:
-                    [1-4]\d|
-                    5[0234]
-                    )|
-                    6(?:
-                    3[1-3]|
-                    44|
-                    7[1-4678]
-                    )|
-                    7(?:
-                    17|
-                    4[0-4]|
-                    6[1-578]|
-                    75|
-                    8[0-8]
-                    )|
-                    858
-                    )\d{5,6}
-                </nationalNumberPattern>
-                <exampleNumber>212345678</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <!-- 962 was added for Tigo. -->
-                <nationalNumberPattern>
-                    9(?:
-                    6[12]|
-                    [78][1-6]|
-                    9[1-5]
-                    )\d{6}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>961456789</exampleNumber>
-            </mobile>
-            <voip>
-                <nationalNumberPattern>8700[0-4]\d{4}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>870012345</exampleNumber>
-            </voip>
-            <uan>
-                <nationalNumberPattern>[2-9]0\d{4,7}</nationalNumberPattern>
-                <possibleNumberPattern>\d{6,9}</possibleNumberPattern>
-                <exampleNumber>201234567</exampleNumber>
-            </uan>
-        </territory>
-
-        <!-- Qatar -->
-        <territory id="QA" countryCode="974" internationalPrefix="00" mobileNumberPortableRegion="true">
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000AB/en</sourceUrl>
-                <sourceUrl>http://wtng.info/wtng-qq.html</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="([28]\d{2})(\d{4})">
-                    <leadingDigits>[28]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="([3-7]\d{3})(\d{4})">
-                    <leadingDigits>[3-7]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[2-8]\d{6,7}</nationalNumberPattern>
-                <possibleNumberPattern>\d{7,8}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- The prefix 40 has now been allocated, based on numbers seen online. -->
-                <nationalNumberPattern>4[04]\d{6}</nationalNumberPattern>
-                <exampleNumber>44123456</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>[3567]\d{7}</nationalNumberPattern>
-                <exampleNumber>33123456</exampleNumber>
-            </mobile>
-            <pager>
-                <nationalNumberPattern>
-                    2(?:
-                    [12]\d|
-                    61
-                    )\d{4}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{7}</possibleNumberPattern>
-                <exampleNumber>2123456</exampleNumber>
-            </pager>
-            <tollFree>
-                <nationalNumberPattern>800\d{4}</nationalNumberPattern>
-                <exampleNumber>8001234</exampleNumber>
-            </tollFree>
-            <!-- No premiumRate information can be found. -->
-        </territory>
-
-        <!-- Réunion (French Departments and Territories in the Indian Ocean) -->
-        <!-- Note this shares the same country code as La Mayotte and the formatting patterns here are
-         used by both of them. -->
-        <territory id="RE" countryCode="262" internationalPrefix="00"
-                   nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
-                   leadingDigits="262|6[49]|8" mainCountryForCode="true" >
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T020200004B/en</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="([268]\d{2})(\d{2})(\d{2})(\d{2})">
-                    <format>$1 $2 $3 $4</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[268]\d{8}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- 0876 numbers are mentioned in the plan, but none in use can be found. -->
-                <nationalNumberPattern>262\d{6}</nationalNumberPattern>
-                <exampleNumber>262161234</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>
-                    6(?:
-                    9[23]|
-                    47
-                    )\d{6}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>692123456</exampleNumber>
-            </mobile>
-            <!-- 08* Numbers in Réunion are the same as those valid in France. -->
-            <tollFree>
-                <nationalNumberPattern>80\d{7}</nationalNumberPattern>
-                <exampleNumber>801234567</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <nationalNumberPattern>89[1-37-9]\d{6}</nationalNumberPattern>
-                <exampleNumber>891123456</exampleNumber>
-            </premiumRate>
-            <sharedCost>
-                <nationalNumberPattern>
-                    8(?:
-                    1[019]|
-                    2[0156]|
-                    84|
-                    90
-                    )\d{6}
-                </nationalNumberPattern>
-                <exampleNumber>810123456</exampleNumber>
-            </sharedCost>
-        </territory>
-
-        <!-- Romania -->
-        <!-- Extension prefix found online, confirmed by a Romanian. -->
-        <territory id="RO" countryCode="40" internationalPrefix="00"
-                   nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
-                   preferredExtnPrefix=" int " mobileNumberPortableRegion="true">
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000AC/en</sourceUrl>
-                <sourceUrl>http://en.wikipedia.org/wiki/Telephone_numbers_in_Romania</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="([237]\d)(\d{3})(\d{4})">
-                    <leadingDigits>[23]1</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(21)(\d{4})">
-                    <leadingDigits>21</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(\d{3})(\d{3})(\d{3})">
-                    <!-- We format mobile numbers like this, even though ITU and wikipedia hint at
-               \d{2}\d{3}\d{4} grouping, since the yellow pages (http://en.paginiaurii.ro/) and the
-               majority of numbers found online follow this convention. -->
-                    <leadingDigits>
-                        [23][3-7]|
-                        [7-9]
-                    </leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(2\d{2})(\d{3})">
-                    <leadingDigits>2[3-6]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>
-                    2\d{5,8}|
-                    [37-9]\d{8}
-                </nationalNumberPattern>
-                <!-- Although the ITU plan says the number plan is open, this was changed in 2008 according
-             to wikipedia and people must dial the full number. However, there are still short
-             numbers that total 6 digits long, so the possible number pattern should take these into
-             account. -->
-                <possibleNumberPattern>\d{6,9}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- We exclude three-digit short numbers for Bucharest (219\d{2}) and four-digit short
-             numbers outside Bucharest (2[36]\d9\d{3}) even though ITU suggests these exist. We do
-             this based on numbers found online and the wikipedia article which indicate that these
-             are four digits long in Bucharest only, and three digits elsewhere. -->
-                <nationalNumberPattern>
-                    2(?:
-                    1(?:
-                    \d{7}|
-                    9\d{3}
-                    )|
-                    [3-6](?:
-                    \d{7}|
-                    \d9\d{2}
-                    )
-                    )|
-                    3[13-6]\d{7}
-                </nationalNumberPattern>
-                <exampleNumber>211234567</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <!-- http://www.enigma-system.net/business/customized-phone-number.html confirms that the
-             numbers are restricted to those starting with 07000. Mobile prefix 0799 added based on
-             open-source report and confirmation by existence of such numbers online. -->
-                <nationalNumberPattern>
-                    7(?:
-                    000|
-                    [1-8]\d{2}|
-                    99\d
-                    )\d{5}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>712345678</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>800\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>800123456</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <nationalNumberPattern>90[036]\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>900123456</exampleNumber>
-            </premiumRate>
-            <sharedCost>
-                <nationalNumberPattern>801\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>801123456</exampleNumber>
-            </sharedCost>
-            <personalNumber>
-                <nationalNumberPattern>802\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>802123456</exampleNumber>
-            </personalNumber>
-            <uan>
-                <!-- http://www.ancom.org.ro/pnn_1300 refers to numbers beginning with 37, 38 or 39 as
-             location-independent national numbers. Only numbers beginning with 37 have been seen so
-             these are the only ones supported for now. -->
-                <nationalNumberPattern>37\d{7}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>372123456</exampleNumber>
-            </uan>
-        </territory>
-
-        <!-- Serbia -->
-        <territory id="RS" countryCode="381" internationalPrefix="00"
-                   nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
-                   mobileNumberPortableRegion="true">
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000B9/en</sourceUrl>
-                <sourceUrl>http://registar.ratel.rs/en/reg202</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="([23]\d{2})(\d{4,9})">
-                    <leadingDigits>
-                        (?:
-                        2[389]|
-                        39
-                        )0
-                    </leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="([1-3]\d)(\d{5,10})">
-                    <leadingDigits>
-                        1|
-                        2(?:
-                        [0-24-7]|
-                        [389][1-9]
-                        )|
-                        3(?:
-                        [0-8]|
-                        9[1-9]
-                        )
-                    </leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(6\d)(\d{6,8})">
-                    <leadingDigits>6</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="([89]\d{2})(\d{3,9})">
-                    <leadingDigits>[89]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(7[26])(\d{4,9})">
-                    <leadingDigits>7[26]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(7[08]\d)(\d{4,9})">
-                    <leadingDigits>7[08]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <!-- The complicated pattern here is to distinguish between Pristina (area code 38, followed
-             by 2-9) and the country calling code (381). -->
-                <nationalNumberPattern>
-                    [126-9]\d{4,11}|
-                    3(?:
-                    [0-79]\d{3,10}|
-                    8[2-9]\d{2,9}
-                    )
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{5,12}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- Most subscriber numbers may not start with 0 or 1. Exceptionally, the prefix 11 1[5-7]
-             has been issused, so we allow 11 1X here. -->
-                <nationalNumberPattern>
-                    (?:
-                    1(?:
-                    [02-9][2-9]|
-                    1[1-9]
-                    )\d|
-                    2(?:
-                    [0-24-7][2-9]\d|
-                    [389](?:
-                    0[2-9]|
-                    [2-9]\d
-                    )
-                    )|
-                    3(?:
-                    [0-8][2-9]\d|
-                    9(?:
-                    [2-9]\d|
-                    0[2-9]
-                    )
-                    )
-                    )\d{3,8}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{5,12}</possibleNumberPattern>
-                <exampleNumber>10234567</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>
-                    6(?:
-                    [0-689]|
-                    7\d
-                    )\d{6,7}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{8,10}</possibleNumberPattern>
-                <exampleNumber>601234567</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>800\d{3,9}</nationalNumberPattern>
-                <possibleNumberPattern>\d{6,12}</possibleNumberPattern>
-                <exampleNumber>80012345</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <nationalNumberPattern>
-                    (?:
-                    90[0169]|
-                    78\d
-                    )\d{3,7}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{6,12}</possibleNumberPattern>
-                <exampleNumber>90012345</exampleNumber>
-            </premiumRate>
-            <uan>
-                <nationalNumberPattern>7[06]\d{4,10}</nationalNumberPattern>
-                <possibleNumberPattern>\d{6,12}</possibleNumberPattern>
-                <exampleNumber>700123456</exampleNumber>
-            </uan>
-        </territory>
-
-        <!-- Russian Federation -->
-        <territory id="RU" countryCode="7" mainCountryForCode="true" preferredInternationalPrefix="8~10"
-                   internationalPrefix="810" nationalPrefix="8"
-                   nationalPrefixFormattingRule="$NP ($FG)"
-                   nationalPrefixOptionalWhenFormatting="true" >
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000AD/en</sourceUrl>
-                <sourceUrl>http://en.wikipedia.org/wiki/%2B7</sourceUrl>
-            </references>
-            <availableFormats>
-                <!-- Formatting from wikipedia, confirmed on Goverment websites such as
-             http://www.minjust.ru/ru/structure/contact/. Contains formatting instructions for
-             Kazakhstan as well. -->
-                <numberFormat pattern="(\d{3})(\d{2})(\d{2})" nationalPrefixFormattingRule="$FG">
-                    <!-- Local numbers only - these do not start with the national prefix. -->
-                    <leadingDigits>[1-79]</leadingDigits>
-                    <format>$1-$2-$3</format>
-                    <intlFormat>NA</intlFormat>
-                </numberFormat>
-                <numberFormat pattern="([3489]\d{2})(\d{3})(\d{2})(\d{2})">
-                    <leadingDigits>[34689]</leadingDigits>
-                    <format>$1 $2-$3-$4</format>
-                </numberFormat>
-                <numberFormat pattern="(7\d{2})(\d{3})(\d{4})">
-                    <leadingDigits>7</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[3489]\d{9}</nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- The Ivanovo area code 493 was omitted on the official document, but this is still used
-             in the yellow pages, and on their own website and is listed on wikipedia. This applies
-             also to 395 (Irkutsk). Also including the 840 prefix for Abkhazia. -->
-                <nationalNumberPattern>
-                    (?:
-                    3(?:
-                    0[12]|
-                    4[1-35-79]|
-                    5[1-3]|
-                    8[1-58]|
-                    9[0145]
-                    )|
-                    4(?:
-                    01|
-                    1[1356]|
-                    2[13467]|
-                    7[1-5]|
-                    8[1-7]|
-                    9[1-689]
-                    )|
-                    8(?:
-                    1[1-8]|
-                    2[01]|
-                    3[13-6]|
-                    4[0-8]|
-                    5[15]|
-                    6[1-35-7]|
-                    7[1-37-9]
-                    )
-                    )\d{7}
-                </nationalNumberPattern>
-                <exampleNumber>3011234567</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <nationalNumberPattern>9\d{9}</nationalNumberPattern>
-                <exampleNumber>9123456789</exampleNumber>
-            </mobile>
-            <tollFree>
-                <!-- The metadata states that 804 numbers are UAN numbers, but
-             teleum.ru/numbers/toll_free_804 states that they are now being offered as toll-free
-             numbers. -->
-                <nationalNumberPattern>80[04]\d{7}</nationalNumberPattern>
-                <exampleNumber>8001234567</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <!-- Covers tele-voting numbers as well. -->
-                <nationalNumberPattern>80[39]\d{7}</nationalNumberPattern>
-                <exampleNumber>8091234567</exampleNumber>
-            </premiumRate>
-        </territory>
-
-        <!-- Rwanda -->
-        <!-- According to ITU, there is no national prefix. However, this is still used. As of June 3rd
-         2011, this was confirmed by a Rwandan local. It is also shown in this format on pages such
-         as http://www.tigo.co.rw "Choose Your Number" service. -->
-        <territory id="RW" countryCode="250" internationalPrefix="00"
-                   nationalPrefix="0" leadingZeroPossible="true">
-            <references>
-                <sourceUrl>http://www.rura.gov.rw/docs/RWANDA_NATIONAL_NUMBERING_PLAN.pdf</sourceUrl>
-                <sourceUrl>http://en.wikipedia.org/wiki/+250</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat nationalPrefixFormattingRule="$FG"
-                  pattern="(2\d{2})(\d{3})(\d{3})">
-                    <leadingDigits>2</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="([7-9]\d{2})(\d{3})(\d{3})" nationalPrefixFormattingRule="$NP$FG">
-                    <leadingDigits>[7-9]</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(0\d)(\d{2})(\d{2})(\d{2})">
-                    <leadingDigits>0</leadingDigits>
-                    <format>$1 $2 $3 $4</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[027-9]\d{7,8}</nationalNumberPattern>
-                <possibleNumberPattern>\d{8,9}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- We support satellite numbers here, since they are in the plan, although no recent
-             online examples can be found. We also support fixed-line ranges that have been reserved
-             and paid for, even where no online numbers can be found. -->
-                <nationalNumberPattern>
-                    2[258]\d{7}|
-                    06\d{6}
-                </nationalNumberPattern>
-                <exampleNumber>250123456</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <!-- Adding 73X for Airtel - this is on the wikipedia page, but not yet in the Rwanda
-             telecommunications numbering plan. Removing 75 - that was Rwandatel but they had their
-             license revoked. -->
-                <nationalNumberPattern>7[238]\d{7}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>720123456</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>800\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>800123456</exampleNumber>
-            </tollFree>
-            <premiumRate>
-                <nationalNumberPattern>900\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>900123456</exampleNumber>
-            </premiumRate>
-        </territory>
-
-        <!-- Saudi Arabia -->
-        <territory id="SA" countryCode="966" internationalPrefix="00"
-                   nationalPrefix="0" nationalPrefixFormattingRule="$NP$FG"
-                   mobileNumberPortableRegion="true">
-            <references>
-                <sourceUrl>http://en.wikipedia.org/wiki/Telephone_numbers_in_Saudi_Arabia</sourceUrl>
-                <sourceUrl>http://www.itu.int/oth/T02020000B7/en</sourceUrl>
-            </references>
-            <availableFormats>
-                <numberFormat pattern="([1-467])(\d{3})(\d{4})">
-                    <leadingDigits>[1-467]</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(1\d)(\d{3})(\d{4})">
-                    <leadingDigits>1[1-467]</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(5\d)(\d{3})(\d{4})">
-                    <leadingDigits>5</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <!-- It seems that the trunk prefix is not used for these numbers, based on wikipedia and on
-             the fact that no numbers of this form found online have a trunk prefix added. -->
-                <numberFormat pattern="(92\d{2})(\d{5})" nationalPrefixFormattingRule="$FG">
-                    <leadingDigits>92</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-                <numberFormat pattern="(800)(\d{3})(\d{4})" nationalPrefixFormattingRule="$FG">
-                    <leadingDigits>80</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-                <numberFormat pattern="(811)(\d{3})(\d{3,4})">
-                    <leadingDigits>81</leadingDigits>
-                    <format>$1 $2 $3</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <!-- The more detailed pattern here is to allow the country-code to be stripped off for
-             fixed-line numbers. -->
-                <nationalNumberPattern>
-                    1\d{7,8}|
-                    (?:
-                    [2-467]|
-                    92
-                    )\d{7}|
-                    5\d{8}|
-                    8\d{9}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{7,10}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- Saudi Arabia is in the process of adding a leading 1 to their fixed-line numbers. This
-             happened in May for area code 1 (parallel running ended July 13th, 2013) and then in
-             August for the other fixed-line numbers (parallel running ends October 18th, 2013). -->
-                <nationalNumberPattern>
-                    11\d{7}|
-                    1?(?:
-                    2[24-8]|
-                    3[35-8]|
-                    4[3-68]|
-                    6[2-5]|
-                    7[235-7]
-                    )\d{6}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{7,9}</possibleNumberPattern>
-                <exampleNumber>112345678</exampleNumber>
-            </fixedLine>
-            <mobile>
-                <!-- Including "Nomadic" numbers from the Telecom Company "Go". The ITU document now says
-             they are 11 digits long; however all online numbers are 10, and it used to say 10, so
-             until we find evidence that this is an error, leaving them at 10 for now. -->
-                <nationalNumberPattern>
-                    (?:
-                    5(?:
-                    [013-689]\d|
-                    7[0-26-8]
-                    )|
-                    811\d
-                    )\d{6}
-                </nationalNumberPattern>
-                <possibleNumberPattern>\d{9,10}</possibleNumberPattern>
-                <exampleNumber>512345678</exampleNumber>
-            </mobile>
-            <tollFree>
-                <nationalNumberPattern>800\d{7}</nationalNumberPattern>
-                <possibleNumberPattern>\d{10}</possibleNumberPattern>
-                <exampleNumber>8001234567</exampleNumber>
-            </tollFree>
-            <sharedCost>
-                <!-- Including shared revenue with shared cost here. -->
-                <nationalNumberPattern>92[05]\d{6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{9}</possibleNumberPattern>
-                <exampleNumber>920012345</exampleNumber>
-            </sharedCost>
-        </territory>
-
-        <!-- Solomon Islands -->
-        <territory id="SB" countryCode="677" internationalPrefix="0[01]">
-            <references>
-                <sourceUrl>http://www.itu.int/oth/T02020000BF/en</sourceUrl>
-            </references>
-            <!-- A single group is used to format 5-digit numbers. This formatting pattern follows
-           the guidelines in the ITU document. -->
-            <availableFormats>
-                <numberFormat pattern="(\d{2})(\d{5})">
-                    <leadingDigits>[7-9]</leadingDigits>
-                    <format>$1 $2</format>
-                </numberFormat>
-            </availableFormats>
-            <generalDesc>
-                <nationalNumberPattern>[1-9]\d{4,6}</nationalNumberPattern>
-                <possibleNumberPattern>\d{5,7}</possibleNumberPattern>
-            </generalDesc>
-            <fixedLine>
-                <!-- Although not mentioned in the 2011 update, it seems likely that the range 67300-67699
-             is still used for Sasamunga, Shortland, Poitete and Ringgi as per the 2010 plan. -->
-        <nationalNumberPattern>
-          (?:
-            1[4-79]|
-            [23]\d|
-            4[0-2]|
-            5[03]|
-            6[0-37]
-          )\d{3}
-        </nationalNumberPattern>
-        <possibleNumberPattern>\d{5}</possibleNumberPattern>
-        <exampleNumber>40123</exampleNumber>
-      </fixedLine>
-      <mobile>
-        <!-- The 795 prefix is not in the ITU plan (5.XII.2014), but was added because such a number
-             was dialed successfully. -->
-        <nationalNumberPattern>
-          48\d{3}|
-          7(?:
-            30|
-            [46-8]\d|
-            5[025-9]|
-            9[0-5]
-          )\d{4}|
-          8[4-8]\d{5}|
-          9(?:
-            1[2-9]|
-            2[013-9]|
-            3[0-2]|
-            [46]\d|
-            5[0-46-9]|
-            7[0-689]|
-            8[0-79]|
-            9[0-8]
-          )\d{4}
-        </nationalNumberPattern>
-        <exampleNumber>7421234</exampleNumber>
-      </mobile>
-      <tollFree>
-        <nationalNumberPattern>1[38]\d{3}</nationalNumberPattern>
-        <possibleNumberPattern>\d{5}</possibleNumberPattern>
-        <exampleNumber>18123</exampleNumber>
-      </tollFree>
-      <voip>
-        <nationalNumberPattern>5[12]\d{3}</nationalNumberPattern>
-        <possibleNumberPattern>\d{5}</possibleNumberPattern>
-        <exampleNumber>51123</exampleNumber>
-      </voip>
-    </territory>
-
-    <!-- Seychelles -->
-    <territory id="SC" countryCode="248" internationalPrefix="0[0-2]"
-               preferredInternationalPrefix="00">
-      <references>
-        <sourceUrl>http://www.itu.int/oth/T02020000BA/en</sourceUrl>
-        <sourceUrl>http://en.wikipedia.org/wiki/Telephone_numbers_in_Seychelles</sourceUrl>
-      </references>
-      <availableFormats>
-        <numberFormat pattern="(\d{3})(\d{3})">
-          <leadingDigits>8</leadingDigits>
-          <format>$1 $2</format>
-        </numberFormat>
-        <numberFormat pattern="(\d)(\d{3})(\d{3})">
-          <leadingDigits>[246]</leadingDigits>
-          <format>$1 $2 $3</format>
-        </numberFormat>
-      </availableFormats>
-      <generalDesc>
-        <nationalNumberPattern>[2468]\d{5,6}</nationalNumberPattern>
-        <possibleNumberPattern>\d{6,7}</possibleNumberPattern>
-      </generalDesc>
-      <fixedLine>
-        <nationalNumberPattern>
-          868(?:
-            2(?:
-              01|
-              2[1-6]|
-              3[1-5]
-            )|
-            6(?:
-              0[79]|
-              1[02-8]|
-              2[1-9]|
-              [3-69]\d|
-              7[0-79]
-            )|
-            82[124]
-          )\d{4}
-        </nationalNumberPattern>
-        <exampleNumber>8682211234</exampleNumber>
       </fixedLine>
       <!-- Added prefix 90 per IR21 from the carrier -->
       <mobile>

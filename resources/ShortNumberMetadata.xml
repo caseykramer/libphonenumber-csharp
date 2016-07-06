@@ -2020,6 +2020,70 @@
     <!-- http://csi.sunrise.ch/smartzone/_privat -->
     <territory id="CH">
       <generalDesc>
+        <nationalNumberPattern>1\d{2,3}</nationalNumberPattern>
+        <possibleNumberPattern>\d{3,4}</possibleNumberPattern>
+      </generalDesc>
+      <shortCode>
+         <nationalNumberPattern>
+          1(?:
+            1[478]|
+            220
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,4}</possibleNumberPattern>
+        <exampleNumber>117</exampleNumber>
+      </shortCode>
+      <emergency>
+        <nationalNumberPattern>
+          1(?:
+            1[78]|
+            220
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,4}</possibleNumberPattern>
+        <exampleNumber>1220</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>114</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>114</exampleNumber>
+      </expandedEmergency>
+    </territory>
+
+    <!-- Congo (Rep. of the) (Brazzaville) -->
+    <territory id="CG">
+      <generalDesc>
+        <nationalNumberPattern>11\d</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+      </generalDesc>
+      <shortCode>
+        <nationalNumberPattern>11[12678]</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>117</exampleNumber>
+      </shortCode>
+      <tollFree>
+        <nationalNumberPattern>111</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>111</exampleNumber>
+      </tollFree>
+      <emergency>
+        <nationalNumberPattern>11[78]</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>117</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>11[26]</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>112</exampleNumber>
+      </expandedEmergency>
+    </territory>
+
+    <!-- Switzerland -->
+    <!-- http://www.bakom.admin.ch/themen/telekom/00479/00604/index.html?lang=en -->
+    <!-- http://en.wikipedia.org/wiki/Telephone_numbers_in_Switzerland#Short_numbers -->
+    <!-- http://csi.sunrise.ch/smartzone/_privat -->
+    <territory id="CH">
+      <generalDesc>
         <nationalNumberPattern>[1-9]\d{2,5}</nationalNumberPattern>
         <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
       </generalDesc>
@@ -3310,6 +3374,69 @@
         </nationalNumberPattern>
         <exampleNumber>15</exampleNumber>
       </emergency>
+    </territory>
+
+    <!-- Eritrea -->
+    <territory id="ER">
+      <generalDesc>
+        <nationalNumberPattern>[12]\d{2,5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
+      </generalDesc>
+      <shortCode>
+        <nationalNumberPattern>
+          1(?:
+            1[2-6]|
+            2(?:
+              4422|
+              7799
+             )
+           )|
+          2(?:
+            0(?:
+              1(?:
+                606|
+                917
+               )|
+              2(?:
+                099|
+                914
+               )
+             )
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
+        <exampleNumber>114</exampleNumber>
+      </shortCode>
+      <emergency>
+        <nationalNumberPattern>
+          1(?:
+            1[2-46]|
+            2(?:
+              4422|
+              7799
+             )
+           )|
+          2(?:
+            0(?:
+              1(?:
+                606|
+                917
+               )|
+              2(?:
+                099|
+                914
+               )
+             )
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
+        <exampleNumber>113</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>115</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>115</exampleNumber>
+      </expandedEmergency>
     </territory>
 
     <!-- Eritrea -->
