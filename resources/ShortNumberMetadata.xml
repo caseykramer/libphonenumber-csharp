@@ -3134,6 +3134,72 @@
       </expandedEmergency>
     </territory>
 
+    <!-- Spain -->
+    <!-- http://www.minetur.gob.es/telecomunicaciones/es-ES/Servicios/Numeracion/Documents/2012_09_10_Presentation_E164_Numbering_plan_Spain.pdf -->
+    <!-- http://www.minetur.gob.es/telecomunicaciones/es-ES/Servicios/Numeracion/Documents/Descripcion_plan_20101216.pdf -->
+    <!-- http://www.minetur.gob.es/telecomunicaciones/es-ES/Servicios/Numeracion/Documents/13-01-11_Gu%C3%ADa_Numeracion.pdf -->
+    <territory id="ES">
+      <generalDesc>
+        <nationalNumberPattern>[12]\d{2,5}</nationalNumberPattern>
+        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
+      </generalDesc>
+      <shortCode>
+        <nationalNumberPattern>
+          1(?:
+            1[2-6]|
+            2(?:
+              4422|
+              7799
+             )
+           )|
+          2(?:
+            0(?:
+              1(?:
+                606|
+                917
+               )|
+              2(?:
+                099|
+                914
+               )
+             )
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
+        <exampleNumber>114</exampleNumber>
+      </shortCode>
+      <emergency>
+        <nationalNumberPattern>
+          1(?:
+            1[2-46]|
+            2(?:
+              4422|
+              7799
+             )
+           )|
+          2(?:
+            0(?:
+              1(?:
+                606|
+                917
+               )|
+              2(?:
+                099|
+                914
+               )
+             )
+           )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3,6}</possibleNumberPattern>
+        <exampleNumber>113</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>115</nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>115</exampleNumber>
+      </expandedEmergency>
+    </territory>
+
     <!-- Eritrea -->
     <territory id="ER">
       <generalDesc>
@@ -4828,6 +4894,32 @@
         <nationalNumberPattern>
           112|
           999
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{3}</possibleNumberPattern>
+        <exampleNumber>112</exampleNumber>
+      </emergency>
+      <expandedEmergency>
+        <nationalNumberPattern>
+          116(?:
+            00[06]|
+            1(?:
+              11|
+              23
+            )
+          )
+        </nationalNumberPattern>
+        <possibleNumberPattern>\d{6}</possibleNumberPattern>
+        <exampleNumber>116000</exampleNumber>
+      </expandedEmergency>
+      <tollFree>
+        <nationalNumberPattern>
+          116(?:
+            00[06]|
+            1(?:
+              11|
+              23
+            )
+          )
         </nationalNumberPattern>
         <possibleNumberPattern>\d{3}</possibleNumberPattern>
         <exampleNumber>112</exampleNumber>
