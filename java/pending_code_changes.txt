@@ -1,3 +1,1 @@
- - Deleted unsupported SingleFilePhoneNumberMetadataProto.
-Code changes:
- - Refactored metadata loading and closed all streams after loading.
+
