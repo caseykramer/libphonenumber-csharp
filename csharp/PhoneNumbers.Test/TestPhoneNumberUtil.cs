@@ -302,6 +302,10 @@ namespace PhoneNumbers.Test
 
             // An international toll free number, which has no area code.
             Assert.AreEqual(0, phoneUtil.GetLengthOfGeographicalAreaCode(INTERNATIONAL_TOLL_FREE));
+
+            // A mobile number from China is geographical, but does not have an area code.
+            PhoneNumber cnMobile = new PhoneNumber.Builder().SetCountryCode(86).SetNationalNumber(18912341234L).Build();
+            Assert.AreEqual(0, phoneUtil.GetLengthOfGeographicalAreaCode(cnMobile));
         }
 
         [Test]
