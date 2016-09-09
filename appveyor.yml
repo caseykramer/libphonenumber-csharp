@@ -1,4 +1,4 @@
-version: 7.6.1.{Build}
+version: 7.6.2.{Build}
 branches:
   only:
   - csharp
