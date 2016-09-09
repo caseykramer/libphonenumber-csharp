@@ -824,12 +824,17 @@ namespace PhoneNumbers
                 // Note this is a rough heuristic; it doesn't cover Indonesia well, for example, where area
                 // codes are present for some mobile phones but not for others. We have no better way of
                 // representing this in the metadata at this point.
-                && GEO_MOBILE_COUNTRIES_WITHOUT_MOBILE_AREA_CODES.contains(countryCallingCode)) 
+                && GEO_MOBILE_COUNTRIES_WITHOUT_MOBILE_AREA_CODES.Contains(countryCallingCode)) 
             {
             
                 return 0;
             }
-            
+
+            if (!IsNumberGeographical(type, countryCallingCode))
+            {
+                return 0;
+            }
+
             return GetLengthOfNationalDestinationCode(number);
         }
 
