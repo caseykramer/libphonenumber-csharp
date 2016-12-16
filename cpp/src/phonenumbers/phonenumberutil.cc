@@ -208,9 +208,9 @@ string CreateExtnPattern(const string& single_extn_symbols) {
   // The first regular expression covers RFC 3966 format, where the extension is
   // added using ";ext=". The second more generic one starts with optional white
   // space and ends with an optional full stop (.), followed by zero or more
-  // spaces/tabs and then the numbers themselves. The third one covers the
-  // special case of American numbers where the extension is written with a hash
-  // at the end, such as "- 503#".
+  // spaces/tabs/commas and then the numbers themselves. The third one covers
+  // the special case of American numbers where the extension is written with a
+  // hash at the end, such as "- 503#".
   // Note that the only capturing groups should be around the digits that you
   // want to capture as part of the extension, or else parsing will fail!
   // Canonical-equivalence doesn't seem to be an option with RE2, so we allow
@@ -314,6 +314,7 @@ class PhoneNumberRegExpsAndMappings {
   void InitializeMapsAndSets() {
     diallable_char_mappings_.insert(std::make_pair('+', '+'));
     diallable_char_mappings_.insert(std::make_pair('*', '*'));
+    diallable_char_mappings_.insert(std::make_pair('#', '#'));
     // Here we insert all punctuation symbols that we wish to respect when
     // formatting alpha numbers, as they show the intended number groupings.
     all_plus_number_grouping_symbols_.insert(
@@ -450,8 +451,8 @@ class PhoneNumberRegExpsAndMappings {
   // will be run as a case-insensitive regexp match. Wide character versions are
   // also provided after each ASCII version.
   // For parsing, we are slightly more lenient in our interpretation than for
-  // matching. Here we allow a "comma" as a possible extension indicator. When
-  // matching, this is hardly ever used to indicate this.
+  // matching. Here we allow "comma" and "semicolon" as possible extension
+  // indicators. When matching, these are hardly ever used to indicate this.
   const string extn_patterns_for_parsing_;
 
  public:
@@ -569,7 +570,7 @@ class PhoneNumberRegExpsAndMappings {
                    punctuation_and_star_sign_, kDigits,
                    "]*")),
         extn_patterns_for_parsing_(
-            CreateExtnPattern(StrCat(",", kSingleExtnSymbolsForMatching))),
+            CreateExtnPattern(StrCat(",;", kSingleExtnSymbolsForMatching))),
         regexp_factory_(new RegExpFactory()),
         regexp_cache_(new RegExpCache(*regexp_factory_.get(), 128)),
         diallable_char_mappings_(),
@@ -991,7 +992,11 @@ void PhoneNumberUtil::FormatNationalNumberWithPreferredCarrierCode(
     string* formatted_number) const {
   FormatNationalNumberWithCarrierCode(
       number,
-      number.has_preferred_domestic_carrier_code()
+      // Historically, we set this to an empty string when parsing with raw
+      // input if none was found in the input string. However, this doesn't
+      // result in a number we can dial. For this reason, we treat the empty
+      // string the same as if it isn't set at all.
+      !number.preferred_domestic_carrier_code().empty()
           ? number.preferred_domestic_carrier_code()
           : fallback_carrier_code,
       formatted_number);
@@ -1027,9 +1032,13 @@ void PhoneNumberUtil::FormatNumberForMobileDialing(
           number_no_extension, kColombiaMobileToFixedLinePrefix,
           formatted_number);
     } else if ((region_code == "BR") && (is_fixed_line_or_mobile)) {
-      if (number_no_extension.has_preferred_domestic_carrier_code()) {
-      FormatNationalNumberWithPreferredCarrierCode(number_no_extension, "",
-                                                   formatted_number);
+      // Historically, we set this to an empty string when parsing with raw
+      // input if none was found in the input string. However, this doesn't
+      // result in a number we can dial. For this reason, we treat the empty
+      // string the same as if it isn't set at all.
+      if (!number_no_extension.preferred_domestic_carrier_code().empty()) {
+        FormatNationalNumberWithPreferredCarrierCode(number_no_extension, "",
+                                                     formatted_number);
       } else {
         // Brazilian fixed line and mobile numbers need to be dialed with a
         // carrier code when called within Brazil. Without that, most of the
@@ -1795,11 +1804,11 @@ bool PhoneNumberUtil::GetExampleNumberForType(
     int country_calling_code = *it;
     const PhoneMetadata* metadata =
         GetMetadataForNonGeographicalRegion(country_calling_code);
-    const PhoneNumberDesc& desc = metadata->general_desc();
-    if (desc.has_example_number()) {
+    const PhoneNumberDesc* desc = GetNumberDescByType(*metadata, type);
+    if (desc->has_example_number()) {
       ErrorType success = Parse(StrCat(kPlusSign,
                                        country_calling_code,
-                                       desc.example_number()),
+                                       desc->example_number()),
                                 RegionCode::GetUnknown(), number);
       if (success == NO_PARSING_ERROR) {
         return true;
@@ -1819,17 +1828,28 @@ bool PhoneNumberUtil::GetExampleNumberForNonGeoEntity(
   const PhoneMetadata* metadata =
       GetMetadataForNonGeographicalRegion(country_calling_code);
   if (metadata) {
-    const PhoneNumberDesc& desc = metadata->general_desc();
-    if (desc.has_example_number()) {
-      ErrorType success = Parse(StrCat(kPlusSign,
-                                       SimpleItoa(country_calling_code),
-                                       desc.example_number()),
-                                RegionCode::GetUnknown(), number);
-      if (success == NO_PARSING_ERROR) {
-        return true;
-      } else {
-        LOG(ERROR) << "Error parsing example number ("
-                   << static_cast<int>(success) << ")";
+    // For geographical entities, fixed-line data is always present. However,
+    // for non-geographical entities, this is not the case, so we have to go
+    // through different types to find the example number. We don't check
+    // fixed-line or personal number since they aren't used by non-geographical
+    // entities (if this changes, a unit-test will catch this.)
+    const int kNumberTypes = 7;
+    PhoneNumberDesc types[kNumberTypes] = {
+        metadata->mobile(), metadata->toll_free(), metadata->shared_cost(),
+        metadata->voip(), metadata->voicemail(), metadata->uan(),
+        metadata->premium_rate()};
+    for (int i = 0; i < kNumberTypes; ++i) {
+      if (types[i].has_example_number()) {
+        ErrorType success = Parse(StrCat(kPlusSign,
+                                         SimpleItoa(country_calling_code),
+                                         types[i].example_number()),
+                                  RegionCode::GetUnknown(), number);
+        if (success == NO_PARSING_ERROR) {
+          return true;
+        } else {
+          LOG(ERROR) << "Error parsing example number ("
+                     << static_cast<int>(success) << ")";
+        }
       }
     }
   } else {
@@ -2017,7 +2037,7 @@ PhoneNumberUtil::ErrorType PhoneNumberUtil::ParseHelper(
     if (TestNumberLength(potential_national_number,
                          country_metadata->general_desc()) != TOO_SHORT) {
       normalized_national_number.assign(potential_national_number);
-      if (keep_raw_input) {
+      if (keep_raw_input && !carrier_code.empty()) {
         temp_number.set_preferred_domestic_carrier_code(carrier_code);
       }
     }
